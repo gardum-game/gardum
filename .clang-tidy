@@ -1,0 +1,16 @@
+Checks: >
+  bugprone-*,
+  cppcoreguidelines-*,
+  misc-*,
+  modernize-*,
+  performance-*,
+  portability-*,
+  readability-*,
+  -cppcoreguidelines-avoid-magic-numbers,
+  -readability-uppercase-literal-suffix,
+  -cppcoreguidelines-special-member-functions,
+  -modernize-use-trailing-return-type,
+  -cppcoreguidelines-avoid-non-const-global-variables,
+  -readability-magic-numbers,
+
+# vim: filetype=yaml

@@ -1,0 +1,6 @@
+[generate-compile-commands]
+command=UnrealBuildTool GardumEditor Linux Development "$(VIM_CWD)"/Gardum.uproject -waitmutex -mode=GenerateClangDatabase
+cwd=$(VIM_CWD)
+save=2
+
+; vim: filetype=dosini
