@@ -22,7 +22,7 @@
 
 #include "AbilitySystemComponent.h"
 #include "Components/SphereComponent.h"
-#include "Core/Hero.h"
+#include "Heroes/Hero.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "NiagaraComponent.h"
 
