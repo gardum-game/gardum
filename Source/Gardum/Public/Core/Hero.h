@@ -23,6 +23,7 @@
 #include "AbilitySystemInterface.h"
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "HeroTypes.h"
 
 #include "Hero.generated.h"
 
@@ -30,16 +31,6 @@ class USpringArmComponent;
 class UCameraComponent;
 class UAbilitySystemComponent;
 class UGameplayAbility;
-
-UENUM()
-enum class AbilityActions : int32
-{
-	MainAttack,
-	Ability1,
-	Ability2,
-	Ability3,
-	Ultimate,
-};
 
 UCLASS(config = Game)
 class GARDUM_API AHero : public ACharacter, public IAbilitySystemInterface
@@ -88,7 +79,7 @@ private:
 	UAbilitySystemComponent* AbilitySystem;
 
 	UPROPERTY(EditAnywhere, Category = "Abilities")
-	TMap<AbilityActions, TSubclassOf<UGameplayAbility>> DefaultAbilities;
+	TMap<AbilityAction, TSubclassOf<UGameplayAbility>> DefaultAbilities;
 
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	static constexpr float BaseTurnRate = 45.0f;
