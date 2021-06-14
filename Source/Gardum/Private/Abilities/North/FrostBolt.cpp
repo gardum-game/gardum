@@ -23,11 +23,6 @@
 #include "Core/Projectile.h"
 #include "GameFramework/Character.h"
 
-UFrostBolt::UFrostBolt(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
-{
-}
-
 void UFrostBolt::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, [[maybe_unused]] const FGameplayEventData* TriggerEventData)
 {
 	if (!HasAuthorityOrPredictionKey(ActorInfo, &ActivationInfo))

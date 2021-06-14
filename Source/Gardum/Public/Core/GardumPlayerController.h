@@ -33,8 +33,6 @@ class GARDUM_API AGardumPlayerController : public APlayerController
 	DECLARE_EVENT_OneParam(AGardumPlayerController, FOnPawnChanged, APawn*);
 
 public:
-	AGardumPlayerController(const FObjectInitializer& ObjectInitializer);
-
 	void SetPawn(APawn* InPawn) override;
 
 	FOnPawnChanged& OnPawnChanged();

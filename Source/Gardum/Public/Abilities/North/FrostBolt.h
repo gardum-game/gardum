@@ -33,8 +33,6 @@ class GARDUM_API UFrostBolt : public UGameplayAbility
 	GENERATED_BODY() // NOLINT
 
 public:
-	UFrostBolt(const FObjectInitializer& ObjectInitializer);
-
 	void ActivateAbility(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,  FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 
 private:

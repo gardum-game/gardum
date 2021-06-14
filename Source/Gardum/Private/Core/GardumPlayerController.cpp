@@ -20,11 +20,6 @@
 
 #include "Core/GardumPlayerController.h"
 
-AGardumPlayerController::AGardumPlayerController(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
-{
-}
-
 void AGardumPlayerController::SetPawn(APawn* InPawn)
 {
 	Super::SetPawn(InPawn);
