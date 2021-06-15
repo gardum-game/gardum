@@ -30,7 +30,7 @@
 class USpringArmComponent;
 class UCameraComponent;
 class UAbilitySystemComponent;
-class UGameplayAbility;
+class UHeroGameplayAbility;
 
 UCLASS(config = Game)
 class GARDUM_API AHero : public ACharacter, public IAbilitySystemInterface
@@ -79,7 +79,7 @@ private:
 	UAbilitySystemComponent* AbilitySystem;
 
 	UPROPERTY(EditAnywhere, Category = "Abilities")
-	TMap<AbilityAction, TSubclassOf<UGameplayAbility>> DefaultAbilities;
+	TMap<AbilityAction, TSubclassOf<UHeroGameplayAbility>> DefaultAbilities;
 
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	static constexpr float BaseTurnRate = 45.0f;

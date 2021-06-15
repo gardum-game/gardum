@@ -20,28 +20,30 @@
 
 #pragma once
 
+#include "Blueprint/UserWidget.h"
 #include "CoreMinimal.h"
-#include "Heroes/HeroGameplayAbility.h"
 
-#include "FrostBolt.generated.h"
+#include "AbilityIcon.generated.h"
 
-class AProjectile;
+class UProgressBar;
+class UImage;
+class UHeroGameplayAbility;
 
 UCLASS()
-class GARDUM_API UFrostBolt : public UHeroGameplayAbility
+class GARDUM_API UAbilityIcon : public UUserWidget
 {
 	GENERATED_BODY() // NOLINT
 
 public:
-	void ActivateAbility(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+	void SetAbility(UHeroGameplayAbility* NewAbility);
 
 private:
-	UPROPERTY(EditAnywhere, Category = "Ability")
-	TSubclassOf<AProjectile> ProjectileClass;
+	UPROPERTY(meta = (BindWidget))
+	UProgressBar* Cooldown = nullptr;
 
-	UPROPERTY(EditAnywhere, Category = "Ability")
-	TSubclassOf<UGameplayEffect> DamageEffectClass;
+	UPROPERTY(meta = (BindWidget))
+	UImage* Icon = nullptr;
 
-	UPROPERTY(EditAnywhere, Category = "Ability")
-	FName AttachedSocketName;
+	UPROPERTY()
+	UHeroGameplayAbility* Ability = nullptr;
 };

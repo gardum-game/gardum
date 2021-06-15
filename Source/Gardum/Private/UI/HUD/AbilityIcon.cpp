@@ -18,30 +18,27 @@
  *
  */
 
-#pragma once
+#include "UI/HUD/AbilityIcon.h"
 
-#include "CoreMinimal.h"
+#include "Components/Image.h"
+#include "Components/ProgressBar.h"
 #include "Heroes/HeroGameplayAbility.h"
 
-#include "FrostBolt.generated.h"
-
-class AProjectile;
-
-UCLASS()
-class GARDUM_API UFrostBolt : public UHeroGameplayAbility
+void UAbilityIcon::SetAbility(UHeroGameplayAbility* NewAbility)
 {
-	GENERATED_BODY() // NOLINT
+	if (Ability != nullptr)
+	{
+		Ability->OnGameplayAbilityEnded.RemoveAll(this);
+	}
 
-public:
-	void ActivateAbility(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+	Ability = NewAbility;
+	if (Ability == nullptr)
+	{
+		return;
+	}
 
-private:
-	UPROPERTY(EditAnywhere, Category = "Ability")
-	TSubclassOf<AProjectile> ProjectileClass;
-
-	UPROPERTY(EditAnywhere, Category = "Ability")
-	TSubclassOf<UGameplayEffect> DamageEffectClass;
-
-	UPROPERTY(EditAnywhere, Category = "Ability")
-	FName AttachedSocketName;
-};
+	if (UTexture2D* AbilityIcon = Ability->GetIcon(); AbilityIcon != nullptr)
+	{
+		Icon->SetBrushFromTexture(AbilityIcon);
+	}
+}

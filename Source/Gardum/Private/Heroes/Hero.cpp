@@ -28,6 +28,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Heroes/HeroGameplayAbility.h"
 
 AHero::AHero()
 	: SpringArm(CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm")))

@@ -20,28 +20,22 @@
 
 #pragma once
 
+#include "Abilities/GameplayAbility.h"
 #include "CoreMinimal.h"
-#include "Heroes/HeroGameplayAbility.h"
 
-#include "FrostBolt.generated.h"
+#include "HeroGameplayAbility.generated.h"
 
-class AProjectile;
+class UTexture;
 
 UCLASS()
-class GARDUM_API UFrostBolt : public UHeroGameplayAbility
+class GARDUM_API UHeroGameplayAbility : public UGameplayAbility
 {
 	GENERATED_BODY() // NOLINT
 
 public:
-	void ActivateAbility(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+	UTexture2D* GetIcon();
 
-private:
+protected:
 	UPROPERTY(EditAnywhere, Category = "Ability")
-	TSubclassOf<AProjectile> ProjectileClass;
-
-	UPROPERTY(EditAnywhere, Category = "Ability")
-	TSubclassOf<UGameplayEffect> DamageEffectClass;
-
-	UPROPERTY(EditAnywhere, Category = "Ability")
-	FName AttachedSocketName;
+	UTexture2D* Icon = nullptr;
 };

@@ -7,10 +7,12 @@ Checks: >
   portability-*,
   readability-*,
   -cppcoreguidelines-avoid-magic-numbers,
-  -readability-uppercase-literal-suffix,
-  -cppcoreguidelines-special-member-functions,
-  -modernize-use-trailing-return-type,
   -cppcoreguidelines-avoid-non-const-global-variables,
+  -cppcoreguidelines-special-member-functions,
+  -cppcoreguidelines-non-private-member-variables-in-classes,
+  -misc-non-private-member-variables-in-classes,
+  -modernize-use-trailing-return-type,
   -readability-magic-numbers,
+  -readability-uppercase-literal-suffix,
 
 # vim: filetype=yaml

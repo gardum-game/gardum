@@ -30,3 +30,6 @@ Intermediate/*
 
 # Cache files for the editor to use
 DerivedDataCache/*
+
+# Krita backup files
+*~

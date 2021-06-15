@@ -22,19 +22,36 @@
 
 #include "Components/ProgressBar.h"
 #include "GameplayEffectTypes.h"
+#include "UI/HUD/AbilityIcon.h"
 
 void UHeroHUD::SetHealth(float CurrentValue, float BaseValue)
 {
-	if (ensureAlwaysMsgf(HealthBar != nullptr, TEXT("HealthBar was not set")))
-	{
-		HealthBar->SetPercent(CurrentValue / BaseValue);
-	}
+	HealthBar->SetPercent(CurrentValue / BaseValue);
 }
 
 void UHeroHUD::OnHealthAttributeChanged(const FOnAttributeChangeData& Data)
 {
-	if (ensureAlwaysMsgf(HealthBar != nullptr, TEXT("HealthBar was not set")))
+	HealthBar->SetPercent(HealthBar->Percent * Data.NewValue / Data.OldValue);
+}
+
+void UHeroHUD::SetAbility(UHeroGameplayAbility* Ability, AbilityAction Action)
+{
+	switch (Action)
 	{
-		HealthBar->SetPercent(HealthBar->Percent * Data.NewValue / Data.OldValue);
+		case AbilityAction::MainAttack:
+			MainAttackIcon->SetAbility(Ability);
+			break;
+		case AbilityAction::Ability1:
+			Ability1Icon->SetAbility(Ability);
+			break;
+		case AbilityAction::Ability2:
+			Ability2Icon->SetAbility(Ability);
+			break;
+		case AbilityAction::Ability3:
+			Ability3Icon->SetAbility(Ability);
+			break;
+		case AbilityAction::Ultimate:
+			UltimateIcon->SetAbility(Ability);
+			break;
 	}
 }

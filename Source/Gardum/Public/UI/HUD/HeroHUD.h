@@ -22,10 +22,13 @@
 
 #include "Blueprint/UserWidget.h"
 #include "CoreMinimal.h"
+#include "Heroes/HeroTypes.h"
 
 #include "HeroHUD.generated.h"
 
 class UProgressBar;
+class UAbilityIcon;
+class UHeroGameplayAbility;
 struct FOnAttributeChangeData;
 
 UCLASS()
@@ -36,8 +39,24 @@ class GARDUM_API UHeroHUD : public UUserWidget
 public:
 	void SetHealth(float CurrentValue, float BaseValue);
 	void OnHealthAttributeChanged(const FOnAttributeChangeData& Data);
+	void SetAbility(UHeroGameplayAbility* Ability, AbilityAction Action);
 
 private:
 	UPROPERTY(meta = (BindWidget))
-	UProgressBar* HealthBar;
+	UProgressBar* HealthBar = nullptr;
+
+	UPROPERTY(meta = (BindWidget))
+	UAbilityIcon* MainAttackIcon = nullptr;
+
+	UPROPERTY(meta = (BindWidget))
+	UAbilityIcon* Ability1Icon = nullptr;
+
+	UPROPERTY(meta = (BindWidget))
+	UAbilityIcon* Ability2Icon = nullptr;
+
+	UPROPERTY(meta = (BindWidget))
+	UAbilityIcon* Ability3Icon = nullptr;
+
+	UPROPERTY(meta = (BindWidget))
+	UAbilityIcon* UltimateIcon = nullptr;
 };

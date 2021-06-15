@@ -24,6 +24,7 @@
 #include "AbilitySystemInterface.h"
 #include "Core/GardumAttributeSet.h"
 #include "Core/GardumPlayerController.h"
+#include "Heroes/HeroGameplayAbility.h"
 #include "UI/HUD/HeroHUD.h"
 
 void AGardumHUD::PostInitializeComponents()
@@ -70,4 +71,10 @@ void AGardumHUD::OnNewPawn(APawn* NewPawn)
 	const FGameplayAttribute HealthAttribute = UGardumAttributeSet::GetHealthAttribute();
 	HUD->SetHealth(AbilitySystem->GetNumericAttribute(HealthAttribute), AbilitySystem->GetNumericAttributeBase(HealthAttribute));
 	AbilitySystem->GetGameplayAttributeValueChangeDelegate(HealthAttribute).AddUObject(HUD, &UHeroHUD::OnHealthAttributeChanged);
+
+	const TArray<FGameplayAbilitySpec>& Abilities = AbilitySystem->GetActivatableAbilities();
+	for (int i = 0; i < Abilities.Num(); ++i)
+	{
+		HUD->SetAbility(Cast<UHeroGameplayAbility>(Abilities[i].Ability), static_cast<AbilityAction>(i));
+	}
 }

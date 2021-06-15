@@ -18,30 +18,9 @@
  *
  */
 
-#pragma once
-
-#include "CoreMinimal.h"
 #include "Heroes/HeroGameplayAbility.h"
 
-#include "FrostBolt.generated.h"
-
-class AProjectile;
-
-UCLASS()
-class GARDUM_API UFrostBolt : public UHeroGameplayAbility
+UTexture2D* UHeroGameplayAbility::GetIcon()
 {
-	GENERATED_BODY() // NOLINT
-
-public:
-	void ActivateAbility(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
-
-private:
-	UPROPERTY(EditAnywhere, Category = "Ability")
-	TSubclassOf<AProjectile> ProjectileClass;
-
-	UPROPERTY(EditAnywhere, Category = "Ability")
-	TSubclassOf<UGameplayEffect> DamageEffectClass;
-
-	UPROPERTY(EditAnywhere, Category = "Ability")
-	FName AttachedSocketName;
-};
+	return Icon;
+}
