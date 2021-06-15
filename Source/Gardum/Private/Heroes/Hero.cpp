@@ -73,10 +73,10 @@ void AHero::PostInitializeComponents()
 	if (HasAuthority())
 	{
 		AbilitySystem->InitAbilityActorInfo(this, this);
-		for (const auto& Ability : DefaultAbilities)
+		for (const auto& [Action, Ability] : DefaultAbilities)
 		{
 			checkSlow(Ability.Key)
-			AbilitySystem->GiveAbility(FGameplayAbilitySpec(Ability.Value, 1, static_cast<int32>(Ability.Key)));
+			AbilitySystem->GiveAbility(FGameplayAbilitySpec(Ability, 1, static_cast<int32>(Action)));
 		}
 	}
 }
