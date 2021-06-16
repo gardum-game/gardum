@@ -22,6 +22,7 @@
 
 #include "Components/Image.h"
 #include "Components/ProgressBar.h"
+#include "UI/NumberTextBlock.h"
 #include "Heroes/HeroGameplayAbility.h"
 
 void UAbilityIcon::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
@@ -38,9 +39,17 @@ void UAbilityIcon::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 	AbilitySpec->Ability->GetCooldownTimeRemainingAndDuration(AbilitySpec->Handle, ActorInfo.Get(), TimeRemaining, CooldownDuration);
 
 	Cooldown->SetPercent(CooldownDuration == 0 ? 0 : TimeRemaining / CooldownDuration);
+	if (const auto RoundedTime = static_cast<int>(FMath::RoundFromZero(TimeRemaining)); RoundedTime != 0)
+	{
+		CooldownText->SetNumber(RoundedTime);
+	}
+	else
+	{
+		CooldownText->SetText({});
+	}
 }
 
-void UAbilityIcon::SetActorInfo(const TSharedPtr<const FGameplayAbilityActorInfo> &NewActorInfo)
+void UAbilityIcon::SetActorInfo(const TSharedPtr<const FGameplayAbilityActorInfo>& NewActorInfo)
 {
 	ActorInfo = NewActorInfo;
 }

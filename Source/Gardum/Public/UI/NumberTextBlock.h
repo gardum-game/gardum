@@ -20,38 +20,19 @@
 
 #pragma once
 
-#include "Blueprint/UserWidget.h"
+#include "Components/TextBlock.h"
 #include "CoreMinimal.h"
 
-#include "AbilityIcon.generated.h"
-
-class UImage;
-class UProgressBar;
-class UNumberTextBlock;
-struct FGameplayAbilitySpec;
-struct FGameplayAbilityActorInfo;
+#include "NumberTextBlock.generated.h"
 
 UCLASS()
-class GARDUM_API UAbilityIcon : public UUserWidget
+class GARDUM_API UNumberTextBlock : public UTextBlock
 {
-	GENERATED_BODY() // NOLINT
+	GENERATED_BODY()
 
 public:
-	void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
-
-	void SetActorInfo(const TSharedPtr<const FGameplayAbilityActorInfo> &NewActorInfo);
-	void SetAbility(const FGameplayAbilitySpec* NewAbilitySpec);
+	void SetNumber(int NewNumber);
 
 private:
-	UPROPERTY(meta = (BindWidget))
-	UImage* Icon = nullptr;
-
-	UPROPERTY(meta = (BindWidget))
-	UProgressBar* Cooldown = nullptr;
-
-	UPROPERTY(meta = (BindWidget))
-	UNumberTextBlock* CooldownText = nullptr;
-
-	const FGameplayAbilitySpec* AbilitySpec = nullptr;
-	TSharedPtr<const FGameplayAbilityActorInfo> ActorInfo;
+	int Number = NAN;
 };
