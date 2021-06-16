@@ -44,13 +44,13 @@ public:
 
 private:
 	UPROPERTY(meta = (BindWidget))
-	UImage* Icon = nullptr;
+	UImage* Icon;
 
 	UPROPERTY(meta = (BindWidget))
-	UProgressBar* Cooldown = nullptr;
+	UProgressBar* Cooldown;
 
 	UPROPERTY(meta = (BindWidget))
-	UNumberTextBlock* CooldownText = nullptr;
+	UNumberTextBlock* CooldownText;
 
 	const FGameplayAbilitySpec* AbilitySpec = nullptr;
 	TSharedPtr<const FGameplayAbilityActorInfo> ActorInfo;

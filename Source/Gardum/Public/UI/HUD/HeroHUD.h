@@ -45,20 +45,20 @@ public:
 
 private:
 	UPROPERTY(meta = (BindWidget))
-	UProgressBar* HealthBar = nullptr;
+	UProgressBar* HealthBar;
 
 	UPROPERTY(meta = (BindWidget))
-	UAbilityIcon* MainAttackIcon = nullptr;
+	UAbilityIcon* MainAttackIcon;
 
 	UPROPERTY(meta = (BindWidget))
-	UAbilityIcon* Ability1Icon = nullptr;
+	UAbilityIcon* Ability1Icon;
 
 	UPROPERTY(meta = (BindWidget))
-	UAbilityIcon* Ability2Icon = nullptr;
+	UAbilityIcon* Ability2Icon;
 
 	UPROPERTY(meta = (BindWidget))
-	UAbilityIcon* Ability3Icon = nullptr;
+	UAbilityIcon* Ability3Icon;
 
 	UPROPERTY(meta = (BindWidget))
-	UAbilityIcon* UltimateIcon = nullptr;
+	UAbilityIcon* UltimateIcon;
 };
