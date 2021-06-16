@@ -34,24 +34,33 @@ void UHeroHUD::OnHealthAttributeChanged(const FOnAttributeChangeData& Data)
 	HealthBar->SetPercent(HealthBar->Percent * Data.NewValue / Data.OldValue);
 }
 
-void UHeroHUD::SetAbility(UHeroGameplayAbility* Ability, AbilityAction Action)
+void UHeroHUD::SetActorInfo(const TSharedPtr<const FGameplayAbilityActorInfo> &ActorInfo)
+{
+	MainAttackIcon->SetActorInfo(ActorInfo);
+	Ability1Icon->SetActorInfo(ActorInfo);
+	Ability2Icon->SetActorInfo(ActorInfo);
+	Ability3Icon->SetActorInfo(ActorInfo);
+	UltimateIcon->SetActorInfo(ActorInfo);
+}
+
+void UHeroHUD::SetAbility(const FGameplayAbilitySpec* AbilitySpec, AbilityAction Action)
 {
 	switch (Action)
 	{
 		case AbilityAction::MainAttack:
-			MainAttackIcon->SetAbility(Ability);
+			MainAttackIcon->SetAbility(AbilitySpec);
 			break;
 		case AbilityAction::Ability1:
-			Ability1Icon->SetAbility(Ability);
+			Ability1Icon->SetAbility(AbilitySpec);
 			break;
 		case AbilityAction::Ability2:
-			Ability2Icon->SetAbility(Ability);
+			Ability2Icon->SetAbility(AbilitySpec);
 			break;
 		case AbilityAction::Ability3:
-			Ability3Icon->SetAbility(Ability);
+			Ability3Icon->SetAbility(AbilitySpec);
 			break;
 		case AbilityAction::Ultimate:
-			UltimateIcon->SetAbility(Ability);
+			UltimateIcon->SetAbility(AbilitySpec);
 			break;
 	}
 }

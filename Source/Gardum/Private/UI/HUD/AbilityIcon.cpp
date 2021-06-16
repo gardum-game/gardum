@@ -24,20 +24,36 @@
 #include "Components/ProgressBar.h"
 #include "Heroes/HeroGameplayAbility.h"
 
-void UAbilityIcon::SetAbility(UHeroGameplayAbility* NewAbility)
+void UAbilityIcon::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
-	if (Ability != nullptr)
-	{
-		Ability->OnGameplayAbilityEnded.RemoveAll(this);
-	}
+	Super::NativeTick(MyGeometry, InDeltaTime);
 
-	Ability = NewAbility;
-	if (Ability == nullptr)
+	if (AbilitySpec == nullptr)
 	{
 		return;
 	}
 
-	if (UTexture2D* AbilityIcon = Ability->GetIcon(); AbilityIcon != nullptr)
+	float TimeRemaining = 0;
+	float CooldownDuration = 0;
+	AbilitySpec->Ability->GetCooldownTimeRemainingAndDuration(AbilitySpec->Handle, ActorInfo.Get(), TimeRemaining, CooldownDuration);
+
+	Cooldown->SetPercent(CooldownDuration == 0 ? 0 : TimeRemaining / CooldownDuration);
+}
+
+void UAbilityIcon::SetActorInfo(const TSharedPtr<const FGameplayAbilityActorInfo> &NewActorInfo)
+{
+	ActorInfo = NewActorInfo;
+}
+
+void UAbilityIcon::SetAbility(const FGameplayAbilitySpec* NewAbilitySpec)
+{
+	AbilitySpec = NewAbilitySpec;
+	if (AbilitySpec == nullptr)
+	{
+		return;
+	}
+
+	if (UTexture2D* AbilityIcon = Cast<UHeroGameplayAbility>(AbilitySpec->Ability)->GetIcon(); AbilityIcon != nullptr)
 	{
 		Icon->SetBrushFromTexture(AbilityIcon);
 	}

@@ -20,34 +20,25 @@
 
 #pragma once
 
-#include "Blueprint/UserWidget.h"
 #include "CoreMinimal.h"
+#include "Heroes/HeroGameplayAbility.h"
 
-#include "AbilityIcon.generated.h"
+#include "Blink.generated.h"
 
-class UProgressBar;
-class UImage;
-struct FGameplayAbilitySpec;
-struct FGameplayAbilityActorInfo;
+class UNiagaraSystem;
 
 UCLASS()
-class GARDUM_API UAbilityIcon : public UUserWidget
+class GARDUM_API UBlink : public UHeroGameplayAbility
 {
 	GENERATED_BODY() // NOLINT
 
 public:
-	void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
-
-	void SetActorInfo(const TSharedPtr<const FGameplayAbilityActorInfo> &NewActorInfo);
-	void SetAbility(const FGameplayAbilitySpec* NewAbilitySpec);
+	void ActivateAbility(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 
 private:
-	UPROPERTY(meta = (BindWidget))
-	UProgressBar* Cooldown = nullptr;
+	UPROPERTY(EditAnywhere, Category = "Ability")
+	TSubclassOf<UNiagaraSystem> NiagaraSystemAsset;
 
-	UPROPERTY(meta = (BindWidget))
-	UImage* Icon = nullptr;
-
-	const FGameplayAbilitySpec* AbilitySpec = nullptr;
-	TSharedPtr<const FGameplayAbilityActorInfo> ActorInfo;
+	UPROPERTY(EditAnywhere, Category = "Ability")
+	float BlinkDistance = 0;
 };

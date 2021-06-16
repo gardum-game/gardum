@@ -28,7 +28,8 @@
 
 class UProgressBar;
 class UAbilityIcon;
-class UHeroGameplayAbility;
+struct FGameplayAbilityActorInfo;
+struct FGameplayAbilitySpec;
 struct FOnAttributeChangeData;
 
 UCLASS()
@@ -39,7 +40,8 @@ class GARDUM_API UHeroHUD : public UUserWidget
 public:
 	void SetHealth(float CurrentValue, float BaseValue);
 	void OnHealthAttributeChanged(const FOnAttributeChangeData& Data);
-	void SetAbility(UHeroGameplayAbility* Ability, AbilityAction Action);
+	void SetActorInfo(const TSharedPtr<const FGameplayAbilityActorInfo>& ActorInfo);
+	void SetAbility(const FGameplayAbilitySpec* AbilitySpec, AbilityAction Action);
 
 private:
 	UPROPERTY(meta = (BindWidget))

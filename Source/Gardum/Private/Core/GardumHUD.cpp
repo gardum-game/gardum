@@ -24,7 +24,6 @@
 #include "AbilitySystemInterface.h"
 #include "Core/GardumAttributeSet.h"
 #include "Core/GardumPlayerController.h"
-#include "Heroes/HeroGameplayAbility.h"
 #include "UI/HUD/HeroHUD.h"
 
 void AGardumHUD::PostInitializeComponents()
@@ -75,6 +74,7 @@ void AGardumHUD::OnNewPawn(APawn* NewPawn)
 	const TArray<FGameplayAbilitySpec>& Abilities = AbilitySystem->GetActivatableAbilities();
 	for (int i = 0; i < Abilities.Num(); ++i)
 	{
-		HUD->SetAbility(Cast<UHeroGameplayAbility>(Abilities[i].Ability), static_cast<AbilityAction>(i));
+		HUD->SetAbility(&Abilities[i], static_cast<AbilityAction>(i));
 	}
+	HUD->SetActorInfo(AbilitySystem->AbilityActorInfo);
 }
