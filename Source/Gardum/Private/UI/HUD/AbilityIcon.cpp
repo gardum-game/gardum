@@ -49,13 +49,9 @@ void UAbilityIcon::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 	}
 }
 
-void UAbilityIcon::SetActorInfo(const TSharedPtr<const FGameplayAbilityActorInfo>& NewActorInfo)
+void UAbilityIcon::SetAbility(const FGameplayAbilitySpec* NewAbilitySpec, const TSharedPtr<const FGameplayAbilityActorInfo> &NewActorInfo)
 {
 	ActorInfo = NewActorInfo;
-}
-
-void UAbilityIcon::SetAbility(const FGameplayAbilitySpec* NewAbilitySpec)
-{
 	AbilitySpec = NewAbilitySpec;
 	if (AbilitySpec == nullptr)
 	{

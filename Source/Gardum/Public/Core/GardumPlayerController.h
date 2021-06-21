@@ -38,5 +38,6 @@ public:
 	FOnPawnChanged& OnPawnChanged();
 
 private:
+	/** Unlike AController::OnNewPawn will be called on the client and on the server */
 	FOnPawnChanged PawnChangedEvent;
 };

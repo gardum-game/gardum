@@ -25,8 +25,7 @@
 
 #include "GardumHUD.generated.h"
 
-class UHeroHUD;
-class UAbilitySystemComponent;
+class UHUDWidget;
 
 UCLASS()
 class GARDUM_API AGardumHUD : public AHUD
@@ -37,14 +36,9 @@ public:
 	void PostInitializeComponents() override;
 
 private:
-	void OnNewPawn(APawn* NewPawn);
-
 	UPROPERTY(EditAnywhere, Category = "HUD")
-	TSubclassOf<UHeroHUD> HUDClass;
+	TSubclassOf<UHUDWidget> HUDClass;
 
 	UPROPERTY()
-	UHeroHUD* HUD;
-
-	UPROPERTY()
-	UAbilitySystemComponent* AbilitySystem = nullptr;
+	UHUDWidget* HUD;
 };

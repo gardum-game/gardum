@@ -20,11 +20,8 @@
 
 #include "Core/GardumHUD.h"
 
-#include "AbilitySystemComponent.h"
-#include "AbilitySystemInterface.h"
-#include "Core/GardumAttributeSet.h"
 #include "Core/GardumPlayerController.h"
-#include "UI/HUD/HeroHUD.h"
+#include "UI/HUD/HUDWidget.h"
 
 void AGardumHUD::PostInitializeComponents()
 {
@@ -35,46 +32,12 @@ void AGardumHUD::PostInitializeComponents()
 		return;
 	}
 
-	HUD = CreateWidget<UHeroHUD>(PlayerOwner.Get(), HUDClass);
+	HUD = CreateWidget<UHUDWidget>(PlayerOwner.Get(), HUDClass);
 	HUD->AddToViewport();
 
 	auto* PlayerController = Cast<AGardumPlayerController>(PlayerOwner);
-	if (!ensureAlwaysMsgf(PlayerController != nullptr, TEXT("HUD have wrong controller type")))
+	if (ensureAlwaysMsgf(PlayerController != nullptr, TEXT("HUD have wrong controller type")))
 	{
-		return;
+		PlayerController->OnPawnChanged().AddUObject(HUD, &UHUDWidget::SetPawn);
 	}
-	PlayerController->OnPawnChanged().AddUObject(this, &AGardumHUD::OnNewPawn);
-}
-
-void AGardumHUD::OnNewPawn(APawn* NewPawn)
-{
-	// Cleanup previous connections
-	if (AbilitySystem != nullptr)
-	{
-		AbilitySystem->GetGameplayAttributeValueChangeDelegate(UGardumAttributeSet::GetHealthAttribute()).RemoveAll(HUD);
-		AbilitySystem = nullptr;
-	}
-
-	auto* AbilityInterface = Cast<IAbilitySystemInterface>(NewPawn);
-	if (AbilityInterface == nullptr)
-	{
-		return;
-	}
-
-	AbilitySystem = AbilityInterface->GetAbilitySystemComponent();
-	if (!ensureAlwaysMsgf(AbilitySystem != nullptr, TEXT("Ability system component is null in posessed actor")))
-	{
-		return;
-	}
-
-	const FGameplayAttribute HealthAttribute = UGardumAttributeSet::GetHealthAttribute();
-	HUD->SetHealth(AbilitySystem->GetNumericAttribute(HealthAttribute), AbilitySystem->GetNumericAttributeBase(HealthAttribute));
-	AbilitySystem->GetGameplayAttributeValueChangeDelegate(HealthAttribute).AddUObject(HUD, &UHeroHUD::OnHealthAttributeChanged);
-
-	const TArray<FGameplayAbilitySpec>& Abilities = AbilitySystem->GetActivatableAbilities();
-	for (int i = 0; i < Abilities.Num(); ++i)
-	{
-		HUD->SetAbility(&Abilities[i], static_cast<AbilityAction>(i));
-	}
-	HUD->SetActorInfo(AbilitySystem->AbilityActorInfo);
 }

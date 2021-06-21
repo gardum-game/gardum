@@ -39,8 +39,7 @@ class GARDUM_API UAbilityIcon : public UUserWidget
 public:
 	void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
-	void SetActorInfo(const TSharedPtr<const FGameplayAbilityActorInfo> &NewActorInfo);
-	void SetAbility(const FGameplayAbilitySpec* NewAbilitySpec);
+	void SetAbility(const FGameplayAbilitySpec* NewAbilitySpec, const TSharedPtr<const FGameplayAbilityActorInfo> &NewActorInfo);
 
 private:
 	UPROPERTY(meta = (BindWidget))

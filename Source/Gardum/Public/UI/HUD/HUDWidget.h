@@ -24,26 +24,27 @@
 #include "CoreMinimal.h"
 #include "Heroes/HeroTypes.h"
 
-#include "HeroHUD.generated.h"
+#include "HUDWidget.generated.h"
 
 class UProgressBar;
 class UAbilityIcon;
-struct FGameplayAbilityActorInfo;
-struct FGameplayAbilitySpec;
+class UAbilitySystemComponent;
 struct FOnAttributeChangeData;
 
 UCLASS()
-class GARDUM_API UHeroHUD : public UUserWidget
+class GARDUM_API UHUDWidget : public UUserWidget
 {
 	GENERATED_BODY() // NOLINT
 
 public:
-	void SetHealth(float CurrentValue, float BaseValue);
-	void OnHealthAttributeChanged(const FOnAttributeChangeData& Data);
-	void SetActorInfo(const TSharedPtr<const FGameplayAbilityActorInfo>& ActorInfo);
-	void SetAbility(const FGameplayAbilitySpec* AbilitySpec, AbilityAction Action);
+	void SetPawn(APawn* NewPawn);
 
 private:
+	UAbilityIcon *GetAbility(AbilityAction Action);
+
+	UPROPERTY()
+	UAbilitySystemComponent* AbilitySystem = nullptr;
+
 	UPROPERTY(meta = (BindWidget))
 	UProgressBar* HealthBar;
 
