@@ -20,14 +20,21 @@
 
 #include "Core/GardumPlayerController.h"
 
+#include "AbilitySystemInterface.h"
+
 void AGardumPlayerController::SetPawn(APawn* InPawn)
 {
+	auto* PreviousAbilityInterface = GetPawn<IAbilitySystemInterface>();
+
 	Super::SetPawn(InPawn);
 
-	PawnChangedEvent.Broadcast(InPawn);
+	if (auto* AbilityInterface = Cast<IAbilitySystemInterface>(InPawn); AbilityInterface != PreviousAbilityInterface)
+	{
+		AbilitySystemChangedEvent.Broadcast(AbilityInterface == nullptr ? nullptr : AbilityInterface->GetAbilitySystemComponent());
+	}
 }
 
-AGardumPlayerController::FOnPawnChanged& AGardumPlayerController::OnPawnChanged()
+AGardumPlayerController::FOnAbilitySystemChanged& AGardumPlayerController::OnAbilitySystemChanged()
 {
-	return PawnChangedEvent;
+	return AbilitySystemChangedEvent;
 }

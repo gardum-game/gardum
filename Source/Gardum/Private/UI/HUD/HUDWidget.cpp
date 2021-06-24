@@ -26,7 +26,7 @@
 #include "UI/HUD/AbilityIcon.h"
 #include "AbilitySystemInterface.h"
 
-void UHUDWidget::SetPawn(APawn* NewPawn)
+void UHUDWidget::SetAbilitySystem(UAbilitySystemComponent* NewAbilitySystem)
 {
 	const FGameplayAttribute HealthAttribute = UGardumAttributeSet::GetHealthAttribute();
 
@@ -37,19 +37,7 @@ void UHUDWidget::SetPawn(APawn* NewPawn)
 		AbilitySystem = nullptr;
 	}
 
-	if (NewPawn == nullptr)
-	{
-		AbilitySystem = nullptr;
-		return;
-	}
-
- 	auto* AbilityInterface = Cast<IAbilitySystemInterface>(NewPawn);
-	if (!ensureAlwaysMsgf(AbilityInterface != nullptr, TEXT("Possessed pawn do not have IAbilitySystemInterface")))
-	{
-		return;
-	}
-
-	AbilitySystem = AbilityInterface->GetAbilitySystemComponent();
+	AbilitySystem = NewAbilitySystem;
 	if (!ensureAlwaysMsgf(AbilitySystem != nullptr, TEXT("Ability system component is null in posessed actor")))
 	{
 		return;

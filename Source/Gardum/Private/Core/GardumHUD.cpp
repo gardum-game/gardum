@@ -38,6 +38,6 @@ void AGardumHUD::PostInitializeComponents()
 	auto* PlayerController = Cast<AGardumPlayerController>(PlayerOwner);
 	if (ensureAlwaysMsgf(PlayerController != nullptr, TEXT("HUD have wrong controller type")))
 	{
-		PlayerController->OnPawnChanged().AddUObject(HUD, &UHUDWidget::SetPawn);
+		PlayerController->OnAbilitySystemChanged().AddUObject(HUD, &UHUDWidget::SetAbilitySystem);
 	}
 }

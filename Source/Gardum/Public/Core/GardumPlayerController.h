@@ -26,18 +26,19 @@
 
 #include "GardumPlayerController.generated.h"
 
+class UAbilitySystemComponent;
+
 UCLASS()
 class GARDUM_API AGardumPlayerController : public APlayerController
 {
 	GENERATED_BODY() // NOLINT
-	DECLARE_EVENT_OneParam(AGardumPlayerController, FOnPawnChanged, APawn*);
+	DECLARE_EVENT_OneParam(AGardumPlayerController, FOnAbilitySystemChanged, UAbilitySystemComponent*);
 
 public:
 	void SetPawn(APawn* InPawn) override;
 
-	FOnPawnChanged& OnPawnChanged();
+	FOnAbilitySystemChanged& OnAbilitySystemChanged();
 
 private:
-	/** Unlike AController::OnNewPawn will be called on the client and on the server */
-	FOnPawnChanged PawnChangedEvent;
+	FOnAbilitySystemChanged AbilitySystemChangedEvent;
 };

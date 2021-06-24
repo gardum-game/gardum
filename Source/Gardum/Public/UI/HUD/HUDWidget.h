@@ -37,7 +37,7 @@ class GARDUM_API UHUDWidget : public UUserWidget
 	GENERATED_BODY() // NOLINT
 
 public:
-	void SetPawn(APawn* NewPawn);
+	void SetAbilitySystem(UAbilitySystemComponent* NewAbilitySystem);
 
 private:
 	UAbilityIcon *GetAbility(AbilityAction Action);
