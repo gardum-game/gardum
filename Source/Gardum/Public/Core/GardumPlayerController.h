@@ -35,7 +35,8 @@ class GARDUM_API AGardumPlayerController : public APlayerController
 	DECLARE_EVENT_OneParam(AGardumPlayerController, FOnAbilitySystemChanged, UAbilitySystemComponent*);
 
 public:
-	void SetPawn(APawn* InPawn) override;
+	void OnPossess(APawn* InPawn) override;
+	void AcknowledgePossession(APawn *InPawn) override;
 
 	FOnAbilitySystemChanged& OnAbilitySystemChanged();
 

@@ -22,15 +22,23 @@
 
 #include "AbilitySystemInterface.h"
 
-void AGardumPlayerController::SetPawn(APawn* InPawn)
+void AGardumPlayerController::OnPossess(APawn* InPawn)
 {
-	auto* PreviousAbilityInterface = GetPawn<IAbilitySystemInterface>();
+	Super::OnPossess(InPawn);
 
-	Super::SetPawn(InPawn);
-
-	if (auto* AbilityInterface = Cast<IAbilitySystemInterface>(InPawn); AbilityInterface != PreviousAbilityInterface)
+	if (auto* AbilityInterface = Cast<IAbilitySystemInterface>(InPawn); ensureAlwaysMsgf(AbilityInterface != nullptr, TEXT("Posessed pawn do not have ability system interface")))
 	{
-		AbilitySystemChangedEvent.Broadcast(AbilityInterface == nullptr ? nullptr : AbilityInterface->GetAbilitySystemComponent());
+		AbilitySystemChangedEvent.Broadcast(AbilityInterface->GetAbilitySystemComponent());
+	}
+}
+
+void AGardumPlayerController::AcknowledgePossession(APawn *InPawn)
+{
+	Super::AcknowledgePossession(InPawn);
+
+	if (auto* AbilityInterface = Cast<IAbilitySystemInterface>(InPawn); ensureAlwaysMsgf(AbilityInterface != nullptr, TEXT("Acknowledged pawn do not have ability system interface")))
+	{
+		AbilitySystemChangedEvent.Broadcast(AbilityInterface->GetAbilitySystemComponent());
 	}
 }
 

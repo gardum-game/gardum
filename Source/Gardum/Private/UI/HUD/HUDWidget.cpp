@@ -38,7 +38,7 @@ void UHUDWidget::SetAbilitySystem(UAbilitySystemComponent* NewAbilitySystem)
 	}
 
 	AbilitySystem = NewAbilitySystem;
-	if (!ensureAlwaysMsgf(AbilitySystem != nullptr, TEXT("Ability system component is null in posessed actor")))
+	if (AbilitySystem == nullptr)
 	{
 		return;
 	}
