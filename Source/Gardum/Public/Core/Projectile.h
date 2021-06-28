@@ -38,7 +38,7 @@ class GARDUM_API AProjectile : public AActor
 public:
 	AProjectile();
 
-	void PostInitializeComponents() override;
+	void BeginPlay() override;
 
 	void SetDamageEffectSpecHandle(FGameplayEffectSpecHandle Handle);
 

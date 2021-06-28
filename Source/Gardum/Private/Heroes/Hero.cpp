@@ -70,22 +70,19 @@ UAbilitySystemComponent* AHero::GetAbilitySystemComponent() const
 	return AbilitySystem;
 }
 
-void AHero::PostInitializeComponents()
+void AHero::PossessedBy(AController* NewController)
 {
-	Super::PostInitializeComponents();
+	Super::PossessedBy(NewController);
 
-	if (HasAuthority())
+	AbilitySystem->InitAbilityActorInfo(this, this);
+	for (const auto& [Action, Ability] : DefaultAbilities)
 	{
-		AbilitySystem->InitAbilityActorInfo(this, this);
-		for (const auto& [Action, Ability] : DefaultAbilities)
+		if (ensureAlwaysMsgf(Ability != nullptr, TEXT("Ability was not specified")))
 		{
-			if (ensureAlwaysMsgf(Ability != nullptr, TEXT("Ability was not specified")))
-			{
-				AbilitySystem->GiveAbility(FGameplayAbilitySpec(Ability, 1, static_cast<int32>(Action)));
-			}
+			AbilitySystem->GiveAbility(FGameplayAbilitySpec(Ability, 1, static_cast<int32>(Action)));
 		}
-		AbilitySystem->GetGameplayAttributeValueChangeDelegate(UGardumAttributeSet::GetHealthAttribute()).AddStatic(&AHero::OnHealthChanged);
 	}
+	AbilitySystem->GetGameplayAttributeValueChangeDelegate(UGardumAttributeSet::GetHealthAttribute()).AddStatic(&AHero::OnHealthChanged);
 }
 
 void AHero::OnRep_PlayerState()

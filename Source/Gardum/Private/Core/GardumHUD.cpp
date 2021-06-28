@@ -31,7 +31,10 @@ void AGardumHUD::PostInitializeComponents()
 	{
 		HUD = CreateWidget<UHUDWidget>(PlayerOwner.Get(), HUDClass);
 	}
+}
 
+void AGardumHUD::BeginPlay()
+{
 	HUD->AddToViewport();
 }
 

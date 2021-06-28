@@ -36,9 +36,9 @@ AProjectile::AProjectile()
 	Niagara->SetupAttachment(Collision);
 }
 
-void AProjectile::PostInitializeComponents()
+void AProjectile::BeginPlay()
 {
-	Super::PostInitializeComponents();
+	Super::BeginPlay();
 	OnActorBeginOverlap.AddDynamic(this, &AProjectile::OnProjectileBeginOverlap);
 }
 

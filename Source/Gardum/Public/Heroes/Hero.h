@@ -43,7 +43,7 @@ public:
 
 	UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
-	void PostInitializeComponents() override;
+	void PossessedBy(AController* NewController) override;
 	void OnRep_PlayerState() override;
 
 protected:

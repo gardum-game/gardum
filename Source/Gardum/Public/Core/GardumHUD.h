@@ -34,6 +34,7 @@ class GARDUM_API AGardumHUD : public AHUD
 
 public:
 	void PostInitializeComponents() override;
+	void BeginPlay() override;
 
 	UHUDWidget* GetHUDWidget();
 
