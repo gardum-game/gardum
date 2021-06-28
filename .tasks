@@ -3,4 +3,9 @@ command=UnrealBuildTool GardumEditor Linux Development "$(VIM_CWD)"/Gardum.uproj
 cwd=$(VIM_CWD)
 save=2
 
+[editor-development-build]
+command=UnrealBuildTool GardumEditor Linux Development "$(VIM_CWD)"/Gardum.uproject -waitmutex
+cwd=$(VIM_CWD)
+save=2
+
 ; vim: filetype=dosini
