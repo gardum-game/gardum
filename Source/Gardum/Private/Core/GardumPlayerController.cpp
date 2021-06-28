@@ -21,28 +21,19 @@
 #include "Core/GardumPlayerController.h"
 
 #include "AbilitySystemInterface.h"
+#include "Core/GardumHUD.h"
+#include "UI/HUD/HUDWidget.h"
 
-void AGardumPlayerController::OnPossess(APawn* InPawn)
-{
-	Super::OnPossess(InPawn);
-
-	if (auto* AbilityInterface = Cast<IAbilitySystemInterface>(InPawn); ensureAlwaysMsgf(AbilityInterface != nullptr, TEXT("Posessed pawn do not have ability system interface")))
-	{
-		AbilitySystemChangedEvent.Broadcast(AbilityInterface->GetAbilitySystemComponent());
-	}
-}
-
-void AGardumPlayerController::AcknowledgePossession(APawn *InPawn)
+void AGardumPlayerController::AcknowledgePossession(APawn* InPawn)
 {
 	Super::AcknowledgePossession(InPawn);
 
-	if (auto* AbilityInterface = Cast<IAbilitySystemInterface>(InPawn); ensureAlwaysMsgf(AbilityInterface != nullptr, TEXT("Acknowledged pawn do not have ability system interface")))
+	auto* HUD = GetHUD<AGardumHUD>();
+	if (ensureMsgf(HUD != nullptr, TEXT("AGardumPlayerController should have HUD of type AGardumHUD")))
 	{
-		AbilitySystemChangedEvent.Broadcast(AbilityInterface->GetAbilitySystemComponent());
+		if (auto* AbilityInterface = Cast<IAbilitySystemInterface>(InPawn); ensureAlwaysMsgf(AbilityInterface != nullptr, TEXT("Posessed pawn do not have ability system interface")))
+		{
+			HUD->GetHUDWidget()->SetAbilitySystem(AbilityInterface->GetAbilitySystemComponent());
+		}
 	}
-}
-
-AGardumPlayerController::FOnAbilitySystemChanged& AGardumPlayerController::OnAbilitySystemChanged()
-{
-	return AbilitySystemChangedEvent;
 }

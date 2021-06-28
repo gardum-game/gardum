@@ -21,7 +21,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Delegates/DelegateCombinations.h"
 #include "GameFramework/PlayerController.h"
 
 #include "GardumPlayerController.generated.h"
@@ -32,14 +31,7 @@ UCLASS()
 class GARDUM_API AGardumPlayerController : public APlayerController
 {
 	GENERATED_BODY() // NOLINT
-	DECLARE_EVENT_OneParam(AGardumPlayerController, FOnAbilitySystemChanged, UAbilitySystemComponent*);
 
 public:
-	void OnPossess(APawn* InPawn) override;
-	void AcknowledgePossession(APawn *InPawn) override;
-
-	FOnAbilitySystemChanged& OnAbilitySystemChanged();
-
-private:
-	FOnAbilitySystemChanged AbilitySystemChangedEvent;
+	void AcknowledgePossession(APawn* InPawn) override;
 };

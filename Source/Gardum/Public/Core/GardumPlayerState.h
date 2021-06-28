@@ -25,36 +25,36 @@
 
 #include "GardumPlayerState.generated.h"
 
-class UAbilitySystemComponent;
-struct FOnAttributeChangeData;
-
 UCLASS()
 class GARDUM_API AGardumPlayerState : public APlayerState
 {
 	GENERATED_BODY() // NOLINT
 
 public:
-	void PostInitializeComponents() override;
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	void CopyProperties(class APlayerState* PlayerState) override;
 	void OverrideWith(class APlayerState* PlayerState) override;
 
-	float GetDamage() const;
-	float GetHealing() const;
+	TMulticastDelegate<void(float)> &OnDamage();
+	TMulticastDelegate<void(float)> &OnHealing();
+
+	void AddDamage(float Value);
+	void AddHealing(float Value);
 
 private:
 	UFUNCTION()
-	void SetAbilitySystem(UAbilitySystemComponent* NewAbilitySystem);
+	void OnRep_Damage();
 
-	static void UpdateHealthStatistic(const FOnAttributeChangeData& Data);
+	UFUNCTION()
+	void OnRep_Health();
 
-	UPROPERTY()
-	UAbilitySystemComponent* AbilitySystem = nullptr;
-
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing=OnRep_Damage)
 	float Damage = 0;
 
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing=OnRep_Health)
 	float Healing = 0;
+
+	TMulticastDelegate<void(float)> DamageChangedDelegate;
+	TMulticastDelegate<void(float)> HealingChangedDelegate;
 };

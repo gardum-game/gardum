@@ -27,17 +27,15 @@ void AGardumHUD::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
-	if (!ensureAlwaysMsgf(HUDClass != nullptr, TEXT("HUD widget is not specified")))
+	if (ensureAlwaysMsgf(HUDClass != nullptr, TEXT("HUD widget is not specified")))
 	{
-		return;
+		HUD = CreateWidget<UHUDWidget>(PlayerOwner.Get(), HUDClass);
 	}
 
-	HUD = CreateWidget<UHUDWidget>(PlayerOwner.Get(), HUDClass);
 	HUD->AddToViewport();
+}
 
-	auto* PlayerController = Cast<AGardumPlayerController>(PlayerOwner);
-	if (ensureAlwaysMsgf(PlayerController != nullptr, TEXT("HUD have wrong controller type")))
-	{
-		PlayerController->OnAbilitySystemChanged().AddUObject(HUD, &UHUDWidget::SetAbilitySystem);
-	}
+UHUDWidget* AGardumHUD::GetHUDWidget()
+{
+	return HUD;
 }

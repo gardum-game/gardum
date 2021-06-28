@@ -35,6 +35,8 @@ class GARDUM_API AGardumHUD : public AHUD
 public:
 	void PostInitializeComponents() override;
 
+	UHUDWidget* GetHUDWidget();
+
 private:
 	UPROPERTY(EditAnywhere, Category = "HUD")
 	TSubclassOf<UHUDWidget> HUDClass;

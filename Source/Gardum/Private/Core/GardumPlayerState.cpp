@@ -20,21 +20,7 @@
 
 #include "Core/GardumPlayerState.h"
 
-#include "AbilitySystemComponent.h"
-#include "Core/GardumAttributeSet.h"
-#include "Core/GardumPlayerController.h"
-#include "GameplayEffectExtension.h"
 #include "Net/UnrealNetwork.h"
-
-void AGardumPlayerState::PostInitializeComponents()
-{
-	Super::PostInitializeComponents();
-
-	if (HasAuthority())
-	{
-		Cast<AGardumPlayerController>(GetOwner())->OnAbilitySystemChanged().AddUObject(this, &AGardumPlayerState::SetAbilitySystem);
-	}
-}
 
 void AGardumPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -76,52 +62,34 @@ void AGardumPlayerState::OverrideWith(class APlayerState* PlayerState)
 	}
 }
 
-float AGardumPlayerState::GetDamage() const
+TMulticastDelegate<void(float)>& AGardumPlayerState::OnDamage()
 {
-	return Damage;
+	return DamageChangedDelegate;
 }
 
-float AGardumPlayerState::GetHealing() const
+TMulticastDelegate<void(float)>& AGardumPlayerState::OnHealing()
 {
-	return Damage;
+	return HealingChangedDelegate;
 }
 
-void AGardumPlayerState::SetAbilitySystem(UAbilitySystemComponent* NewAbilitySystem)
+void AGardumPlayerState::AddDamage(float Value)
 {
-	const FGameplayAttribute HealthAttribute = UGardumAttributeSet::GetHealthAttribute();
-
-	// Cleanup previous connections
-	if (AbilitySystem != nullptr)
-	{
-		AbilitySystem->GetGameplayAttributeValueChangeDelegate(HealthAttribute).RemoveAll(this);
-		AbilitySystem = nullptr;
-	}
-
-	AbilitySystem = NewAbilitySystem;
-	if (AbilitySystem != nullptr)
-	{
-		AbilitySystem->GetGameplayAttributeValueChangeDelegate(HealthAttribute).AddStatic(&AGardumPlayerState::UpdateHealthStatistic);
-	}
+	Damage += Value;
+	DamageChangedDelegate.Broadcast(Damage);
 }
 
-void AGardumPlayerState::UpdateHealthStatistic(const FOnAttributeChangeData& Data)
+void AGardumPlayerState::AddHealing(float Value)
 {
-	const auto* Instigator = Cast<APawn>(Data.GEModData->EffectSpec.GetContext().GetInstigator());
-	if (Instigator == nullptr)
-	{
-		return;
-	}
+	Healing += Value;
+	HealingChangedDelegate.Broadcast(Healing);
+}
 
-	if (auto* State = Cast<AGardumPlayerState>(Instigator->GetPlayerState()); State)
-	{
-		const float Difference = Data.NewValue - Data.OldValue;
-		if (Difference < 0)
-		{
-			State->Damage -= Difference;
-		}
-		else
-		{
-			State->Healing += Difference;
-		}
-	}
+void AGardumPlayerState::OnRep_Damage()
+{
+	DamageChangedDelegate.Broadcast(Damage);
+}
+
+void AGardumPlayerState::OnRep_Health()
+{
+	HealingChangedDelegate.Broadcast(Healing);
 }

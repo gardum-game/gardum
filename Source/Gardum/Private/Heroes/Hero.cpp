@@ -25,9 +25,12 @@
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/InputComponent.h"
+#include "Core/GardumAttributeSet.h"
+#include "Core/GardumPlayerState.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "GameplayEffectExtension.h"
 #include "Heroes/HeroGameplayAbility.h"
 
 AHero::AHero()
@@ -76,9 +79,12 @@ void AHero::PostInitializeComponents()
 		AbilitySystem->InitAbilityActorInfo(this, this);
 		for (const auto& [Action, Ability] : DefaultAbilities)
 		{
-			checkSlow(Ability.Key)
-			AbilitySystem->GiveAbility(FGameplayAbilitySpec(Ability, 1, static_cast<int32>(Action)));
+			if (ensureAlwaysMsgf(Ability != nullptr, TEXT("Ability was not specified")))
+			{
+				AbilitySystem->GiveAbility(FGameplayAbilitySpec(Ability, 1, static_cast<int32>(Action)));
+			}
 		}
+		AbilitySystem->GetGameplayAttributeValueChangeDelegate(UGardumAttributeSet::GetHealthAttribute()).AddStatic(&AHero::OnHealthChanged);
 	}
 }
 
@@ -147,5 +153,27 @@ void AHero::MoveRight(float Value)
 		// Get right direction
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 		AddMovementInput(Direction, Value);
+	}
+}
+
+void AHero::OnHealthChanged(const FOnAttributeChangeData& Data)
+{
+	const auto* Instigator = Cast<APawn>(Data.GEModData->EffectSpec.GetContext().GetInstigator());
+	if (Instigator == nullptr)
+	{
+		return;
+	}
+
+	if (auto* State = Cast<AGardumPlayerState>(Instigator->GetPlayerState()); State)
+	{
+		const float Difference = Data.NewValue - Data.OldValue;
+		if (Difference < 0)
+		{
+			State->AddDamage(-Difference);
+		}
+		else
+		{
+			State->AddHealing(Difference);
+		}
 	}
 }
