@@ -84,6 +84,16 @@ void AGardumPlayerState::AddHealing(float Value)
 	HealingChangedDelegate.Broadcast(Healing);
 }
 
+float AGardumPlayerState::GetDamage() const
+{
+	return Damage;
+}
+
+float AGardumPlayerState::GetHealing() const
+{
+	return Healing;
+}
+
 void AGardumPlayerState::OnRep_Damage()
 {
 	DamageChangedDelegate.Broadcast(Damage);

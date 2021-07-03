@@ -18,18 +18,28 @@
  *
  */
 
-#pragma once
+#include "Core/GardumGameState.h"
 
-#include "CoreMinimal.h"
-#include "GameFramework/GameMode.h"
-
-#include "GardumGameMode.generated.h"
-
-UCLASS()
-class GARDUM_API AGardumGameMode : public AGameMode
+void AGardumGameState::AddPlayerState(APlayerState* PlayerState)
 {
-	GENERATED_BODY() // NOLINT
+	Super::AddPlayerState(PlayerState);
 
-public:
-	AGardumGameMode() = default;
-};
+	PlayerStateAddedDelegate.Broadcast(PlayerState);
+}
+
+void AGardumGameState::RemovePlayerState(APlayerState* PlayerState)
+{
+	Super::RemovePlayerState(PlayerState);
+
+	PlayerStateRemovedDelegate.Broadcast(PlayerState);
+}
+
+TMulticastDelegate<void(APlayerState*)>& AGardumGameState::OnPlayerStateAdded()
+{
+	return PlayerStateAddedDelegate;
+}
+
+TMulticastDelegate<void(APlayerState*)>& AGardumGameState::OnPlayerStateRemoved()
+{
+	return PlayerStateRemovedDelegate;
+}

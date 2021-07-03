@@ -36,11 +36,14 @@ public:
 	void CopyProperties(class APlayerState* PlayerState) override;
 	void OverrideWith(class APlayerState* PlayerState) override;
 
-	TMulticastDelegate<void(float)> &OnDamage();
-	TMulticastDelegate<void(float)> &OnHealing();
+	TMulticastDelegate<void(float)>& OnDamage();
+	TMulticastDelegate<void(float)>& OnHealing();
 
 	void AddDamage(float Value);
 	void AddHealing(float Value);
+
+	float GetDamage() const;
+	float GetHealing() const;
 
 private:
 	UFUNCTION()
@@ -49,10 +52,10 @@ private:
 	UFUNCTION()
 	void OnRep_Health();
 
-	UPROPERTY(ReplicatedUsing=OnRep_Damage)
+	UPROPERTY(ReplicatedUsing = OnRep_Damage)
 	float Damage = 0;
 
-	UPROPERTY(ReplicatedUsing=OnRep_Health)
+	UPROPERTY(ReplicatedUsing = OnRep_Health)
 	float Healing = 0;
 
 	TMulticastDelegate<void(float)> DamageChangedDelegate;

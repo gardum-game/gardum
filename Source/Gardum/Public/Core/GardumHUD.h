@@ -26,6 +26,7 @@
 #include "GardumHUD.generated.h"
 
 class UHUDWidget;
+class UScoreboard;
 
 UCLASS()
 class GARDUM_API AGardumHUD : public AHUD
@@ -37,6 +38,7 @@ public:
 	void BeginPlay() override;
 
 	UHUDWidget* GetHUDWidget();
+	UScoreboard* GetScoreboard();
 
 private:
 	UPROPERTY(EditAnywhere, Category = "HUD")
@@ -44,4 +46,10 @@ private:
 
 	UPROPERTY()
 	UHUDWidget* HUD;
+
+	UPROPERTY(EditAnywhere, Category = "HUD")
+	TSubclassOf<UScoreboard> ScoreboardClass;
+
+	UPROPERTY()
+	UScoreboard* Scoreboard;
 };

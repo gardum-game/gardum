@@ -20,16 +20,39 @@
 
 #pragma once
 
+#include "Blueprint/IUserObjectListEntry.h"
+#include "Blueprint/UserWidget.h"
 #include "CoreMinimal.h"
-#include "GameFramework/GameMode.h"
 
-#include "GardumGameMode.generated.h"
+#include "ScoreboardEntry.generated.h"
+
+class UTextBlock;
+class AGardumPlayerState;
 
 UCLASS()
-class GARDUM_API AGardumGameMode : public AGameMode
+class GARDUM_API UScoreboardEntry : public UUserWidget, public IUserObjectListEntry
 {
 	GENERATED_BODY() // NOLINT
 
-public:
-	AGardumGameMode() = default;
+protected:
+	void NativeOnListItemObjectSet(UObject* ListItemObject) override;
+
+private:
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* PlayerText;
+
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* KillsText;
+
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* DeathsText;
+
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* DamageText;
+
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* HealingText;
+
+	UPROPERTY()
+	AGardumPlayerState* PlayerState;
 };

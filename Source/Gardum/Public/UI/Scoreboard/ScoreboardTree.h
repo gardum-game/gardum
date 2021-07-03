@@ -20,16 +20,16 @@
 
 #pragma once
 
+#include "Components/TreeView.h"
 #include "CoreMinimal.h"
-#include "GameFramework/GameMode.h"
 
-#include "GardumGameMode.generated.h"
+#include "ScoreboardTree.generated.h"
 
 UCLASS()
-class GARDUM_API AGardumGameMode : public AGameMode
+class GARDUM_API UScoreboardTree : public UTreeView
 {
 	GENERATED_BODY() // NOLINT
 
-public:
-	AGardumGameMode() = default;
+protected:
+	void OnGetChildrenInternal(UObject* Item, TArray<UObject*>& OutChildren) const override;
 };

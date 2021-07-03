@@ -21,15 +21,23 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/GameMode.h"
+#include "GameFramework/GameState.h"
 
-#include "GardumGameMode.generated.h"
+#include "GardumGameState.generated.h"
 
 UCLASS()
-class GARDUM_API AGardumGameMode : public AGameMode
+class GARDUM_API AGardumGameState : public AGameState
 {
 	GENERATED_BODY() // NOLINT
 
 public:
-	AGardumGameMode() = default;
+	void AddPlayerState(APlayerState* PlayerState) override;
+	void RemovePlayerState(APlayerState* PlayerState) override;
+
+	TMulticastDelegate<void(APlayerState*)>& OnPlayerStateAdded();
+	TMulticastDelegate<void(APlayerState*)>& OnPlayerStateRemoved();
+
+private:
+	TMulticastDelegate<void(APlayerState*)> PlayerStateAddedDelegate;
+	TMulticastDelegate<void(APlayerState*)> PlayerStateRemovedDelegate;
 };

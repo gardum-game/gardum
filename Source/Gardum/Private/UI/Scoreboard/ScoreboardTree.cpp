@@ -18,18 +18,9 @@
  *
  */
 
-#pragma once
+#include "UI/Scoreboard/ScoreboardTree.h"
 
-#include "CoreMinimal.h"
-#include "GameFramework/GameMode.h"
-
-#include "GardumGameMode.generated.h"
-
-UCLASS()
-class GARDUM_API AGardumGameMode : public AGameMode
+void UScoreboardTree::OnGetChildrenInternal(UObject* Item, TArray<UObject*>& OutChildren) const
 {
-	GENERATED_BODY() // NOLINT
-
-public:
-	AGardumGameMode() = default;
-};
+	Super::OnGetChildrenInternal(Item, OutChildren);
+}

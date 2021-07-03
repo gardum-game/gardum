@@ -20,25 +20,59 @@
 
 #include "Core/GardumHUD.h"
 
+#include "Core/GardumGameState.h"
 #include "Core/GardumPlayerController.h"
 #include "UI/HUD/HUDWidget.h"
+#include "UI/Scoreboard/Scoreboard.h"
 
 void AGardumHUD::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
-	if (ensureAlwaysMsgf(HUDClass != nullptr, TEXT("HUD widget is not specified")))
+	if (!GetWorld()->IsGameWorld())
+	{
+		return;
+	}
+
+	if (ensureAlwaysMsgf(HUDClass != nullptr, TEXT("HUD widget class is not specified")))
 	{
 		HUD = CreateWidget<UHUDWidget>(PlayerOwner.Get(), HUDClass);
+	}
+
+	if (ensureAlwaysMsgf(ScoreboardClass != nullptr, TEXT("Scoreboard widget class is not specified")))
+	{
+		Scoreboard = CreateWidget<UScoreboard>(PlayerOwner.Get(), ScoreboardClass);
 	}
 }
 
 void AGardumHUD::BeginPlay()
 {
-	HUD->AddToViewport();
+	if (HUD != nullptr)
+	{
+		HUD->AddToViewport();
+	}
+
+	if (Scoreboard != nullptr)
+	{
+		Scoreboard->AddToViewport();
+		if (auto* GameState = GetWorld()->GetGameState<AGardumGameState>(); ensureAlwaysMsgf(GameState != nullptr, TEXT("Unable to get GameState for Scoreboard")))
+		{
+			GameState->OnPlayerStateAdded().AddUObject(Scoreboard, &UScoreboard::AddPlayerState);
+			GameState->OnPlayerStateRemoved().AddUObject(Scoreboard, &UScoreboard::RemovePlayerState);
+			for (APlayerState *PlayerState : GameState->PlayerArray)
+			{
+				Scoreboard->AddPlayerState(PlayerState);
+			}
+		}
+	}
 }
 
 UHUDWidget* AGardumHUD::GetHUDWidget()
 {
 	return HUD;
+}
+
+UScoreboard* AGardumHUD::GetScoreboard()
+{
+	return Scoreboard;
 }

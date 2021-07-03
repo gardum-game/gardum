@@ -20,16 +20,29 @@
 
 #pragma once
 
+#include "Blueprint/UserWidget.h"
 #include "CoreMinimal.h"
-#include "GameFramework/GameMode.h"
 
-#include "GardumGameMode.generated.h"
+#include "Scoreboard.generated.h"
+
+class UScoreboardTree;
 
 UCLASS()
-class GARDUM_API AGardumGameMode : public AGameMode
+class GARDUM_API UScoreboard : public UUserWidget
 {
 	GENERATED_BODY() // NOLINT
 
 public:
-	AGardumGameMode() = default;
+	void AddPlayerState(APlayerState* PlayerState);
+	void RemovePlayerState(APlayerState* PlayerState);
+
+protected:
+	void NativeConstruct() override;
+
+private:
+	void Show();
+	void Hide();
+
+	UPROPERTY(meta = (BindWidget))
+	UScoreboardTree* ScoreboardTree;
 };
