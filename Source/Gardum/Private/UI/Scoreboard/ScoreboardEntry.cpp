@@ -51,6 +51,6 @@ void UScoreboardEntry::NativeOnListItemObjectSet(UObject* ListItemObject)
 
 	PlayerState->OnDamage().AddWeakLambda(DamageText, [DamageText = DamageText](float Damage)
 		{ DamageText->SetText(FText::AsNumber(Damage)); });
-	PlayerState->OnDamage().AddWeakLambda(HealingText, [HealingText = HealingText](float Healing)
+	PlayerState->OnHealing().AddWeakLambda(HealingText, [HealingText = HealingText](float Healing)
 		{ HealingText->SetText(FText::AsNumber(Healing)); });
 }
