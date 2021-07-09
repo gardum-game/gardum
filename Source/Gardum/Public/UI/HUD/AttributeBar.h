@@ -20,43 +20,26 @@
 
 #pragma once
 
-#include "Blueprint/UserWidget.h"
+#include "Components/ProgressBar.h"
 #include "CoreMinimal.h"
-#include "Heroes/HeroTypes.h"
 
-#include "HUDWidget.generated.h"
+#include "AttributeBar.generated.h"
 
-class UAttributeBar;
-class UAbilityIcon;
 class UAbilitySystemComponent;
+struct FGameplayAttribute;
 struct FOnAttributeChangeData;
 
 UCLASS()
-class GARDUM_API UHUDWidget : public UUserWidget
+class GARDUM_API UAttributeBar : public UProgressBar
 {
 	GENERATED_BODY() // NOLINT
 
 public:
-	void SetAbilitySystem(UAbilitySystemComponent* AbilitySystem);
+	void SetAttribute(UAbilitySystemComponent* NewAbilitySystem, const FGameplayAttribute& Attribute);
 
 private:
-	UAbilityIcon *GetAbility(AbilityAction Action);
+	void OnAttributeChanged(const FOnAttributeChangeData& Data);
 
-	UPROPERTY(meta = (BindWidget))
-	UAttributeBar* HealthBar;
-
-	UPROPERTY(meta = (BindWidget))
-	UAbilityIcon* MainAttackIcon;
-
-	UPROPERTY(meta = (BindWidget))
-	UAbilityIcon* Ability1Icon;
-
-	UPROPERTY(meta = (BindWidget))
-	UAbilityIcon* Ability2Icon;
-
-	UPROPERTY(meta = (BindWidget))
-	UAbilityIcon* Ability3Icon;
-
-	UPROPERTY(meta = (BindWidget))
-	UAbilityIcon* UltimateIcon;
+	UPROPERTY()
+	UAbilitySystemComponent* AbilitySystem = nullptr;
 };

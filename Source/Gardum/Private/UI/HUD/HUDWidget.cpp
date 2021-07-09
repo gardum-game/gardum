@@ -21,34 +21,14 @@
 #include "UI/HUD/HUDWidget.h"
 
 #include "AbilitySystemComponent.h"
-#include "Components/ProgressBar.h"
 #include "Core/GardumAttributeSet.h"
 #include "UI/HUD/AbilityIcon.h"
-#include "AbilitySystemInterface.h"
+#include "UI/HUD/AttributeBar.h"
 
-void UHUDWidget::SetAbilitySystem(UAbilitySystemComponent* NewAbilitySystem)
+void UHUDWidget::SetAbilitySystem(UAbilitySystemComponent* AbilitySystem)
 {
-	const FGameplayAttribute HealthAttribute = UGardumAttributeSet::GetHealthAttribute();
+	HealthBar->SetAttribute(AbilitySystem, UGardumAttributeSet::GetHealthAttribute());
 
-	// Cleanup previous connections
-	if (AbilitySystem != nullptr)
-	{
-		AbilitySystem->GetGameplayAttributeValueChangeDelegate(HealthAttribute).RemoveAll(this);
-		AbilitySystem = nullptr;
-	}
-
-	AbilitySystem = NewAbilitySystem;
-	if (AbilitySystem == nullptr)
-	{
-		return;
-	}
-
-	// Subscribe for health updates
-	HealthBar->SetPercent(AbilitySystem->GetNumericAttribute(HealthAttribute) / AbilitySystem->GetNumericAttributeBase(HealthAttribute));
-	AbilitySystem->GetGameplayAttributeValueChangeDelegate(HealthAttribute).AddWeakLambda(this, [this](const FOnAttributeChangeData& Data)
-		{ HealthBar->SetPercent(HealthBar->Percent * Data.NewValue / Data.OldValue); });
-
-	// Display abilities
 	const TArray<FGameplayAbilitySpec>& Abilities = AbilitySystem->GetActivatableAbilities();
 	for (int i = 0; i < Abilities.Num(); ++i)
 	{
