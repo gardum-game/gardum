@@ -20,27 +20,21 @@
 
 #pragma once
 
-#include "AttributeSet.h"
 #include "CoreMinimal.h"
+#include "GameplayEffectExecutionCalculation.h"
 
-#include "GardumAttributeSet.generated.h"
+#include "HealthChangeExecutionCalculation.generated.h"
 
 UCLASS()
-class GARDUM_API UGardumAttributeSet : public UAttributeSet
+class GARDUM_API UHealthChangeExecutionCalculation : public UGameplayEffectExecutionCalculation
 {
 	GENERATED_BODY() // NOLINT
-	
-	friend class UHealthChangeExecutionCalculation; // Required for DEFINE_ATTRIBUTE_CAPTUREDEF macro
 
 public:
-	UGardumAttributeSet() = default;
+	UHealthChangeExecutionCalculation(const FObjectInitializer& ObjectInitializer);
 
-	GAMEPLAYATTRIBUTE_PROPERTY_GETTER(UGardumAttributeSet, Health);
+	void Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams, FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const override;
 
 private:
-	UPROPERTY(EditAnywhere, ReplicatedUsing = OnRep_Health)
-	FGameplayAttributeData Health;
-
-	UFUNCTION()
-	virtual void OnRep_Health(const FGameplayAttributeData& OldHealth);
+	DECLARE_ATTRIBUTE_CAPTUREDEF(Health);
 };
