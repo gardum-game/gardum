@@ -54,17 +54,13 @@ void AProjectile::OnProjectileBeginOverlap([[maybe_unused]] AActor* OverlappedAc
 		return;
 	}
 
-	auto* HitHero = Cast<AHero>(OtherActor);
-
-	if (GetLocalRole() != ROLE_Authority || HitHero == nullptr)
+	if (GetLocalRole() == ROLE_Authority)
 	{
-		Destroy();
-		return;
-	}
-
-	if (ensureAlwaysMsgf(DamageEffectSpecHandle.IsValid(), TEXT("Projectile have invalid effect spec handle")))
-	{
-		HitHero->GetAbilitySystemComponent()->ApplyGameplayEffectSpecToSelf(*DamageEffectSpecHandle.Data.Get());
+		auto* HitHero = Cast<AHero>(OtherActor);
+		if (HitHero != nullptr && ensureAlwaysMsgf(DamageEffectSpecHandle.IsValid(), TEXT("Projectile have invalid effect spec handle")))
+		{
+			HitHero->GetAbilitySystemComponent()->ApplyGameplayEffectSpecToSelf(*DamageEffectSpecHandle.Data.Get());
+		}
 	}
 
 	Destroy();
