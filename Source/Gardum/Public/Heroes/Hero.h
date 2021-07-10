@@ -32,6 +32,7 @@ class UCameraComponent;
 class UAbilitySystemComponent;
 class UHeroGameplayAbility;
 struct FOnAttributeChangeData;
+struct FGameplayTag;
 
 UCLASS(config = Game)
 class GARDUM_API AHero : public ACharacter, public IAbilitySystemInterface
@@ -68,7 +69,10 @@ private:
 	/** Called for side to side input */
 	void MoveRight(float Value);
 
-	static void OnHealthChanged(const FOnAttributeChangeData& Data);
+	void SetupAbilitySystem();
+
+	void OnHealthChanged(const FOnAttributeChangeData& Data);
+	void OnDeadTagChanged(FGameplayTag Tag, int32 NewCount);
 
 	/** Camera boom positioning the camera behind the character */
 	UPROPERTY(VisibleAnywhere, Category = "Camera")

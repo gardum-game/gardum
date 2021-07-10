@@ -27,6 +27,7 @@
 #include "Components/InputComponent.h"
 #include "Core/GardumAttributeSet.h"
 #include "Core/GardumPlayerState.h"
+#include "Core/Tags.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -37,6 +38,8 @@ AHero::AHero()
 	: SpringArm(CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm")))
 	, FollowCamera(CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera")))
 {
+	GetMesh()->SetCollisionProfileName("Ragdoll");
+
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.0f, 96.0f);
 
@@ -74,7 +77,7 @@ void AHero::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
 
-	AbilitySystem->InitAbilityActorInfo(this, this);
+	SetupAbilitySystem();
 	for (const auto& [Action, Ability] : DefaultAbilities)
 	{
 		if (ensureAlwaysMsgf(Ability != nullptr, TEXT("Ability was not specified")))
@@ -82,13 +85,12 @@ void AHero::PossessedBy(AController* NewController)
 			AbilitySystem->GiveAbility(FGameplayAbilitySpec(Ability, 1, static_cast<int32>(Action)));
 		}
 	}
-	AbilitySystem->GetGameplayAttributeValueChangeDelegate(UGardumAttributeSet::GetHealthAttribute()).AddStatic(&AHero::OnHealthChanged);
 }
 
 void AHero::OnRep_PlayerState()
 {
 	Super::OnRep_PlayerState();
-	AbilitySystem->InitAbilityActorInfo(this, this);
+	SetupAbilitySystem();
 }
 
 void AHero::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -154,6 +156,17 @@ void AHero::MoveRight(float Value)
 
 void AHero::OnHealthChanged(const FOnAttributeChangeData& Data)
 {
+	if (Data.NewValue <= 0)
+	{
+		AbilitySystem->AddLooseGameplayTag(Tags::Dead);
+	}
+
+	if (GetNetMode() > NM_ListenServer)
+	{
+		// Data.GEMode is available only on the server, so we update the PlayerState statistics only on it and replicate the values to clients
+		return;
+	}
+
 	const auto* Instigator = Cast<APawn>(Data.GEModData->EffectSpec.GetContext().GetInstigator());
 	if (Instigator == nullptr)
 	{
@@ -170,6 +183,26 @@ void AHero::OnHealthChanged(const FOnAttributeChangeData& Data)
 		else
 		{
 			State->AddHealing(Difference);
+		}
+	}
+}
+
+void AHero::SetupAbilitySystem()
+{
+	AbilitySystem->InitAbilityActorInfo(this, this);
+	AbilitySystem->GetGameplayAttributeValueChangeDelegate(UGardumAttributeSet::GetHealthAttribute()).AddUObject(this, &AHero::OnHealthChanged);
+	AbilitySystem->RegisterGameplayTagEvent(Tags::Dead, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AHero::OnDeadTagChanged);
+}
+
+void AHero::OnDeadTagChanged([[maybe_unused]] FGameplayTag Tag, int32 NewCount)
+{
+	if (NewCount == 1)
+	{
+		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		GetMesh()->SetSimulatePhysics(true);
+		if (auto *Controller = Cast<APlayerController>(GetController()); Controller != nullptr)
+		{
+			DisableInput(Controller);
 		}
 	}
 }
