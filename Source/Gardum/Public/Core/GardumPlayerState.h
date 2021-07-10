@@ -36,21 +36,39 @@ public:
 	void CopyProperties(class APlayerState* PlayerState) override;
 	void OverrideWith(class APlayerState* PlayerState) override;
 
+	TMulticastDelegate<void(int16)>& OnKill();
+	TMulticastDelegate<void(uint16)>& OnDeath();
 	TMulticastDelegate<void(uint32)>& OnDamage();
 	TMulticastDelegate<void(uint32)>& OnHealing();
 
+	void AddKill();
+	void AddDeath();
 	void AddDamage(uint32 Value);
 	void AddHealing(uint32 Value);
 
+	int16 GetKills() const;
+	uint16 GetDeaths() const;
 	uint32 GetDamage() const;
 	uint32 GetHealing() const;
 
 private:
 	UFUNCTION()
+	void OnRep_Kills();
+
+	UFUNCTION()
+	void OnRep_Deaths();
+
+	UFUNCTION()
 	void OnRep_Damage();
 
 	UFUNCTION()
 	void OnRep_Health();
+
+	UPROPERTY(ReplicatedUsing = OnRep_Kills)
+	int16 Kills = 0;
+
+	UPROPERTY(ReplicatedUsing = OnRep_Deaths)
+	uint16 Deaths = 0;
 
 	UPROPERTY(ReplicatedUsing = OnRep_Damage)
 	uint32 Damage = 0;
@@ -58,6 +76,8 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_Health)
 	uint32 Healing = 0;
 
+	TMulticastDelegate<void(int16)> KillsChangedDelegate;
+	TMulticastDelegate<void(uint16)> DeathsChangedDelegate;
 	TMulticastDelegate<void(uint32)> DamageChangedDelegate;
 	TMulticastDelegate<void(uint32)> HealingChangedDelegate;
 };

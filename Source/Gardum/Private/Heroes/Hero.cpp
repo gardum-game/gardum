@@ -159,6 +159,10 @@ void AHero::OnHealthChanged(const FOnAttributeChangeData& Data)
 	if (Data.NewValue <= 0)
 	{
 		AbilitySystem->AddLooseGameplayTag(Tags::Dead);
+		if (GetNetMode() > NM_ListenServer)
+		{
+			GetPlayerStateChecked<AGardumPlayerState>()->AddDeath();
+		}
 	}
 
 	if (GetNetMode() > NM_ListenServer)
@@ -173,17 +177,19 @@ void AHero::OnHealthChanged(const FOnAttributeChangeData& Data)
 		return;
 	}
 
-	if (auto* State = Cast<AGardumPlayerState>(Instigator->GetPlayerState()); State)
+	auto* InstigatorState = Instigator->GetPlayerStateChecked<AGardumPlayerState>();
+	if (Data.NewValue <= 0)
 	{
-		const auto Difference = static_cast<uint32>(Data.NewValue - Data.OldValue);
-		if (Difference < 0)
-		{
-			State->AddDamage(-Difference);
-		}
-		else
-		{
-			State->AddHealing(Difference);
-		}
+		InstigatorState->AddKill();
+	}
+	const float Difference = Data.NewValue - Data.OldValue;
+	if (Difference < 0)
+	{
+		InstigatorState->AddDamage(static_cast<uint32>(-Difference));
+	}
+	else
+	{
+		InstigatorState->AddHealing(static_cast<uint32>(Difference));
 	}
 }
 

@@ -35,6 +35,8 @@ void UScoreboardEntry::NativeOnListItemObjectSet(UObject* ListItemObject)
 	// Unbind old delegates
 	if (PlayerState != nullptr)
 	{
+		PlayerState->OnKill().RemoveAll(KillsText);
+		PlayerState->OnDeath().RemoveAll(DeathsText);
 		PlayerState->OnDamage().RemoveAll(DamageText);
 		PlayerState->OnHealing().RemoveAll(HealingText);
 	}
@@ -46,9 +48,15 @@ void UScoreboardEntry::NativeOnListItemObjectSet(UObject* ListItemObject)
 	}
 
 	PlayerText->SetText(FText::FromString(PlayerState->GetPlayerName()));
+	KillsText->SetText(FText::AsNumber(PlayerState->GetKills()));
+	DeathsText->SetText(FText::AsNumber(PlayerState->GetDeaths()));
 	DamageText->SetText(FText::AsNumber(PlayerState->GetDamage()));
 	HealingText->SetText(FText::AsNumber(PlayerState->GetHealing()));
 
+	PlayerState->OnKill().AddWeakLambda(KillsText, [KillsText = KillsText](int16 Kills)
+		{ KillsText->SetText(FText::AsNumber(Kills)); });
+	PlayerState->OnDeath().AddWeakLambda(DeathsText, [DeathsText = DeathsText](uint16 Deaths)
+		{ DeathsText->SetText(FText::AsNumber(Deaths)); });
 	PlayerState->OnDamage().AddWeakLambda(DamageText, [DamageText = DamageText](uint32 Damage)
 		{ DamageText->SetText(FText::AsNumber(Damage)); });
 	PlayerState->OnHealing().AddWeakLambda(HealingText, [HealingText = HealingText](uint32 Healing)

@@ -26,6 +26,8 @@ void AGardumPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
+	DOREPLIFETIME(AGardumPlayerState, Kills);
+	DOREPLIFETIME(AGardumPlayerState, Deaths);
 	DOREPLIFETIME(AGardumPlayerState, Damage);
 	DOREPLIFETIME(AGardumPlayerState, Healing);
 }
@@ -41,6 +43,8 @@ void AGardumPlayerState::CopyProperties(class APlayerState* PlayerState)
 
 	if (auto* GardumPlayerState = Cast<AGardumPlayerState>(PlayerState); GardumPlayerState != nullptr)
 	{
+		GardumPlayerState->Kills = Kills;
+		GardumPlayerState->Deaths = Deaths;
 		GardumPlayerState->Damage = Damage;
 		GardumPlayerState->Healing = Healing;
 	}
@@ -57,9 +61,21 @@ void AGardumPlayerState::OverrideWith(class APlayerState* PlayerState)
 
 	if (auto* GardumPlayerState = Cast<AGardumPlayerState>(PlayerState); GardumPlayerState != nullptr)
 	{
+		Kills = GardumPlayerState->Kills;
+		Deaths = GardumPlayerState->Deaths;
 		Damage = GardumPlayerState->Damage;
 		Healing = GardumPlayerState->Healing;
 	}
+}
+
+TMulticastDelegate<void(int16)>& AGardumPlayerState::OnKill()
+{
+	return KillsChangedDelegate;
+}
+
+TMulticastDelegate<void(uint16)>& AGardumPlayerState::OnDeath()
+{
+	return DeathsChangedDelegate;
 }
 
 TMulticastDelegate<void(uint32)>& AGardumPlayerState::OnDamage()
@@ -70,6 +86,18 @@ TMulticastDelegate<void(uint32)>& AGardumPlayerState::OnDamage()
 TMulticastDelegate<void(uint32)>& AGardumPlayerState::OnHealing()
 {
 	return HealingChangedDelegate;
+}
+
+void AGardumPlayerState::AddKill()
+{
+	++Kills;
+	KillsChangedDelegate.Broadcast(Kills);
+}
+
+void AGardumPlayerState::AddDeath()
+{
+	++Deaths;
+	DeathsChangedDelegate.Broadcast(Deaths);
 }
 
 void AGardumPlayerState::AddDamage(uint32 Value)
@@ -84,6 +112,16 @@ void AGardumPlayerState::AddHealing(uint32 Value)
 	HealingChangedDelegate.Broadcast(Healing);
 }
 
+int16 AGardumPlayerState::GetKills() const
+{
+	return Kills;
+}
+
+uint16 AGardumPlayerState::GetDeaths() const
+{
+	return Deaths;
+}
+
 uint32 AGardumPlayerState::GetDamage() const
 {
 	return Damage;
@@ -92,6 +130,16 @@ uint32 AGardumPlayerState::GetDamage() const
 uint32 AGardumPlayerState::GetHealing() const
 {
 	return Healing;
+}
+
+void AGardumPlayerState::OnRep_Kills()
+{
+	KillsChangedDelegate.Broadcast(Kills);
+}
+
+void AGardumPlayerState::OnRep_Deaths()
+{
+	DeathsChangedDelegate.Broadcast(Deaths);
 }
 
 void AGardumPlayerState::OnRep_Damage()
