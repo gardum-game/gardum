@@ -175,7 +175,7 @@ void AHero::OnHealthChanged(const FOnAttributeChangeData& Data)
 
 	if (auto* State = Cast<AGardumPlayerState>(Instigator->GetPlayerState()); State)
 	{
-		const float Difference = Data.NewValue - Data.OldValue;
+		const auto Difference = static_cast<uint32>(Data.NewValue - Data.OldValue);
 		if (Difference < 0)
 		{
 			State->AddDamage(-Difference);

@@ -62,34 +62,34 @@ void AGardumPlayerState::OverrideWith(class APlayerState* PlayerState)
 	}
 }
 
-TMulticastDelegate<void(float)>& AGardumPlayerState::OnDamage()
+TMulticastDelegate<void(uint32)>& AGardumPlayerState::OnDamage()
 {
 	return DamageChangedDelegate;
 }
 
-TMulticastDelegate<void(float)>& AGardumPlayerState::OnHealing()
+TMulticastDelegate<void(uint32)>& AGardumPlayerState::OnHealing()
 {
 	return HealingChangedDelegate;
 }
 
-void AGardumPlayerState::AddDamage(float Value)
+void AGardumPlayerState::AddDamage(uint32 Value)
 {
 	Damage += Value;
 	DamageChangedDelegate.Broadcast(Damage);
 }
 
-void AGardumPlayerState::AddHealing(float Value)
+void AGardumPlayerState::AddHealing(uint32 Value)
 {
 	Healing += Value;
 	HealingChangedDelegate.Broadcast(Healing);
 }
 
-float AGardumPlayerState::GetDamage() const
+uint32 AGardumPlayerState::GetDamage() const
 {
 	return Damage;
 }
 
-float AGardumPlayerState::GetHealing() const
+uint32 AGardumPlayerState::GetHealing() const
 {
 	return Healing;
 }
