@@ -41,13 +41,11 @@ void AGardumPlayerState::CopyProperties(class APlayerState* PlayerState)
 		return;
 	}
 
-	if (auto* GardumPlayerState = Cast<AGardumPlayerState>(PlayerState); GardumPlayerState != nullptr)
-	{
-		GardumPlayerState->Kills = Kills;
-		GardumPlayerState->Deaths = Deaths;
-		GardumPlayerState->Damage = Damage;
-		GardumPlayerState->Healing = Healing;
-	}
+	auto* GardumPlayerState = CastChecked<AGardumPlayerState>(PlayerState);
+	GardumPlayerState->Kills = Kills;
+	GardumPlayerState->Deaths = Deaths;
+	GardumPlayerState->Damage = Damage;
+	GardumPlayerState->Healing = Healing;
 }
 
 void AGardumPlayerState::OverrideWith(class APlayerState* PlayerState)
@@ -59,13 +57,11 @@ void AGardumPlayerState::OverrideWith(class APlayerState* PlayerState)
 		return;
 	}
 
-	if (auto* GardumPlayerState = Cast<AGardumPlayerState>(PlayerState); GardumPlayerState != nullptr)
-	{
-		Kills = GardumPlayerState->Kills;
-		Deaths = GardumPlayerState->Deaths;
-		Damage = GardumPlayerState->Damage;
-		Healing = GardumPlayerState->Healing;
-	}
+	auto* GardumPlayerState = CastChecked<AGardumPlayerState>(PlayerState);
+	Kills = GardumPlayerState->Kills;
+	Deaths = GardumPlayerState->Deaths;
+	Damage = GardumPlayerState->Damage;
+	Healing = GardumPlayerState->Healing;
 }
 
 TMulticastDelegate<void(int16)>& AGardumPlayerState::OnKill()

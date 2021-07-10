@@ -20,15 +20,16 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
 #include "Core/GameModes/GardumGameMode.h"
+#include "CoreMinimal.h"
+
 #include "Deathmatch.generated.h"
 
 UCLASS()
 class GARDUM_API ADeathmatch : public AGardumGameMode
 {
-	GENERATED_BODY()
+	GENERATED_BODY() // NOLINT
 
 public:
-    ADeathmatch() = default;
+	ADeathmatch(const FObjectInitializer& ObjectInitializer);
 };

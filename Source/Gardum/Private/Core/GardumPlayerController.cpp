@@ -28,12 +28,8 @@ void AGardumPlayerController::AcknowledgePossession(APawn* InPawn)
 {
 	Super::AcknowledgePossession(InPawn);
 
-	auto* HUD = GetHUD<AGardumHUD>();
-	if (ensureMsgf(HUD != nullptr, TEXT("AGardumPlayerController should have HUD of type AGardumHUD")))
+	if (auto* AbilityInterface = Cast<IAbilitySystemInterface>(InPawn); ensureAlwaysMsgf(AbilityInterface != nullptr, TEXT("Posessed pawn do not have ability system interface")))
 	{
-		if (auto* AbilityInterface = Cast<IAbilitySystemInterface>(InPawn); ensureAlwaysMsgf(AbilityInterface != nullptr, TEXT("Posessed pawn do not have ability system interface")))
-		{
-			HUD->GetHUDWidget()->SetAbilitySystem(AbilityInterface->GetAbilitySystemComponent());
-		}
+		GetHUD<AGardumHUD>()->GetHUDWidget()->SetAbilitySystem(AbilityInterface->GetAbilitySystemComponent());
 	}
 }

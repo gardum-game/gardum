@@ -206,9 +206,9 @@ void AHero::OnDeadTagChanged([[maybe_unused]] FGameplayTag Tag, int32 NewCount)
 	{
 		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		GetMesh()->SetSimulatePhysics(true);
-		if (auto *Controller = Cast<APlayerController>(GetController()); Controller != nullptr)
+		if (HasAuthority())
 		{
-			DisableInput(Controller);
+			DisableInput(GetController<APlayerController>());
 		}
 	}
 }

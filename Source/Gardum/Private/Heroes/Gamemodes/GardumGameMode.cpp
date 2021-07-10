@@ -18,18 +18,18 @@
  *
  */
 
-#pragma once
+#include "Core/GameModes/GardumGameMode.h"
 
-#include "CoreMinimal.h"
-#include "GameFramework/GameMode.h"
+#include "Core/GardumGameState.h"
+#include "Core/GardumPlayerController.h"
+#include "Core/GardumPlayerState.h"
+#include "Core/GardumHUD.h"
 
-#include "GardumGameMode.generated.h"
-
-UCLASS()
-class GARDUM_API AGardumGameMode : public AGameMode
+AGardumGameMode::AGardumGameMode(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
 {
-	GENERATED_BODY() // NOLINT
-
-public:
-	AGardumGameMode(const FObjectInitializer& ObjectInitializer);
-};
+	GameStateClass = AGardumGameState::StaticClass();
+	PlayerControllerClass = AGardumPlayerController::StaticClass();
+	PlayerStateClass = AGardumPlayerState::StaticClass();
+	HUDClass = AGardumHUD::StaticClass();
+}

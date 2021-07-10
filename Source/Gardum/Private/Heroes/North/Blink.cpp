@@ -34,6 +34,10 @@ void UBlink::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGam
 	}
 
 	auto* AvatarActor = Cast<APawn>(GetAvatarActorFromActorInfo());
+	if (!ensureAlwaysMsgf(AvatarActor != nullptr, TEXT("Unable to get pawn from ability avatar")))
+	{
+		return;
+	}
 	const FRotator Rotation = FRotator(0, AvatarActor->GetBaseAimRotation().Yaw, 0);
 	AvatarActor->SetActorRotation(Rotation);
 	AvatarActor->AddActorWorldOffset(Rotation.GetNormalized().Vector() * BlinkDistance);

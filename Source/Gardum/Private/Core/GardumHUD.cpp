@@ -55,14 +55,13 @@ void AGardumHUD::BeginPlay()
 	if (Scoreboard != nullptr)
 	{
 		Scoreboard->AddToViewport();
-		if (auto* GameState = GetWorld()->GetGameState<AGardumGameState>(); ensureAlwaysMsgf(GameState != nullptr, TEXT("Unable to get GameState for Scoreboard")))
+
+		auto* GameState = GetWorld()->GetGameState<AGardumGameState>();
+		GameState->OnPlayerStateAdded().AddUObject(Scoreboard, &UScoreboard::AddPlayerState);
+		GameState->OnPlayerStateRemoved().AddUObject(Scoreboard, &UScoreboard::RemovePlayerState);
+		for (APlayerState *PlayerState : GameState->PlayerArray)
 		{
-			GameState->OnPlayerStateAdded().AddUObject(Scoreboard, &UScoreboard::AddPlayerState);
-			GameState->OnPlayerStateRemoved().AddUObject(Scoreboard, &UScoreboard::RemovePlayerState);
-			for (APlayerState *PlayerState : GameState->PlayerArray)
-			{
-				Scoreboard->AddPlayerState(PlayerState);
-			}
+			Scoreboard->AddPlayerState(PlayerState);
 		}
 	}
 }

@@ -18,18 +18,9 @@
  *
  */
 
-#pragma once
+#include "Core/GameModes/Deathmatch.h"
 
-#include "CoreMinimal.h"
-#include "GameFramework/GameMode.h"
-
-#include "GardumGameMode.generated.h"
-
-UCLASS()
-class GARDUM_API AGardumGameMode : public AGameMode
+ADeathmatch::ADeathmatch(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
 {
-	GENERATED_BODY() // NOLINT
-
-public:
-	AGardumGameMode(const FObjectInitializer& ObjectInitializer);
-};
+}

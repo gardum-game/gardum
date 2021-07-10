@@ -58,7 +58,7 @@ void UAbilityIcon::SetAbility(const FGameplayAbilitySpec* NewAbilitySpec, const 
 		return;
 	}
 
-	if (UTexture2D* AbilityIcon = Cast<UHeroGameplayAbility>(AbilitySpec->Ability)->GetIcon(); AbilityIcon != nullptr)
+	if (UTexture2D* AbilityIcon = CastChecked<UHeroGameplayAbility>(AbilitySpec->Ability)->GetIcon(); AbilityIcon != nullptr)
 	{
 		Icon->SetBrushFromTexture(AbilityIcon);
 	}

@@ -36,10 +36,14 @@ void UFrostBolt::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
 		return;
 	}
 
-	auto* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo());
-	if (!ensureMsgf(Character != nullptr, TEXT("Unable to get actor from the ability")))
+	if (!ensureAlwaysMsgf(DamageEffectClass != nullptr, TEXT("Projectile damage effect class is not specified")))
 	{
-		ensureMsgf(GetAvatarActorFromActorInfo() != nullptr, TEXT("Unable to get any actor from the ability"));
+		return;
+	}
+
+	auto* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo());
+	if (!ensureAlwaysMsgf(Character != nullptr, TEXT("Unable to get character from the ability")))
+	{
 		return;
 	}
 
