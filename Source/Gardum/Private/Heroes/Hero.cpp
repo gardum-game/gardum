@@ -159,51 +159,6 @@ void AHero::OnHealthChanged(const FOnAttributeChangeData& Data)
 	if (Data.NewValue <= 0)
 	{
 		AbilitySystem->AddLooseGameplayTag(Tags::Dead);
-		if (GetNetMode() > NM_ListenServer)
-		{
-			GetPlayerStateChecked<AGardumPlayerState>()->AddDeath();
-		}
-	}
-
-	if (GetNetMode() > NM_ListenServer)
-	{
-		// Data.GEMode is available only on the server, so we update the PlayerState statistics only on it and replicate the values to clients
-		return;
-	}
-
-	const auto* Instigator = Cast<APawn>(Data.GEModData->EffectSpec.GetContext().GetInstigator());
-	if (Instigator == nullptr)
-	{
-		return;
-	}
-
-	auto* InstigatorState = Instigator->GetPlayerStateChecked<AGardumPlayerState>();
-	if (Data.NewValue <= 0)
-	{
-		InstigatorState->AddKill();
-	}
-	const float Difference = Data.NewValue - Data.OldValue;
-	if (Difference < 0)
-	{
-		InstigatorState->AddDamage(static_cast<uint32>(-Difference));
-	}
-	else
-	{
-		InstigatorState->AddHealing(static_cast<uint32>(Difference));
-	}
-}
-
-void AHero::SetupAbilitySystem()
-{
-	AbilitySystem->InitAbilityActorInfo(this, this);
-	AbilitySystem->GetGameplayAttributeValueChangeDelegate(UGardumAttributeSet::GetHealthAttribute()).AddUObject(this, &AHero::OnHealthChanged);
-	AbilitySystem->RegisterGameplayTagEvent(Tags::Dead, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AHero::OnDeadTagChanged);
-}
-
-void AHero::OnDeadTagChanged([[maybe_unused]] FGameplayTag Tag, int32 NewCount)
-{
-	if (NewCount == 1)
-	{
 		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		GetMesh()->SetSimulatePhysics(true);
 		if (HasAuthority())
@@ -211,4 +166,15 @@ void AHero::OnDeadTagChanged([[maybe_unused]] FGameplayTag Tag, int32 NewCount)
 			DisableInput(GetController<APlayerController>());
 		}
 	}
+
+	if (GetNetMode() <= NM_ListenServer)
+	{
+		GetPlayerState<AGardumPlayerState>()->OnHealthChanged(Data);
+	}
+}
+
+void AHero::SetupAbilitySystem()
+{
+	AbilitySystem->InitAbilityActorInfo(this, this);
+	AbilitySystem->GetGameplayAttributeValueChangeDelegate(UGardumAttributeSet::GetHealthAttribute()).AddUObject(this, &AHero::OnHealthChanged);
 }

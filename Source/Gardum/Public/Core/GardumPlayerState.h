@@ -25,6 +25,8 @@
 
 #include "GardumPlayerState.generated.h"
 
+struct FOnAttributeChangeData;
+
 UCLASS()
 class GARDUM_API AGardumPlayerState : public APlayerState
 {
@@ -36,15 +38,12 @@ public:
 	void CopyProperties(APlayerState* PlayerState) override;
 	void OverrideWith(APlayerState* PlayerState) override;
 
+	void OnHealthChanged(const FOnAttributeChangeData& Data);
+
 	TMulticastDelegate<void(int16)>& OnKill();
 	TMulticastDelegate<void(uint16)>& OnDeath();
 	TMulticastDelegate<void(uint32)>& OnDamage();
 	TMulticastDelegate<void(uint32)>& OnHealing();
-
-	void AddKill();
-	void AddDeath();
-	void AddDamage(uint32 Value);
-	void AddHealing(uint32 Value);
 
 	int16 GetKills() const;
 	uint16 GetDeaths() const;
@@ -52,6 +51,11 @@ public:
 	uint32 GetHealing() const;
 
 private:
+	void AddKill();
+	void AddDeath();
+	void AddDamage(uint32 Value);
+	void AddHealing(uint32 Value);
+
 	UFUNCTION()
 	void OnRep_Kills();
 

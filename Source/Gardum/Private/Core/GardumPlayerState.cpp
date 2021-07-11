@@ -20,6 +20,9 @@
 
 #include "Core/GardumPlayerState.h"
 
+#include "GameplayEffectExtension.h"
+#include "GameplayEffectTypes.h"
+#include "GameplayEffect.h"
 #include "Net/UnrealNetwork.h"
 
 void AGardumPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -64,6 +67,35 @@ void AGardumPlayerState::OverrideWith(APlayerState* PlayerState)
 	Healing = GardumPlayerState->Healing;
 }
 
+void AGardumPlayerState::OnHealthChanged(const FOnAttributeChangeData& Data)
+{
+	if (Data.NewValue <= 0)
+	{
+		AddDeath();
+	}
+
+	const auto* Instigator = Cast<APawn>(Data.GEModData->EffectSpec.GetContext().GetInstigator());
+	if (Instigator == nullptr)
+	{
+		return;
+	}
+
+	auto* InstigatorState = Instigator->GetPlayerStateChecked<AGardumPlayerState>();
+	if (Data.NewValue <= 0)
+	{
+		InstigatorState->AddKill();
+	}
+	const float Difference = Data.NewValue - Data.OldValue;
+	if (Difference < 0)
+	{
+		InstigatorState->AddDamage(static_cast<uint32>(-Difference));
+	}
+	else
+	{
+		InstigatorState->AddHealing(static_cast<uint32>(Difference));
+	}
+}
+
 TMulticastDelegate<void(int16)>& AGardumPlayerState::OnKill()
 {
 	return KillsChangedDelegate;
@@ -82,6 +114,26 @@ TMulticastDelegate<void(uint32)>& AGardumPlayerState::OnDamage()
 TMulticastDelegate<void(uint32)>& AGardumPlayerState::OnHealing()
 {
 	return HealingChangedDelegate;
+}
+
+int16 AGardumPlayerState::GetKills() const
+{
+	return Kills;
+}
+
+uint16 AGardumPlayerState::GetDeaths() const
+{
+	return Deaths;
+}
+
+uint32 AGardumPlayerState::GetDamage() const
+{
+	return Damage;
+}
+
+uint32 AGardumPlayerState::GetHealing() const
+{
+	return Healing;
 }
 
 void AGardumPlayerState::AddKill()
@@ -106,26 +158,6 @@ void AGardumPlayerState::AddHealing(uint32 Value)
 {
 	Healing += Value;
 	HealingChangedDelegate.Broadcast(Healing);
-}
-
-int16 AGardumPlayerState::GetKills() const
-{
-	return Kills;
-}
-
-uint16 AGardumPlayerState::GetDeaths() const
-{
-	return Deaths;
-}
-
-uint32 AGardumPlayerState::GetDamage() const
-{
-	return Damage;
-}
-
-uint32 AGardumPlayerState::GetHealing() const
-{
-	return Healing;
 }
 
 void AGardumPlayerState::OnRep_Kills()
