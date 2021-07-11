@@ -32,7 +32,7 @@ void AGardumPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME(AGardumPlayerState, Healing);
 }
 
-void AGardumPlayerState::CopyProperties(class APlayerState* PlayerState)
+void AGardumPlayerState::CopyProperties(APlayerState* PlayerState)
 {
 	Super::CopyProperties(PlayerState);
 
@@ -48,7 +48,7 @@ void AGardumPlayerState::CopyProperties(class APlayerState* PlayerState)
 	GardumPlayerState->Healing = Healing;
 }
 
-void AGardumPlayerState::OverrideWith(class APlayerState* PlayerState)
+void AGardumPlayerState::OverrideWith(APlayerState* PlayerState)
 {
 	Super::OverrideWith(PlayerState);
 

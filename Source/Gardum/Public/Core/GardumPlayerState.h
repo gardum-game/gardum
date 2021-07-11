@@ -33,8 +33,8 @@ class GARDUM_API AGardumPlayerState : public APlayerState
 public:
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	void CopyProperties(class APlayerState* PlayerState) override;
-	void OverrideWith(class APlayerState* PlayerState) override;
+	void CopyProperties(APlayerState* PlayerState) override;
+	void OverrideWith(APlayerState* PlayerState) override;
 
 	TMulticastDelegate<void(int16)>& OnKill();
 	TMulticastDelegate<void(uint16)>& OnDeath();
