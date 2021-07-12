@@ -30,6 +30,6 @@ void AGardumPlayerController::AcknowledgePossession(APawn* InPawn)
 
 	if (auto* AbilityInterface = Cast<IAbilitySystemInterface>(InPawn); ensureAlwaysMsgf(AbilityInterface != nullptr, TEXT("Posessed pawn do not have ability system interface")))
 	{
-		GetHUD<AGardumHUD>()->GetHUDWidget()->SetAbilitySystem(AbilityInterface->GetAbilitySystemComponent());
+		GetHUD<AGardumHUD>()->SetAbilitySystem(AbilityInterface->GetAbilitySystemComponent());
 	}
 }

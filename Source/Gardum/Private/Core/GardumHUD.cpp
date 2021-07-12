@@ -66,12 +66,7 @@ void AGardumHUD::BeginPlay()
 	}
 }
 
-UHUDWidget* AGardumHUD::GetHUDWidget()
+void AGardumHUD::SetAbilitySystem(UAbilitySystemComponent* AbilitySystem)
 {
-	return HUD;
-}
-
-UScoreboard* AGardumHUD::GetScoreboard()
-{
-	return Scoreboard;
+	HUD->SetAbilitySystem(AbilitySystem);
 }

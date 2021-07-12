@@ -25,6 +25,7 @@
 
 #include "GardumHUD.generated.h"
 
+class UAbilitySystemComponent;
 class UHUDWidget;
 class UScoreboard;
 
@@ -37,8 +38,7 @@ public:
 	void PostInitializeComponents() override;
 	void BeginPlay() override;
 
-	UHUDWidget* GetHUDWidget();
-	UScoreboard* GetScoreboard();
+	void SetAbilitySystem(UAbilitySystemComponent* AbilitySystem);
 
 private:
 	UPROPERTY(EditAnywhere, Category = "HUD")
