@@ -19,7 +19,9 @@
  */
 
 use bevy::prelude::*;
-use bevy_rapier3d::prelude::{ColliderBundle, ColliderShape, RigidBodyBundle, RigidBodyPositionSync, RigidBodyType};
+use bevy_rapier3d::prelude::{
+    ColliderBundle, ColliderShape, RigidBodyBundle, RigidBodyPositionSync, RigidBodyType,
+};
 
 use crate::player_controller::PlayerController;
 

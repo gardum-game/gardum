@@ -104,12 +104,12 @@ fn is_on_floor(
     collider_query: &QueryPipelineColliderComponentsQuery,
     position: &Isometry<Real>,
     shape: &dyn Shape,
-    collider_handles: &Vec<ColliderHandle>,
+    collider_handles: &[ColliderHandle],
 ) -> bool {
     query_pipeline
         .cast_shape(
-            &QueryPipelineColliderComponentsSet(&collider_query),
-            &position,
+            &QueryPipelineColliderComponentsSet(collider_query),
+            position,
             &-Vector::x(),
             shape,
             FLOOR_THRESHOLD,
