@@ -25,6 +25,8 @@ use bevy_rapier3d::prelude::{
     RigidBodyColliders, RigidBodyPosition, RigidBodyVelocity, Shape, Vector,
 };
 
+use crate::app_state::AppState;
+
 const MOVE_SPEED: f32 = 50.0;
 const GRAVITY: f32 = 980.0;
 const VELOCITY_INTERPOLATE_SPEED: f32 = 20.0;
@@ -36,7 +38,9 @@ pub struct PlayerController;
 pub struct PlayerControllerPlugin;
 impl Plugin for PlayerControllerPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.add_system(input_system.system());
+        app.add_system_set(
+            SystemSet::on_update(AppState::InGame).with_system(input_system.system()),
+        );
     }
 }
 

@@ -23,13 +23,17 @@ use bevy_rapier3d::prelude::{
     ColliderBundle, ColliderShape, RigidBodyBundle, RigidBodyPositionSync, RigidBodyType,
 };
 
+use crate::app_state::AppState;
 use crate::player_controller::PlayerController;
 
 pub struct SetupPlugin;
 impl Plugin for SetupPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.add_startup_system(create_world_system.system())
-            .add_startup_system(spawn_player_system.system());
+        app.add_system_set(
+            SystemSet::on_enter(AppState::InGame)
+                .with_system(create_world_system.system())
+                .with_system(spawn_player_system.system()),
+        );
     }
 }
 

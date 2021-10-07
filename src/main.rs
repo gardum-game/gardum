@@ -19,7 +19,11 @@
  */
 
 use bevy::prelude::*;
-use bevy_rapier3d::prelude::*;
+use bevy_egui::EguiPlugin;
+use bevy_rapier3d::physics::{NoUserData, RapierPhysicsPlugin};
+
+mod main_menu;
+use main_menu::MainMenuPlugin;
 
 mod setup;
 use setup::SetupPlugin;
@@ -27,11 +31,17 @@ use setup::SetupPlugin;
 mod player_controller;
 use player_controller::PlayerControllerPlugin;
 
+mod app_state;
+use app_state::AppStatePlugin;
+
 fn main() {
     App::build()
         .add_plugins(DefaultPlugins)
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
+        .add_plugin(AppStatePlugin)
+        .add_plugin(MainMenuPlugin)
         .add_plugin(SetupPlugin)
         .add_plugin(PlayerControllerPlugin)
+        .add_plugin(EguiPlugin)
         .run();
 }
