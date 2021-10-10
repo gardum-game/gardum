@@ -1,6 +1,6 @@
 use bevy::{app::AppExit, prelude::*};
 use bevy_egui::{
-    egui::{Align2, Area, Button, TextStyle, Window},
+    egui::{Align2, Area, Button, DragValue, Grid, TextStyle, Window},
     EguiContext,
 };
 
@@ -16,13 +16,15 @@ pub enum MainMenuState {
 pub struct MainMenuPlugin;
 impl Plugin for MainMenuPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.add_state(MainMenuState::Idle)
+        app.init_resource::<CustomGameWindowState>()
+            .add_state(MainMenuState::Idle)
             .add_system_set(
                 SystemSet::on_update(MainMenuState::Idle).with_system(main_menu_system.system()),
             )
             .add_system_set(
                 SystemSet::on_update(MainMenuState::CustomGame)
-                    .with_system(custom_game_window_system.system()),
+                    .with_system(custom_game_window_system.system())
+                    .with_system(back_button_system.system()),
             )
             .add_system_set(
                 SystemSet::on_exit(AppState::MainMenu)
@@ -69,24 +71,59 @@ fn main_menu_system(
         });
 }
 
+#[derive(Default)]
+struct CustomGameWindowState {
+    search_text: String,
+    map: String,
+    teams_enabled: bool,
+    teams_count: i8,
+    slots_count: i8,
+}
+
 fn custom_game_window_system(
     egui: ResMut<EguiContext>,
-    mut main_menu_state: ResMut<State<MainMenuState>>,
-    mut app_menu_state: ResMut<State<AppState>>,
+    mut custom_game_state: Local<CustomGameWindowState>,
+    mut app_state: ResMut<State<AppState>>,
 ) {
-    let mut open = true;
     Window::new("Custom game")
         .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
-        .open(&mut open)
+        .collapsible(false)
         .show(egui.ctx(), |ui| {
-            if ui.button("Start").clicked() {
-                app_menu_state.set(AppState::InGame).unwrap();
+            ui.horizontal(|ui| {
+                ui.text_edit_singleline(&mut custom_game_state.search_text);
+                if ui.button("Create").clicked() || ui.button("Connect").clicked() {
+                    app_state.set(AppState::InGame).unwrap();
+                }
+                ui.group(|ui| {
+                    Grid::new("Server Settings").show(ui, |ui| {
+                        ui.label("Map:");
+                        ui.text_edit_singleline(&mut custom_game_state.map);
+                        ui.end_row();
+                        ui.checkbox(&mut custom_game_state.teams_enabled, "Teams enabled");
+                        ui.end_row();
+                        ui.label("Teams count:");
+                        ui.add(DragValue::new(&mut custom_game_state.teams_count));
+                        ui.end_row();
+                        ui.label("Slots count:");
+                        ui.add(DragValue::new(&mut custom_game_state.slots_count));
+                    });
+                });
+            })
+        });
+}
+
+fn back_button_system(
+    egui: ResMut<EguiContext>,
+    input: Res<Input<KeyCode>>,
+    mut main_menu_state: ResMut<State<MainMenuState>>,
+) {
+    Area::new("Back area")
+        .anchor(Align2::LEFT_BOTTOM, (20.0, -20.0))
+        .show(egui.ctx(), |ui| {
+            if input.just_pressed(KeyCode::Escape) || ui.button("Back").clicked() {
+                main_menu_state.set(MainMenuState::Idle).unwrap();
             }
         });
-
-    if !open {
-        main_menu_state.set(MainMenuState::Idle).unwrap();
-    }
 }
 
 fn disable_main_menu_system(mut main_menu_state: ResMut<State<MainMenuState>>) {
