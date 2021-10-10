@@ -1,10 +1,9 @@
+use crate::app_state::AppState;
 use bevy::{app::AppExit, prelude::*};
 use bevy_egui::{
     egui::{Align2, Area, Button, DragValue, Grid, TextStyle, Window},
     EguiContext,
 };
-
-use crate::app_state::AppState;
 
 const MARGIN: f32 = 20.0;
 

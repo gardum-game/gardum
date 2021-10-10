@@ -22,6 +22,9 @@ use bevy::prelude::*;
 use bevy_egui::EguiPlugin;
 use bevy_rapier3d::physics::{NoUserData, RapierPhysicsPlugin};
 
+mod cli;
+use cli::CliPlugin;
+
 mod main_menu;
 use main_menu::MainMenuPlugin;
 
@@ -38,6 +41,7 @@ fn main() {
     App::build()
         .add_plugins(DefaultPlugins)
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
+        .add_plugin(CliPlugin)
         .add_plugin(AppStatePlugin)
         .add_plugin(MainMenuPlugin)
         .add_plugin(SetupPlugin)

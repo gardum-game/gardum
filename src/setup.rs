@@ -24,16 +24,24 @@ use bevy_rapier3d::prelude::{
 };
 
 use crate::app_state::AppState;
+use crate::cli::Opts;
 use crate::player_controller::PlayerController;
 
 pub struct SetupPlugin;
 impl Plugin for SetupPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.add_system_set(
-            SystemSet::on_enter(AppState::InGame)
-                .with_system(create_world_system.system())
-                .with_system(spawn_player_system.system()),
-        );
+        app.add_startup_system(start_session_system.system())
+            .add_system_set(
+                SystemSet::on_enter(AppState::InGame)
+                    .with_system(create_world_system.system())
+                    .with_system(spawn_player_system.system()),
+            );
+    }
+}
+
+fn start_session_system(opts: Res<Opts>, mut app_state: ResMut<State<AppState>>) {
+    if opts.subcommand.is_some() {
+        app_state.set(AppState::InGame).unwrap();
     }
 }
 

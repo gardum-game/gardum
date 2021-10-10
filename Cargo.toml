@@ -7,3 +7,4 @@ edition = "2018"
 bevy = "0.5"
 bevy_egui = "0.7.1"
 bevy_rapier3d = { version = "0.11.0", features = [ "simd-stable" ] }
+clap = "3.0.0-beta.2"
