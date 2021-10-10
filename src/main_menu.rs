@@ -6,6 +6,8 @@ use bevy_egui::{
 
 use crate::app_state::AppState;
 
+const MARGIN: f32 = 20.0;
+
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub enum MainMenuState {
     Disabled,
@@ -39,7 +41,7 @@ fn main_menu_system(
     mut main_menu_state: ResMut<State<MainMenuState>>,
 ) {
     Area::new("Main Menu")
-        .anchor(Align2::LEFT_CENTER, (15.0, 0.0))
+        .anchor(Align2::LEFT_CENTER, (MARGIN, 0.0))
         .show(egui.ctx(), |ui| {
             ui.add(
                 Button::new("Play")
@@ -118,7 +120,7 @@ fn back_button_system(
     mut main_menu_state: ResMut<State<MainMenuState>>,
 ) {
     Area::new("Back area")
-        .anchor(Align2::LEFT_BOTTOM, (20.0, -20.0))
+        .anchor(Align2::LEFT_BOTTOM, (MARGIN, -MARGIN))
         .show(egui.ctx(), |ui| {
             if input.just_pressed(KeyCode::Escape) || ui.button("Back").clicked() {
                 main_menu_state.set(MainMenuState::Idle).unwrap();
