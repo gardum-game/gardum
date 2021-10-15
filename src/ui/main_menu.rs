@@ -18,23 +18,25 @@
  *
  */
 
-use crate::app_state::AppState;
 use bevy::{app::AppExit, prelude::*};
 use bevy_egui::{
     egui::{Align2, Area, Button, DragValue, Grid, TextStyle, Window},
     EguiContext,
 };
 
+use crate::core::AppState;
+
 const MARGIN: f32 = 20.0;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
-pub enum MainMenuState {
+enum MainMenuState {
     Disabled,
     Idle,
     CustomGame,
 }
 
 pub struct MainMenuPlugin;
+
 impl Plugin for MainMenuPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.init_resource::<CustomGameWindowState>()

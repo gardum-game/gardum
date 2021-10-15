@@ -25,7 +25,8 @@ use bevy_rapier3d::prelude::{
     RigidBodyColliders, RigidBodyPosition, RigidBodyVelocity, Shape, Vector,
 };
 
-use crate::app_state::AppState;
+use super::Authority;
+use crate::core::AppState;
 
 const MOVE_SPEED: f32 = 50.0;
 const GRAVITY: f32 = 650.0;
@@ -33,12 +34,11 @@ const VELOCITY_INTERPOLATE_SPEED: f32 = 20.0;
 const JUMP_IMPULSE: f32 = 200.0;
 const FLOOR_THRESHOLD: f32 = 0.01;
 
-pub struct PlayerController;
+pub struct MovementPlugin;
 
-pub struct PlayerControllerPlugin;
-impl Plugin for PlayerControllerPlugin {
+impl Plugin for MovementPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.init_resource::<PlayerInput>()
+        app.init_resource::<MovementInput>()
             .add_system_set(
                 SystemSet::on_update(AppState::InGame)
                     .label("input")
@@ -53,7 +53,7 @@ impl Plugin for PlayerControllerPlugin {
 }
 
 #[derive(Default)]
-struct PlayerInput {
+struct MovementInput {
     forward: bool,
     backward: bool,
     left: bool,
@@ -61,7 +61,7 @@ struct PlayerInput {
     jumping: bool,
 }
 
-impl PlayerInput {
+impl MovementInput {
     fn movement_direction(&self) -> Vector<Real> {
         let mut direction = Vector::zeros();
         if self.forward {
@@ -85,7 +85,7 @@ impl PlayerInput {
     }
 }
 
-fn input_system(keys: Res<Input<KeyCode>>, mut input: ResMut<PlayerInput>) {
+fn input_system(keys: Res<Input<KeyCode>>, mut input: ResMut<MovementInput>) {
     input.forward = keys.pressed(KeyCode::W);
     input.backward = keys.pressed(KeyCode::S);
     input.left = keys.pressed(KeyCode::A);
@@ -96,7 +96,7 @@ fn input_system(keys: Res<Input<KeyCode>>, mut input: ResMut<PlayerInput>) {
 
 fn movement_system(
     time: Res<Time>,
-    input: Res<PlayerInput>,
+    input: Res<MovementInput>,
     query_pipeline: Res<QueryPipeline>,
     collider_query: QueryPipelineColliderComponentsQuery,
     mut query: Query<
@@ -106,7 +106,7 @@ fn movement_system(
             &ColliderShape,
             &RigidBodyColliders,
         ),
-        With<PlayerController>,
+        With<Authority>,
     >,
 ) {
     let motion = input.movement_direction() * MOVE_SPEED;

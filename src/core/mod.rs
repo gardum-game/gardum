@@ -19,29 +19,25 @@
  */
 
 use bevy::prelude::*;
-use clap::Clap;
 
-pub struct CliPlugin;
-impl Plugin for CliPlugin {
+pub mod cli;
+use cli::CliPlugin;
+
+mod setup;
+use setup::SetupPlugin;
+
+pub struct CorePlugin;
+
+impl Plugin for CorePlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.insert_resource(Opts::parse());
+        app.add_state(AppState::MainMenu)
+            .add_plugin(CliPlugin)
+            .add_plugin(SetupPlugin);
     }
 }
 
-#[derive(Clap)]
-pub struct Opts {
-    #[clap(subcommand)]
-    pub subcommand: Option<SubCommand>,
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
+pub enum AppState {
+    MainMenu,
+    InGame,
 }
-
-#[derive(Clap)]
-pub enum SubCommand {
-    Connect(ConnectSubcommand),
-    Host(HostSubcommand),
-}
-
-#[derive(Clap)]
-pub struct ConnectSubcommand {}
-
-#[derive(Clap)]
-pub struct HostSubcommand {}

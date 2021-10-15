@@ -23,11 +23,11 @@ use bevy_rapier3d::prelude::{
     ColliderBundle, ColliderShape, RigidBodyBundle, RigidBodyPositionSync, RigidBodyType,
 };
 
-use crate::app_state::AppState;
-use crate::cli::Opts;
-use crate::player_controller::PlayerController;
+use crate::characters::Authority;
+use crate::core::{cli::Opts, AppState};
 
 pub struct SetupPlugin;
+
 impl Plugin for SetupPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.add_startup_system(start_session_system.system())
@@ -100,5 +100,5 @@ fn spawn_player_system(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>)
             ..Default::default()
         })
         .insert(RigidBodyPositionSync::Discrete)
-        .insert(PlayerController);
+        .insert(Authority);
 }

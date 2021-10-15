@@ -19,25 +19,14 @@
  */
 
 use bevy::prelude::*;
-use bevy_egui::EguiPlugin;
-use bevy_rapier3d::physics::{NoUserData, RapierPhysicsPlugin};
 
-mod core;
-use crate::core::CorePlugin;
+mod main_menu;
+use main_menu::MainMenuPlugin;
 
-mod ui;
-use ui::UiPlugin;
+pub struct UiPlugin;
 
-mod characters;
-use characters::CharactersPlugin;
-
-fn main() {
-    App::build()
-        .add_plugins(DefaultPlugins)
-        .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
-        .add_plugin(EguiPlugin)
-        .add_plugin(CorePlugin)
-        .add_plugin(UiPlugin)
-        .add_plugin(CharactersPlugin)
-        .run();
+impl Plugin for UiPlugin {
+    fn build(&self, app: &mut AppBuilder) {
+        app.add_plugin(MainMenuPlugin);
+    }
 }

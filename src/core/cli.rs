@@ -19,25 +19,30 @@
  */
 
 use bevy::prelude::*;
-use bevy_egui::EguiPlugin;
-use bevy_rapier3d::physics::{NoUserData, RapierPhysicsPlugin};
+use clap::Clap;
 
-mod core;
-use crate::core::CorePlugin;
+pub struct CliPlugin;
 
-mod ui;
-use ui::UiPlugin;
-
-mod characters;
-use characters::CharactersPlugin;
-
-fn main() {
-    App::build()
-        .add_plugins(DefaultPlugins)
-        .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
-        .add_plugin(EguiPlugin)
-        .add_plugin(CorePlugin)
-        .add_plugin(UiPlugin)
-        .add_plugin(CharactersPlugin)
-        .run();
+impl Plugin for CliPlugin {
+    fn build(&self, app: &mut AppBuilder) {
+        app.insert_resource(Opts::parse());
+    }
 }
+
+#[derive(Clap)]
+pub struct Opts {
+    #[clap(subcommand)]
+    pub subcommand: Option<SubCommand>,
+}
+
+#[derive(Clap)]
+pub enum SubCommand {
+    Connect(ConnectSubcommand),
+    Host(HostSubcommand),
+}
+
+#[derive(Clap)]
+pub struct ConnectSubcommand {}
+
+#[derive(Clap)]
+pub struct HostSubcommand {}
