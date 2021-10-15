@@ -28,7 +28,7 @@ use bevy_rapier3d::prelude::{
 use crate::app_state::AppState;
 
 const MOVE_SPEED: f32 = 50.0;
-const GRAVITY: f32 = 980.0;
+const GRAVITY: f32 = 650.0;
 const VELOCITY_INTERPOLATE_SPEED: f32 = 20.0;
 const JUMP_IMPULSE: f32 = 200.0;
 const FLOOR_THRESHOLD: f32 = 0.01;
@@ -38,15 +38,65 @@ pub struct PlayerController;
 pub struct PlayerControllerPlugin;
 impl Plugin for PlayerControllerPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.add_system_set(
-            SystemSet::on_update(AppState::InGame).with_system(input_system.system()),
-        );
+        app.init_resource::<PlayerInput>()
+            .add_system_set(
+                SystemSet::on_update(AppState::InGame)
+                    .label("input")
+                    .with_system(input_system.system()),
+            )
+            .add_system_set(
+                SystemSet::on_update(AppState::InGame)
+                    .after("input")
+                    .with_system(movement_system.system()),
+            );
     }
 }
 
-fn input_system(
+#[derive(Default)]
+struct PlayerInput {
+    forward: bool,
+    backward: bool,
+    left: bool,
+    right: bool,
+    jumping: bool,
+}
+
+impl PlayerInput {
+    fn movement_direction(&self) -> Vector<Real> {
+        let mut direction = Vector::zeros();
+        if self.forward {
+            direction.x += 1.0;
+        }
+        if self.backward {
+            direction.x -= 1.0;
+        }
+        if self.left {
+            direction.z -= 1.0;
+        }
+        if self.right {
+            direction.z += 1.0;
+        }
+
+        if direction != Vector::zeros() {
+            direction.normalize_mut();
+        }
+
+        direction
+    }
+}
+
+fn input_system(keys: Res<Input<KeyCode>>, mut input: ResMut<PlayerInput>) {
+    input.forward = keys.pressed(KeyCode::W);
+    input.backward = keys.pressed(KeyCode::S);
+    input.left = keys.pressed(KeyCode::A);
+    input.right = keys.pressed(KeyCode::D);
+
+    input.jumping = keys.pressed(KeyCode::Space);
+}
+
+fn movement_system(
     time: Res<Time>,
-    input: Res<Input<KeyCode>>,
+    input: Res<PlayerInput>,
     query_pipeline: Res<QueryPipeline>,
     collider_query: QueryPipelineColliderComponentsQuery,
     mut query: Query<
@@ -59,7 +109,7 @@ fn input_system(
         With<PlayerController>,
     >,
 ) {
-    let motion = movement_direction(&input) * MOVE_SPEED;
+    let motion = input.movement_direction() * MOVE_SPEED;
     let (mut velocity, position, shape, collider_handles) = query.single_mut().unwrap();
 
     velocity.linvel = velocity
@@ -73,34 +123,12 @@ fn input_system(
         &**shape,
         &collider_handles.0,
     ) {
-        if input.just_pressed(KeyCode::Space) {
+        if input.jumping {
             velocity.linvel.y += JUMP_IMPULSE;
         }
     } else {
         velocity.linvel.y -= GRAVITY * time.delta_seconds();
     }
-}
-
-fn movement_direction(input: &Res<Input<KeyCode>>) -> Vector<Real> {
-    let mut motion = Vector::zeros();
-    if input.pressed(KeyCode::W) {
-        motion.x += 1.0;
-    }
-    if input.pressed(KeyCode::S) {
-        motion.x -= 1.0;
-    }
-    if input.pressed(KeyCode::A) {
-        motion.z -= 1.0;
-    }
-    if input.pressed(KeyCode::D) {
-        motion.z += 1.0;
-    }
-
-    if motion != Vector::zeros() {
-        motion.normalize_mut();
-    }
-
-    motion
 }
 
 fn is_on_floor(
