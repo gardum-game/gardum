@@ -18,17 +18,55 @@
  *
  */
 
-use bevy::prelude::*;
-
+pub mod heroes;
 mod movement;
+
+use bevy::prelude::*;
+use bevy_rapier3d::prelude::{
+    ColliderBundle, RigidBodyBundle, RigidBodyPositionSync, RigidBodyType,
+};
+
+pub use heroes::HeroAssets;
+use heroes::HeroesPlugin;
 use movement::MovementPlugin;
 
 pub struct CharactersPlugin;
 
 impl Plugin for CharactersPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.add_plugin(MovementPlugin);
+        app.add_plugin(MovementPlugin).add_plugin(HeroesPlugin);
     }
 }
 
-pub struct Authority;
+#[derive(Bundle)]
+pub struct CharacterBundle {
+    position_sync: RigidBodyPositionSync,
+
+    #[bundle]
+    pbr: PbrBundle,
+
+    #[bundle]
+    collider: ColliderBundle,
+
+    #[bundle]
+    rigid_body: RigidBodyBundle,
+}
+
+impl CharacterBundle {
+    pub fn new(mesh: Handle<Mesh>, material: Handle<StandardMaterial>, position: Vec3) -> Self {
+        Self {
+            position_sync: RigidBodyPositionSync::Discrete,
+            pbr: PbrBundle {
+                mesh,
+                material,
+                ..Default::default()
+            },
+            collider: Default::default(),
+            rigid_body: RigidBodyBundle {
+                body_type: RigidBodyType::KinematicVelocityBased,
+                position: position.into(),
+                ..Default::default()
+            },
+        }
+    }
+}

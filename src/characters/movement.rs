@@ -25,8 +25,7 @@ use bevy_rapier3d::prelude::{
     RigidBodyColliders, RigidBodyPosition, RigidBodyVelocity, Shape, Vector,
 };
 
-use super::Authority;
-use crate::core::AppState;
+use crate::core::{AppState, Authority};
 
 const MOVE_SPEED: f32 = 50.0;
 const GRAVITY: f32 = 650.0;

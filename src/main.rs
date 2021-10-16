@@ -18,18 +18,17 @@
  *
  */
 
+mod characters;
+mod core;
+mod ui;
+
 use bevy::prelude::*;
 use bevy_egui::EguiPlugin;
 use bevy_rapier3d::physics::{NoUserData, RapierPhysicsPlugin};
 
-mod core;
 use crate::core::CorePlugin;
-
-mod ui;
-use ui::UiPlugin;
-
-mod characters;
 use characters::CharactersPlugin;
+use ui::UiPlugin;
 
 fn main() {
     App::build()

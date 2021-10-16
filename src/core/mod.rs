@@ -18,12 +18,12 @@
  *
  */
 
+pub mod cli;
+mod setup;
+
 use bevy::prelude::*;
 
-pub mod cli;
 use cli::CliPlugin;
-
-mod setup;
 use setup::SetupPlugin;
 
 pub struct CorePlugin;
@@ -35,6 +35,8 @@ impl Plugin for CorePlugin {
             .add_plugin(SetupPlugin);
     }
 }
+
+pub struct Authority;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub enum AppState {

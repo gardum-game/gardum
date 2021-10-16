@@ -18,16 +18,33 @@
  *
  */
 
-mod main_menu;
+mod dummy;
 
 use bevy::prelude::*;
 
-use main_menu::MainMenuPlugin;
+use dummy::DummyAssets;
+pub struct HeroesPlugin;
 
-pub struct UiPlugin;
-
-impl Plugin for UiPlugin {
+impl Plugin for HeroesPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.add_plugin(MainMenuPlugin);
+        app.init_resource::<HeroAssets>();
+    }
+}
+
+pub struct HeroAssets {
+    dummy: DummyAssets,
+}
+
+impl FromWorld for HeroAssets {
+    fn from_world(world: &mut World) -> Self {
+        let world = world.cell();
+        let mut meshes = world.get_resource_mut::<Assets<Mesh>>().unwrap();
+        let mut materials = world
+            .get_resource_mut::<Assets<StandardMaterial>>()
+            .unwrap();
+
+        Self {
+            dummy: DummyAssets::new(&mut meshes, &mut materials),
+        }
     }
 }

@@ -23,7 +23,8 @@ use bevy_rapier3d::prelude::{
     ColliderBundle, ColliderShape, RigidBodyBundle, RigidBodyPositionSync, RigidBodyType,
 };
 
-use crate::characters::Authority;
+use super::Authority;
+use crate::characters::{CharacterBundle, HeroAssets};
 use crate::core::{cli::Opts, AppState};
 
 pub struct SetupPlugin;
@@ -32,9 +33,7 @@ impl Plugin for SetupPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.add_startup_system(start_session_system.system())
             .add_system_set(
-                SystemSet::on_enter(AppState::InGame)
-                    .with_system(create_world_system.system())
-                    .with_system(spawn_player_system.system()),
+                SystemSet::on_enter(AppState::InGame).with_system(create_world_system.system()),
             );
     }
 }
@@ -49,6 +48,7 @@ fn create_world_system(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    hero_assets: Res<HeroAssets>,
 ) {
     // Plane
     commands
@@ -82,23 +82,11 @@ fn create_world_system(
         transform: Transform::from_translation(Vec3::new(4.0, 8.0, 4.0)),
         ..Default::default()
     });
-}
 
-fn spawn_player_system(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>) {
     commands
-        .spawn_bundle(PbrBundle {
-            mesh: meshes.add(Mesh::from(shape::Capsule::default())),
-            ..Default::default()
-        })
-        .insert_bundle(RigidBodyBundle {
-            body_type: RigidBodyType::KinematicVelocityBased,
-            position: Vec3::new(5.0, 10.0, 5.0).into(),
-            ..Default::default()
-        })
-        .insert_bundle(ColliderBundle {
-            shape: ColliderShape::capsule([0.0, 0.0, 0.0].into(), [1.0, 1.0, 1.0].into(), 0.5),
-            ..Default::default()
-        })
-        .insert(RigidBodyPositionSync::Discrete)
+        .spawn_bundle(CharacterBundle::dummy(
+            &hero_assets,
+            Vec3::new(5.0, 10.0, 5.0),
+        ))
         .insert(Authority);
 }

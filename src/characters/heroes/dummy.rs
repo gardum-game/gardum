@@ -18,16 +18,30 @@
  *
  */
 
-mod main_menu;
-
+use super::HeroAssets;
+use crate::characters::CharacterBundle;
 use bevy::prelude::*;
 
-use main_menu::MainMenuPlugin;
+pub struct DummyAssets {
+    pub mesh: Handle<Mesh>,
+    pub material: Handle<StandardMaterial>,
+}
 
-pub struct UiPlugin;
+impl DummyAssets {
+    pub fn new(meshes: &mut Assets<Mesh>, materials: &mut Assets<StandardMaterial>) -> Self {
+        Self {
+            mesh: meshes.add(Mesh::from(shape::Capsule::default())),
+            material: materials.add(Color::rgb(0.3, 0.3, 0.3).into()),
+        }
+    }
+}
 
-impl Plugin for UiPlugin {
-    fn build(&self, app: &mut AppBuilder) {
-        app.add_plugin(MainMenuPlugin);
+impl CharacterBundle {
+    pub fn dummy(assets: &HeroAssets, position: Vec3) -> Self {
+        Self::new(
+            assets.dummy.mesh.clone(),
+            assets.dummy.material.clone(),
+            position,
+        )
     }
 }
