@@ -18,6 +18,8 @@
  *
  */
 
+#![allow(clippy::type_complexity)] // Do not warn about long QuerySet
+
 mod characters;
 mod core;
 mod ui;

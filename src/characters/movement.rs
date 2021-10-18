@@ -18,7 +18,7 @@
  *
  */
 
-use bevy::prelude::*;
+use bevy::{prelude::*, render::camera::Camera};
 use bevy_rapier3d::prelude::{
     ColliderHandle, ColliderShape, InteractionGroups, Isometry, QueryPipeline,
     QueryPipelineColliderComponentsQuery, QueryPipelineColliderComponentsSet, Real,
@@ -61,26 +61,25 @@ struct MovementInput {
 }
 
 impl MovementInput {
-    fn movement_direction(&self) -> Vector<Real> {
-        let mut direction = Vector::zeros();
-        if self.forward {
-            direction.x += 1.0;
-        }
-        if self.backward {
+    fn movement_direction(&self, rotation: Quat) -> Vec3 {
+        let mut direction = Vec3::ZERO;
+        if self.left {
             direction.x -= 1.0;
         }
-        if self.left {
+        if self.right {
+            direction.x += 1.0;
+        }
+        if self.forward {
             direction.z -= 1.0;
         }
-        if self.right {
+        if self.backward {
             direction.z += 1.0;
         }
 
-        if direction != Vector::zeros() {
-            direction.normalize_mut();
-        }
+        direction = rotation * direction;
+        direction.y = 0.0;
 
-        direction
+        direction.normalize_or_zero()
     }
 }
 
@@ -98,7 +97,8 @@ fn movement_system(
     input: Res<MovementInput>,
     query_pipeline: Res<QueryPipeline>,
     collider_query: QueryPipelineColliderComponentsQuery,
-    mut query: Query<
+    camera_query: Query<&Transform, (With<Camera>, With<Authority>)>,
+    mut player_query: Query<
         (
             &mut RigidBodyVelocity,
             &RigidBodyPosition,
@@ -108,12 +108,13 @@ fn movement_system(
         With<Authority>,
     >,
 ) {
-    let motion = input.movement_direction() * MOVE_SPEED;
-    let (mut velocity, position, shape, collider_handles) = query.single_mut().unwrap();
+    let motion = input.movement_direction(camera_query.single().unwrap().rotation) * MOVE_SPEED;
+    let (mut velocity, position, shape, collider_handles) = player_query.single_mut().unwrap();
 
-    velocity.linvel = velocity
-        .linvel
-        .lerp(&motion, VELOCITY_INTERPOLATE_SPEED * time.delta_seconds());
+    velocity.linvel = velocity.linvel.lerp(
+        &motion.into(),
+        VELOCITY_INTERPOLATE_SPEED * time.delta_seconds(),
+    );
 
     if is_on_floor(
         &query_pipeline,

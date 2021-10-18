@@ -18,6 +18,7 @@
  *
  */
 
+mod camera;
 pub mod heroes;
 mod movement;
 
@@ -26,6 +27,7 @@ use bevy_rapier3d::prelude::{
     ColliderBundle, RigidBodyBundle, RigidBodyPositionSync, RigidBodyType,
 };
 
+use camera::CameraPlugin;
 pub use heroes::HeroAssets;
 use heroes::HeroesPlugin;
 use movement::MovementPlugin;
@@ -34,7 +36,9 @@ pub struct CharactersPlugin;
 
 impl Plugin for CharactersPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.add_plugin(MovementPlugin).add_plugin(HeroesPlugin);
+        app.add_plugin(MovementPlugin)
+            .add_plugin(CameraPlugin)
+            .add_plugin(HeroesPlugin);
     }
 }
 
