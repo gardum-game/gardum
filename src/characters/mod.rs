@@ -24,7 +24,7 @@ mod movement;
 
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::{
-    ColliderBundle, RigidBodyBundle, RigidBodyPositionSync, RigidBodyType,
+    ColliderBundle, RigidBodyBundle, RigidBodyPositionSync, RigidBodyType, SharedShape,
 };
 
 use camera::CameraPlugin;
@@ -57,7 +57,12 @@ pub struct CharacterBundle {
 }
 
 impl CharacterBundle {
-    pub fn new(mesh: Handle<Mesh>, material: Handle<StandardMaterial>, position: Vec3) -> Self {
+    pub fn new(
+        mesh: Handle<Mesh>,
+        material: Handle<StandardMaterial>,
+        shape: SharedShape,
+        position: Vec3,
+    ) -> Self {
         Self {
             position_sync: RigidBodyPositionSync::Discrete,
             pbr: PbrBundle {
@@ -65,7 +70,10 @@ impl CharacterBundle {
                 material,
                 ..Default::default()
             },
-            collider: Default::default(),
+            collider: ColliderBundle {
+                shape,
+                ..Default::default()
+            },
             rigid_body: RigidBodyBundle {
                 body_type: RigidBodyType::KinematicVelocityBased,
                 position: position.into(),

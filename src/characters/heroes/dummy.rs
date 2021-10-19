@@ -21,6 +21,7 @@
 use super::HeroAssets;
 use crate::characters::CharacterBundle;
 use bevy::prelude::*;
+use bevy_rapier3d::prelude::ColliderShape;
 
 pub struct DummyAssets {
     pub mesh: Handle<Mesh>,
@@ -41,6 +42,7 @@ impl CharacterBundle {
         Self::new(
             assets.dummy.mesh.clone(),
             assets.dummy.material.clone(),
+            ColliderShape::capsule([0.0, 0.0, 0.0].into(), [1.0, 1.0, 1.0].into(), 1.0),
             position,
         )
     }
