@@ -19,7 +19,7 @@
  */
 
 use bevy::{input::mouse::MouseMotion, prelude::*};
-use derive_more::{Deref, DerefMut, SubAssign};
+use derive_more::{Deref, DerefMut};
 
 use crate::core::{AppState, Authority};
 
@@ -54,7 +54,7 @@ fn camera_input_system(
 ) {
     let mut orbit_rotation = query.single_mut().unwrap();
     for event in motion_reader.iter() {
-        *orbit_rotation -= OrbitRotation(event.delta * CAMERA_SENSETIVITY * time.delta_seconds());
+        orbit_rotation.0 -= event.delta * CAMERA_SENSETIVITY * time.delta_seconds();
     }
 
     orbit_rotation.y = orbit_rotation
@@ -84,7 +84,7 @@ pub struct OrbitCameraBundle {
     camera: PerspectiveCameraBundle,
 }
 
-#[derive(Deref, DerefMut, SubAssign)]
+#[derive(Deref, DerefMut)]
 struct OrbitRotation(Vec2);
 
 impl OrbitRotation {
