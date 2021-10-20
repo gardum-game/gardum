@@ -27,10 +27,12 @@ use bevy_rapier3d::prelude::{
 
 use crate::core::{AppState, Authority};
 
-const MOVE_SPEED: f32 = 50.0;
-const GRAVITY: f32 = 650.0;
-const VELOCITY_INTERPOLATE_SPEED: f32 = 20.0;
-const JUMP_IMPULSE: f32 = 200.0;
+use super::PreviousVelocity;
+
+const MOVE_SPEED: f32 = 10.0;
+const GRAVITY: f32 = 9.8;
+const VELOCITY_INTERPOLATE_SPEED: f32 = 8.0;
+const JUMP_IMPULSE: f32 = 25.0;
 const FLOOR_THRESHOLD: f32 = 0.01;
 
 pub struct MovementPlugin;
@@ -100,6 +102,7 @@ fn movement_system(
     camera_query: Query<&Transform, (With<Camera>, With<Authority>)>,
     mut player_query: Query<
         (
+            &mut PreviousVelocity,
             &mut RigidBodyVelocity,
             &RigidBodyPosition,
             &ColliderShape,
@@ -109,9 +112,10 @@ fn movement_system(
     >,
 ) {
     let motion = input.movement_direction(camera_query.single().unwrap().rotation) * MOVE_SPEED;
-    let (mut velocity, position, shape, collider_handles) = player_query.single_mut().unwrap();
+    let (mut previous_velocity, mut velocity, position, shape, collider_handles) =
+        player_query.single_mut().unwrap();
 
-    velocity.linvel = velocity.linvel.lerp(
+    velocity.linvel = previous_velocity.lerp(
         &motion.into(),
         VELOCITY_INTERPOLATE_SPEED * time.delta_seconds(),
     );
@@ -125,10 +129,13 @@ fn movement_system(
     ) {
         if input.jumping {
             velocity.linvel.y += JUMP_IMPULSE;
+        } else {
+            velocity.linvel.y = 0.0;
         }
     } else {
-        velocity.linvel.y -= GRAVITY * time.delta_seconds();
+        velocity.linvel.y -= GRAVITY * VELOCITY_INTERPOLATE_SPEED * time.delta_seconds();
     }
+    previous_velocity.0 = velocity.linvel;
 }
 
 fn is_on_floor(

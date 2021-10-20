@@ -24,8 +24,10 @@ mod movement;
 
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::{
-    ColliderBundle, RigidBodyBundle, RigidBodyPositionSync, RigidBodyType, SharedShape,
+    ColliderBundle, Real, RigidBodyBundle, RigidBodyPositionSync, RigidBodyType, SharedShape,
+    Vector,
 };
+use derive_more::{Deref, DerefMut};
 
 use camera::CameraPlugin;
 pub use heroes::HeroAssets;
@@ -45,6 +47,7 @@ impl Plugin for CharactersPlugin {
 #[derive(Bundle)]
 pub struct CharacterBundle {
     position_sync: RigidBodyPositionSync,
+    previous_velocity: PreviousVelocity,
 
     #[bundle]
     pbr: PbrBundle,
@@ -65,6 +68,7 @@ impl CharacterBundle {
     ) -> Self {
         Self {
             position_sync: RigidBodyPositionSync::Discrete,
+            previous_velocity: PreviousVelocity::default(),
             pbr: PbrBundle {
                 mesh,
                 material,
@@ -82,3 +86,8 @@ impl CharacterBundle {
         }
     }
 }
+
+/// The Velocity of the Rapier physics is reset every frame
+/// This component stores the last velocity value to smoothly change the current one
+#[derive(Default, Deref, DerefMut)]
+struct PreviousVelocity(Vector<Real>);
