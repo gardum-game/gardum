@@ -19,6 +19,7 @@
  */
 
 use bevy::{input::mouse::MouseMotion, prelude::*};
+use bevy_rapier3d::physics::{PhysicsStages, PhysicsSystems};
 use derive_more::{Deref, DerefMut};
 
 use crate::core::{AppState, Authority};
@@ -34,9 +35,13 @@ impl Plugin for CameraPlugin {
             SystemSet::on_enter(AppState::InGame).with_system(spawn_camera_system.system()),
         )
         .add_system_set(
-            SystemSet::on_update(AppState::InGame)
-                .with_system(camera_input_system.system())
-                .with_system(camera_position_system.system()),
+            SystemSet::on_update(AppState::InGame).with_system(camera_input_system.system()),
+        )
+        .add_system_to_stage(
+            PhysicsStages::SyncTransforms,
+            camera_position_system
+                .system()
+                .after(PhysicsSystems::SyncTransforms), // Check the state of the application in the system, because adding system sets to run at a specific stage is not supported
         );
     }
 }
@@ -63,11 +68,16 @@ fn camera_input_system(
 }
 
 fn camera_position_system(
+    app_state: Res<State<AppState>>,
     mut query: QuerySet<(
         Query<&Transform, (With<Handle<Mesh>>, With<Authority>)>,
         Query<(&mut Transform, &OrbitRotation), With<Authority>>,
     )>,
 ) {
+    if app_state.current() != &AppState::InGame {
+        return;
+    }
+
     let player_translation = query.q0().single().unwrap().translation;
     let (mut camera_transform, orbit_rotation) = query.q1_mut().single_mut().unwrap();
 
