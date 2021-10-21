@@ -31,7 +31,7 @@ use super::PreviousVelocity;
 
 const MOVE_SPEED: f32 = 10.0;
 const GRAVITY: f32 = 9.8;
-const VELOCITY_INTERPOLATE_SPEED: f32 = 8.0;
+const VELOCITY_INTERPOLATE_SPEED: f32 = 6.0;
 const JUMP_IMPULSE: f32 = 25.0;
 const FLOOR_THRESHOLD: f32 = 0.01;
 
