@@ -21,7 +21,7 @@
 use super::HeroAssets;
 use crate::characters::CharacterBundle;
 use bevy::prelude::*;
-use bevy_rapier3d::prelude::ColliderShape;
+use bevy_rapier3d::{physics::ColliderBundle, prelude::ColliderShape};
 
 pub struct DummyAssets {
     pub mesh: Handle<Mesh>,
@@ -38,12 +38,18 @@ impl DummyAssets {
 }
 
 impl CharacterBundle {
-    pub fn dummy(assets: &HeroAssets, position: Vec3) -> Self {
-        Self::new(
-            assets.dummy.mesh.clone(),
-            assets.dummy.material.clone(),
-            ColliderShape::capsule([0.0, 0.0, 0.0].into(), [1.0, 1.0, 1.0].into(), 1.0),
-            position,
-        )
+    pub fn dummy(assets: &HeroAssets) -> Self {
+        Self {
+            pbr: PbrBundle {
+                mesh: assets.dummy.mesh.clone(),
+                material: assets.dummy.material.clone(),
+                ..Default::default()
+            },
+            collider: ColliderBundle {
+                shape: ColliderShape::capsule([0.0, 0.0, 0.0].into(), [1.0, 1.0, 1.0].into(), 1.0),
+                ..Default::default()
+            },
+            ..Default::default()
+        }
     }
 }

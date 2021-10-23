@@ -76,12 +76,10 @@ fn create_world_system(
         ..Default::default()
     });
 
-    commands
-        .spawn_bundle(CharacterBundle::dummy(
-            &hero_assets,
-            Vec3::new(5.0, 10.0, 5.0),
-        ))
-        .insert(Authority);
+    let mut character = CharacterBundle::dummy(&hero_assets);
+    character.rigid_body.position = Vec3::new(5.0, 10.0, 5.0).into();
+
+    commands.spawn_bundle(character).insert(Authority);
 }
 
 fn cursor_grab_system(mut windows: ResMut<Windows>) {

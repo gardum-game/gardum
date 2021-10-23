@@ -24,8 +24,7 @@ mod movement;
 
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::{
-    ColliderBundle, Real, RigidBodyBundle, RigidBodyPositionSync, RigidBodyType, SharedShape,
-    Vector,
+    ColliderBundle, Real, RigidBodyBundle, RigidBodyPositionSync, RigidBodyType, Vector,
 };
 use derive_more::{Deref, DerefMut};
 
@@ -56,31 +55,18 @@ pub struct CharacterBundle {
     collider: ColliderBundle,
 
     #[bundle]
-    rigid_body: RigidBodyBundle,
+    pub rigid_body: RigidBodyBundle,
 }
 
-impl CharacterBundle {
-    pub fn new(
-        mesh: Handle<Mesh>,
-        material: Handle<StandardMaterial>,
-        shape: SharedShape,
-        position: Vec3,
-    ) -> Self {
+impl Default for CharacterBundle {
+    fn default() -> Self {
         Self {
             position_sync: RigidBodyPositionSync::Discrete,
             previous_velocity: PreviousVelocity::default(),
-            pbr: PbrBundle {
-                mesh,
-                material,
-                ..Default::default()
-            },
-            collider: ColliderBundle {
-                shape,
-                ..Default::default()
-            },
+            pbr: PbrBundle::default(),
+            collider: ColliderBundle::default(),
             rigid_body: RigidBodyBundle {
                 body_type: RigidBodyType::KinematicVelocityBased,
-                position: position.into(),
                 ..Default::default()
             },
         }
