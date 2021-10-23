@@ -18,6 +18,7 @@
  *
  */
 
+mod abilities;
 mod camera;
 pub mod heroes;
 mod movement;
@@ -28,6 +29,8 @@ use bevy_rapier3d::prelude::{
 };
 use derive_more::{Deref, DerefMut};
 
+use abilities::Abilities;
+use abilities::AbilitiesPlugin;
 use camera::CameraPlugin;
 pub use heroes::HeroAssets;
 use heroes::HeroesPlugin;
@@ -39,6 +42,7 @@ impl Plugin for CharactersPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.add_plugin(MovementPlugin)
             .add_plugin(CameraPlugin)
+            .add_plugin(AbilitiesPlugin)
             .add_plugin(HeroesPlugin);
     }
 }
@@ -47,6 +51,7 @@ impl Plugin for CharactersPlugin {
 pub struct CharacterBundle {
     position_sync: RigidBodyPositionSync,
     previous_velocity: PreviousVelocity,
+    abilities: Abilities,
 
     #[bundle]
     pbr: PbrBundle,
@@ -63,6 +68,7 @@ impl Default for CharacterBundle {
         Self {
             position_sync: RigidBodyPositionSync::Discrete,
             previous_velocity: PreviousVelocity::default(),
+            abilities: Abilities::default(),
             pbr: PbrBundle::default(),
             collider: ColliderBundle::default(),
             rigid_body: RigidBodyBundle {

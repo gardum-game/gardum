@@ -19,6 +19,7 @@
  */
 
 use super::HeroAssets;
+use crate::characters::abilities::Ability;
 use crate::characters::CharacterBundle;
 use bevy::prelude::*;
 use bevy_rapier3d::{physics::ColliderBundle, prelude::ColliderShape};
@@ -40,6 +41,7 @@ impl DummyAssets {
 impl CharacterBundle {
     pub fn dummy(assets: &HeroAssets) -> Self {
         Self {
+            abilities: Vec::from([Ability::frost_bolt()]).into(),
             pbr: PbrBundle {
                 mesh: assets.dummy.mesh.clone(),
                 material: assets.dummy.material.clone(),
@@ -52,4 +54,14 @@ impl CharacterBundle {
             ..Default::default()
         }
     }
+}
+
+impl Ability {
+    fn frost_bolt() -> Self {
+        Self::new(frost_bolt_ability, 0)
+    }
+}
+
+fn frost_bolt_ability() {
+    println!("Called!");
 }
