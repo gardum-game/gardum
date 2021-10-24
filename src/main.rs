@@ -25,6 +25,7 @@ mod core;
 mod ui;
 
 use bevy::prelude::*;
+use bevy_atmosphere::AtmospherePlugin;
 use bevy_egui::EguiPlugin;
 use bevy_rapier3d::physics::{NoUserData, RapierPhysicsPlugin};
 
@@ -35,6 +36,7 @@ use ui::UiPlugin;
 fn main() {
     App::build()
         .add_plugins(DefaultPlugins)
+        .add_plugin(AtmospherePlugin { dynamic: false })
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
         .add_plugin(EguiPlugin)
         .add_plugin(CorePlugin)
