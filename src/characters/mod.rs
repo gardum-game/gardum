@@ -24,10 +24,7 @@ pub mod heroes;
 mod movement;
 
 use bevy::prelude::*;
-use bevy_rapier3d::prelude::{
-    ColliderBundle, Real, RigidBodyBundle, RigidBodyPositionSync, RigidBodyType, Vector,
-};
-use derive_more::{Deref, DerefMut};
+use heron::{CollisionShape, RigidBody, Velocity};
 
 use abilities::Abilities;
 use abilities::AbilitiesPlugin;
@@ -49,37 +46,23 @@ impl Plugin for CharactersPlugin {
 
 #[derive(Bundle)]
 pub struct CharacterBundle {
-    position_sync: RigidBodyPositionSync,
-    previous_velocity: PreviousVelocity,
+    rigid_body: RigidBody,
+    shape: CollisionShape,
+    velocity: Velocity,
     abilities: Abilities,
 
     #[bundle]
     pbr: PbrBundle,
-
-    #[bundle]
-    collider: ColliderBundle,
-
-    #[bundle]
-    pub rigid_body: RigidBodyBundle,
 }
 
 impl Default for CharacterBundle {
     fn default() -> Self {
         Self {
-            position_sync: RigidBodyPositionSync::Discrete,
-            previous_velocity: PreviousVelocity::default(),
+            rigid_body: RigidBody::KinematicVelocityBased,
+            shape: CollisionShape::default(),
+            velocity: Velocity::default(),
             abilities: Abilities::default(),
             pbr: PbrBundle::default(),
-            collider: ColliderBundle::default(),
-            rigid_body: RigidBodyBundle {
-                body_type: RigidBodyType::KinematicVelocityBased,
-                ..Default::default()
-            },
         }
     }
 }
-
-/// The Velocity of the Rapier physics is reset every frame
-/// This component stores the last velocity value to smoothly change the current one
-#[derive(Default, Deref, DerefMut)]
-struct PreviousVelocity(Vector<Real>);

@@ -18,9 +18,9 @@
  *
  */
 
-use bevy::{input::mouse::MouseMotion, prelude::*};
-use bevy_rapier3d::physics::{PhysicsStages, PhysicsSystems};
+use bevy::{input::mouse::MouseMotion, prelude::*, transform::TransformSystem};
 use derive_more::{Deref, DerefMut};
+use heron::PhysicsSystem;
 
 use crate::core::{AppState, Authority};
 
@@ -38,10 +38,11 @@ impl Plugin for CameraPlugin {
             SystemSet::on_update(AppState::InGame).with_system(camera_input_system.system()),
         )
         .add_system_to_stage(
-            PhysicsStages::SyncTransforms,
+            CoreStage::PostUpdate,
             camera_position_system
                 .system()
-                .after(PhysicsSystems::SyncTransforms), // Check the state of the application in the system, because adding system sets to run at a specific stage is not supported
+                .after(PhysicsSystem::TransformUpdate)
+                .before(TransformSystem::TransformPropagate),
         );
     }
 }
@@ -74,7 +75,7 @@ fn camera_position_system(
         Query<(&mut Transform, &OrbitRotation), With<Authority>>,
     )>,
 ) {
-    if app_state.current() != &AppState::InGame {
+    if *app_state.current() != AppState::InGame {
         return;
     }
 

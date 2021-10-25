@@ -19,9 +19,7 @@
  */
 
 use bevy::prelude::*;
-use bevy_rapier3d::prelude::{
-    ColliderBundle, ColliderShape, RigidBodyBundle, RigidBodyPositionSync, RigidBodyType,
-};
+use heron::{CollisionShape, RigidBody};
 
 use super::Authority;
 use crate::characters::{CharacterBundle, HeroAssets};
@@ -59,16 +57,12 @@ fn create_world_system(
             material: materials.add(Color::rgb(1.0, 0.9, 0.9).into()),
             ..Default::default()
         })
-        .insert_bundle(RigidBodyBundle {
-            body_type: RigidBodyType::Static,
-            position: Vec3::new(4.0, 0.0, 4.0).into(),
-            ..Default::default()
-        })
-        .insert_bundle(ColliderBundle {
-            shape: ColliderShape::cuboid(10.0, 0.1, 10.0),
-            ..Default::default()
-        })
-        .insert(RigidBodyPositionSync::Discrete);
+        .insert(Transform::from_translation(Vec3::new(4.0, 0.0, 4.0)))
+        .insert(RigidBody::Static)
+        .insert(CollisionShape::Cuboid {
+            half_extends: Vec3::new(10.0, 0.1, 10.0),
+            border_radius: None,
+        });
 
     // Light
     commands.spawn_bundle(LightBundle {
@@ -76,10 +70,12 @@ fn create_world_system(
         ..Default::default()
     });
 
-    let mut character = CharacterBundle::dummy(&hero_assets);
-    character.rigid_body.position = Vec3::new(5.0, 10.0, 5.0).into();
-
-    commands.spawn_bundle(character).insert(Authority);
+    commands
+        .spawn_bundle(CharacterBundle::dummy(
+            &hero_assets,
+            Transform::from_translation(Vec3::new(5.0, 15.0, 5.0)),
+        ))
+        .insert(Authority);
 }
 
 fn cursor_grab_system(mut windows: ResMut<Windows>) {

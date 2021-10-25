@@ -18,11 +18,12 @@
  *
  */
 
+use bevy::prelude::*;
+use heron::CollisionShape;
+
 use super::HeroAssets;
 use crate::characters::abilities::Ability;
 use crate::characters::CharacterBundle;
-use bevy::prelude::*;
-use bevy_rapier3d::{physics::ColliderBundle, prelude::ColliderShape};
 
 pub struct DummyAssets {
     pub mesh: Handle<Mesh>,
@@ -39,17 +40,18 @@ impl DummyAssets {
 }
 
 impl CharacterBundle {
-    pub fn dummy(assets: &HeroAssets) -> Self {
+    pub fn dummy(assets: &HeroAssets, transform: Transform) -> Self {
         Self {
             abilities: Vec::from([Ability::frost_bolt()]).into(),
             pbr: PbrBundle {
                 mesh: assets.dummy.mesh.clone(),
                 material: assets.dummy.material.clone(),
+                transform,
                 ..Default::default()
             },
-            collider: ColliderBundle {
-                shape: ColliderShape::capsule([0.0, 0.0, 0.0].into(), [1.0, 1.0, 1.0].into(), 1.0),
-                ..Default::default()
+            shape: CollisionShape::Capsule {
+                half_segment: 0.5,
+                radius: 0.5,
             },
             ..Default::default()
         }

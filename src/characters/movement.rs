@@ -19,15 +19,9 @@
  */
 
 use bevy::{prelude::*, render::camera::Camera};
-use bevy_rapier3d::prelude::{
-    ColliderHandle, ColliderShape, InteractionGroups, Isometry, QueryPipeline,
-    QueryPipelineColliderComponentsQuery, QueryPipelineColliderComponentsSet, Real,
-    RigidBodyColliders, RigidBodyPosition, RigidBodyVelocity, Shape, Vector,
-};
+use heron::{rapier_plugin::PhysicsWorld, CollisionLayers, CollisionShape, Velocity};
 
 use crate::core::{AppState, Authority};
-
-use super::PreviousVelocity;
 
 const MOVE_SPEED: f32 = 10.0;
 const GRAVITY: f32 = 9.8;
@@ -97,63 +91,42 @@ fn input_system(keys: Res<Input<KeyCode>>, mut input: ResMut<MovementInput>) {
 fn movement_system(
     time: Res<Time>,
     input: Res<MovementInput>,
-    query_pipeline: Res<QueryPipeline>,
-    collider_query: QueryPipelineColliderComponentsQuery,
+    physics_world: PhysicsWorld,
     camera_query: Query<&Transform, (With<Camera>, With<Authority>)>,
-    mut player_query: Query<
-        (
-            &mut PreviousVelocity,
-            &mut RigidBodyVelocity,
-            &RigidBodyPosition,
-            &ColliderShape,
-            &RigidBodyColliders,
-        ),
-        With<Authority>,
-    >,
+    mut player_query: Query<(Entity, &Transform, &CollisionShape, &mut Velocity), With<Authority>>,
 ) {
     let motion = input.movement_direction(camera_query.single().unwrap().rotation) * MOVE_SPEED;
-    let (mut previous_velocity, mut velocity, position, shape, collider_handles) =
-        player_query.single_mut().unwrap();
+    let (entity, transform, shape, mut velocity) = player_query.single_mut().unwrap();
 
-    velocity.linvel = previous_velocity.lerp(
-        &motion.into(),
-        VELOCITY_INTERPOLATE_SPEED * time.delta_seconds(),
-    );
+    velocity.linear = velocity
+        .linear
+        .lerp(motion, VELOCITY_INTERPOLATE_SPEED * time.delta_seconds());
 
-    if is_on_floor(
-        &query_pipeline,
-        &collider_query,
-        &position.position,
-        &**shape,
-        &collider_handles.0,
-    ) {
+    if is_on_floor(&physics_world, entity, shape, transform) {
         if input.jumping {
-            velocity.linvel.y += JUMP_IMPULSE;
+            velocity.linear.y += JUMP_IMPULSE;
         } else {
-            velocity.linvel.y = 0.0;
+            velocity.linear.y = 0.0;
         }
     } else {
-        velocity.linvel.y -= GRAVITY * VELOCITY_INTERPOLATE_SPEED * time.delta_seconds();
+        velocity.linear.y -= GRAVITY * VELOCITY_INTERPOLATE_SPEED * time.delta_seconds();
     }
-    previous_velocity.0 = velocity.linvel;
 }
 
 fn is_on_floor(
-    query_pipeline: &Res<QueryPipeline>,
-    collider_query: &QueryPipelineColliderComponentsQuery,
-    position: &Isometry<Real>,
-    shape: &dyn Shape,
-    collider_handles: &[ColliderHandle],
+    physics_world: &PhysicsWorld,
+    entity: Entity,
+    shape: &CollisionShape,
+    transform: &Transform,
 ) -> bool {
-    query_pipeline
-        .cast_shape(
-            &QueryPipelineColliderComponentsSet(collider_query),
-            position,
-            &-Vector::x(),
+    physics_world
+        .shape_cast_with_filter(
             shape,
-            FLOOR_THRESHOLD,
-            InteractionGroups::all(),
-            Some(&|handle| !collider_handles.contains(&handle)), // Exclude yourself
+            transform.translation,
+            transform.rotation,
+            -Vec3::X * FLOOR_THRESHOLD,
+            CollisionLayers::default(),
+            |hit_entity| entity != hit_entity,
         )
         .is_some()
 }
