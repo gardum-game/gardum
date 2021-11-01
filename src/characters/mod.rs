@@ -22,16 +22,19 @@ mod abilities;
 mod camera;
 pub mod heroes;
 mod movement;
+mod projectile;
 
 use bevy::prelude::*;
-use heron::{CollisionShape, RigidBody, Velocity};
+use heron::{CollisionLayers, CollisionShape, RigidBody, Velocity};
 
+use crate::core::CollisionLayer;
 use abilities::Abilities;
 use abilities::AbilitiesPlugin;
 use camera::CameraPlugin;
 pub use heroes::HeroAssets;
 use heroes::HeroesPlugin;
 use movement::MovementPlugin;
+use projectile::ProjectilePlugin;
 
 pub struct CharactersPlugin;
 
@@ -40,6 +43,7 @@ impl Plugin for CharactersPlugin {
         app.add_plugin(MovementPlugin)
             .add_plugin(CameraPlugin)
             .add_plugin(AbilitiesPlugin)
+            .add_plugin(ProjectilePlugin)
             .add_plugin(HeroesPlugin);
     }
 }
@@ -48,6 +52,7 @@ impl Plugin for CharactersPlugin {
 pub struct CharacterBundle {
     rigid_body: RigidBody,
     shape: CollisionShape,
+    collision_layers: CollisionLayers,
     velocity: Velocity,
     abilities: Abilities,
 
@@ -60,6 +65,8 @@ impl Default for CharacterBundle {
         Self {
             rigid_body: RigidBody::KinematicVelocityBased,
             shape: CollisionShape::default(),
+            collision_layers: CollisionLayers::all::<CollisionLayer>()
+                .with_group(CollisionLayer::Player),
             velocity: Velocity::default(),
             abilities: Abilities::default(),
             pbr: PbrBundle::default(),

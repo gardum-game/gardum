@@ -22,6 +22,7 @@ pub mod cli;
 mod setup;
 
 use bevy::prelude::*;
+use heron::PhysicsLayer;
 
 use cli::CliPlugin;
 use setup::SetupPlugin;
@@ -42,4 +43,11 @@ pub struct Authority;
 pub enum AppState {
     MainMenu,
     InGame,
+}
+
+#[derive(PhysicsLayer)]
+pub enum CollisionLayer {
+    World,
+    Player,
+    Projectile,
 }
