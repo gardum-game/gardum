@@ -21,28 +21,51 @@
 use bevy::prelude::*;
 use heron::CollisionShape;
 
-use crate::characters::abilities::Ability;
-use crate::characters::CharacterBundle;
+use super::{Hero, HeroBundle, HeroSpawnEvent};
+use crate::{
+    characters::{abilities::Ability, CharacterBundle},
+    core::{AppState, Authority},
+};
 
-impl CharacterBundle {
-    pub fn dummy(
-        meshes: &mut Assets<Mesh>,
-        materials: &mut Assets<StandardMaterial>,
-        transform: Transform,
-    ) -> Self {
-        Self {
-            abilities: Vec::from([Ability::frost_bolt()]).into(),
-            pbr: PbrBundle {
-                mesh: meshes.add(Mesh::from(shape::Capsule::default())),
-                material: materials.add(Color::rgb(0.3, 0.3, 0.3).into()),
-                transform,
+pub struct DummyPlugin;
+
+impl Plugin for DummyPlugin {
+    fn build(&self, app: &mut AppBuilder) {
+        app.add_system_set(
+            SystemSet::on_update(AppState::InGame).with_system(spawn_dummy_system.system()),
+        );
+    }
+}
+
+fn spawn_dummy_system(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut spawn_events: EventReader<HeroSpawnEvent>,
+) {
+    for event in spawn_events
+        .iter()
+        .filter(|event| event.hero == Hero::Dummy)
+    {
+        let mut entity = commands.spawn_bundle(HeroBundle {
+            hero: event.hero,
+            character: CharacterBundle {
+                abilities: Vec::from([Ability::frost_bolt()]).into(),
+                pbr: PbrBundle {
+                    mesh: meshes.add(Mesh::from(shape::Capsule::default())),
+                    material: materials.add(Color::rgb(0.3, 0.3, 0.3).into()),
+                    transform: event.transform,
+                    ..Default::default()
+                },
+                shape: CollisionShape::Capsule {
+                    half_segment: 0.5,
+                    radius: 0.5,
+                },
                 ..Default::default()
             },
-            shape: CollisionShape::Capsule {
-                half_segment: 0.5,
-                radius: 0.5,
-            },
-            ..Default::default()
+        });
+        if event.authority {
+            entity.insert(Authority);
         }
     }
 }

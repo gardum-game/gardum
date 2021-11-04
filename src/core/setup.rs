@@ -21,8 +21,7 @@
 use bevy::prelude::*;
 use heron::{CollisionShape, RigidBody};
 
-use super::Authority;
-use crate::characters::CharacterBundle;
+use crate::characters::heroes::{Hero, HeroSpawnEvent};
 use crate::core::{cli::Opts, AppState};
 
 pub struct SetupPlugin;
@@ -48,6 +47,7 @@ fn create_world_system(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    mut hero_spawn_events: EventWriter<HeroSpawnEvent>,
 ) {
     // Plane
     commands
@@ -69,13 +69,11 @@ fn create_world_system(
         ..Default::default()
     });
 
-    commands
-        .spawn_bundle(CharacterBundle::dummy(
-            &mut meshes,
-            &mut materials,
-            Transform::from_translation(Vec3::new(5.0, 15.0, 5.0)),
-        ))
-        .insert(Authority);
+    hero_spawn_events.send(HeroSpawnEvent {
+        hero: Hero::Dummy,
+        transform: Transform::from_translation(Vec3::new(5.0, 15.0, 5.0)),
+        authority: true,
+    })
 }
 
 fn cursor_grab_system(mut windows: ResMut<Windows>) {

@@ -19,3 +19,35 @@
  */
 
 mod dummy;
+
+use bevy::prelude::*;
+
+use super::CharacterBundle;
+use dummy::DummyPlugin;
+
+pub struct HeroesPlugin;
+
+impl Plugin for HeroesPlugin {
+    fn build(&self, app: &mut AppBuilder) {
+        app.add_event::<HeroSpawnEvent>().add_plugin(DummyPlugin);
+    }
+}
+
+#[derive(Bundle)]
+struct HeroBundle {
+    hero: Hero,
+
+    #[bundle]
+    character: CharacterBundle,
+}
+
+#[derive(Clone, Copy, PartialEq)]
+pub enum Hero {
+    Dummy,
+}
+
+pub struct HeroSpawnEvent {
+    pub hero: Hero,
+    pub transform: Transform,
+    pub authority: bool,
+}

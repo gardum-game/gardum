@@ -95,21 +95,21 @@ fn movement_system(
     camera_query: Query<&Transform, (With<Camera>, With<Authority>)>,
     mut player_query: Query<(Entity, &Transform, &CollisionShape, &mut Velocity), With<Authority>>,
 ) {
-    let motion = input.movement_direction(camera_query.single().unwrap().rotation) * MOVE_SPEED;
-    let (entity, transform, shape, mut velocity) = player_query.single_mut().unwrap();
+    if let Ok((entity, transform, shape, mut velocity)) = player_query.single_mut() {
+        let motion = input.movement_direction(camera_query.single().unwrap().rotation) * MOVE_SPEED;
+        velocity.linear = velocity
+            .linear
+            .lerp(motion, VELOCITY_INTERPOLATE_SPEED * time.delta_seconds());
 
-    velocity.linear = velocity
-        .linear
-        .lerp(motion, VELOCITY_INTERPOLATE_SPEED * time.delta_seconds());
-
-    if is_on_floor(&physics_world, entity, shape, transform) {
-        if input.jumping {
-            velocity.linear.y += JUMP_IMPULSE;
+        if is_on_floor(&physics_world, entity, shape, transform) {
+            if input.jumping {
+                velocity.linear.y += JUMP_IMPULSE;
+            } else {
+                velocity.linear.y = 0.0;
+            }
         } else {
-            velocity.linear.y = 0.0;
+            velocity.linear.y -= GRAVITY * VELOCITY_INTERPOLATE_SPEED * time.delta_seconds();
         }
-    } else {
-        velocity.linear.y -= GRAVITY * VELOCITY_INTERPOLATE_SPEED * time.delta_seconds();
     }
 }
 
