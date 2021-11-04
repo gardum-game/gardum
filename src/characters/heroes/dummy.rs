@@ -21,31 +21,20 @@
 use bevy::prelude::*;
 use heron::CollisionShape;
 
-use super::HeroAssets;
 use crate::characters::abilities::Ability;
 use crate::characters::CharacterBundle;
 
-pub struct DummyAssets {
-    pub mesh: Handle<Mesh>,
-    pub material: Handle<StandardMaterial>,
-}
-
-impl DummyAssets {
-    pub fn new(meshes: &mut Assets<Mesh>, materials: &mut Assets<StandardMaterial>) -> Self {
-        Self {
-            mesh: meshes.add(Mesh::from(shape::Capsule::default())),
-            material: materials.add(Color::rgb(0.3, 0.3, 0.3).into()),
-        }
-    }
-}
-
 impl CharacterBundle {
-    pub fn dummy(assets: &HeroAssets, transform: Transform) -> Self {
+    pub fn dummy(
+        meshes: &mut Assets<Mesh>,
+        materials: &mut Assets<StandardMaterial>,
+        transform: Transform,
+    ) -> Self {
         Self {
             abilities: Vec::from([Ability::frost_bolt()]).into(),
             pbr: PbrBundle {
-                mesh: assets.dummy.mesh.clone(),
-                material: assets.dummy.material.clone(),
+                mesh: meshes.add(Mesh::from(shape::Capsule::default())),
+                material: materials.add(Color::rgb(0.3, 0.3, 0.3).into()),
                 transform,
                 ..Default::default()
             },

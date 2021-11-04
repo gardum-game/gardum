@@ -20,7 +20,7 @@
 
 mod abilities;
 mod camera;
-pub mod heroes;
+mod heroes;
 mod movement;
 mod projectile;
 
@@ -31,8 +31,6 @@ use crate::core::CollisionLayer;
 use abilities::Abilities;
 use abilities::AbilitiesPlugin;
 use camera::CameraPlugin;
-pub use heroes::HeroAssets;
-use heroes::HeroesPlugin;
 use movement::MovementPlugin;
 use projectile::ProjectilePlugin;
 
@@ -43,8 +41,7 @@ impl Plugin for CharactersPlugin {
         app.add_plugin(MovementPlugin)
             .add_plugin(CameraPlugin)
             .add_plugin(AbilitiesPlugin)
-            .add_plugin(ProjectilePlugin)
-            .add_plugin(HeroesPlugin);
+            .add_plugin(ProjectilePlugin);
     }
 }
 

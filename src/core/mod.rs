@@ -18,7 +18,7 @@
  *
  */
 
-pub mod cli;
+mod cli;
 mod setup;
 
 use bevy::prelude::*;

@@ -22,7 +22,7 @@ use bevy::prelude::*;
 use heron::{CollisionShape, RigidBody};
 
 use super::Authority;
-use crate::characters::{CharacterBundle, HeroAssets};
+use crate::characters::CharacterBundle;
 use crate::core::{cli::Opts, AppState};
 
 pub struct SetupPlugin;
@@ -48,7 +48,6 @@ fn create_world_system(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    hero_assets: Res<HeroAssets>,
 ) {
     // Plane
     commands
@@ -72,7 +71,8 @@ fn create_world_system(
 
     commands
         .spawn_bundle(CharacterBundle::dummy(
-            &hero_assets,
+            &mut meshes,
+            &mut materials,
             Transform::from_translation(Vec3::new(5.0, 15.0, 5.0)),
         ))
         .insert(Authority);

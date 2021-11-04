@@ -19,32 +19,3 @@
  */
 
 mod dummy;
-
-use bevy::prelude::*;
-
-use dummy::DummyAssets;
-pub struct HeroesPlugin;
-
-impl Plugin for HeroesPlugin {
-    fn build(&self, app: &mut AppBuilder) {
-        app.init_resource::<HeroAssets>();
-    }
-}
-
-pub struct HeroAssets {
-    dummy: DummyAssets,
-}
-
-impl FromWorld for HeroAssets {
-    fn from_world(world: &mut World) -> Self {
-        let world = world.cell();
-        let mut meshes = world.get_resource_mut::<Assets<Mesh>>().unwrap();
-        let mut materials = world
-            .get_resource_mut::<Assets<StandardMaterial>>()
-            .unwrap();
-
-        Self {
-            dummy: DummyAssets::new(&mut meshes, &mut materials),
-        }
-    }
-}
