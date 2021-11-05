@@ -23,7 +23,10 @@ use heron::CollisionShape;
 
 use super::{Hero, HeroBundle, HeroSpawnEvent};
 use crate::{
-    characters::{abilities::Ability, CharacterBundle},
+    characters::{
+        abilities::{Abilities, AbilitySlot, ActivationEvent, Cooldown},
+        CharacterBundle,
+    },
     core::{AppState, Authority},
 };
 
@@ -32,7 +35,9 @@ pub struct DummyPlugin;
 impl Plugin for DummyPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.add_system_set(
-            SystemSet::on_update(AppState::InGame).with_system(spawn_dummy_system.system()),
+            SystemSet::on_update(AppState::InGame)
+                .with_system(spawn_dummy_system.system())
+                .with_system(frost_bolt_system.system()),
         );
     }
 }
@@ -47,10 +52,11 @@ fn spawn_dummy_system(
         .iter()
         .filter(|event| event.hero == Hero::Dummy)
     {
-        let mut entity = commands.spawn_bundle(HeroBundle {
+        let abilities = Abilities(vec![commands.spawn_bundle(FrostBoltBundle::default()).id()]);
+        let mut entity_commands = commands.spawn_bundle(HeroBundle {
+            abilities,
             hero: event.hero,
             character: CharacterBundle {
-                abilities: Vec::from([Ability::frost_bolt()]).into(),
                 pbr: PbrBundle {
                     mesh: meshes.add(Mesh::from(shape::Capsule::default())),
                     material: materials.add(Color::rgb(0.3, 0.3, 0.3).into()),
@@ -65,17 +71,35 @@ fn spawn_dummy_system(
             },
         });
         if event.authority {
-            entity.insert(Authority);
+            entity_commands.insert(Authority);
         }
     }
 }
 
-impl Ability {
-    fn frost_bolt() -> Self {
-        Self::new(frost_bolt_ability, 0)
+fn frost_bolt_system(mut events: EventReader<ActivationEvent>, query: Query<&FrostBoltAbility>) {
+    for _ in events
+        .iter()
+        .filter(|event| query.get(event.ability).is_ok())
+    {
+        println!("Called!");
     }
 }
 
-fn frost_bolt_ability() {
-    println!("Called!");
+#[derive(Bundle)]
+struct FrostBoltBundle {
+    kind: FrostBoltAbility,
+    slot: AbilitySlot,
+    cooldown: Cooldown,
 }
+
+impl Default for FrostBoltBundle {
+    fn default() -> Self {
+        Self {
+            kind: FrostBoltAbility,
+            slot: AbilitySlot::BaseAttack,
+            cooldown: Cooldown::from_secs(4),
+        }
+    }
+}
+
+struct FrostBoltAbility;

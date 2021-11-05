@@ -28,7 +28,6 @@ use bevy::prelude::*;
 use heron::{CollisionLayers, CollisionShape, RigidBody, Velocity};
 
 use crate::core::CollisionLayer;
-use abilities::Abilities;
 use abilities::AbilitiesPlugin;
 use camera::CameraPlugin;
 use heroes::HeroesPlugin;
@@ -53,7 +52,6 @@ pub struct CharacterBundle {
     shape: CollisionShape,
     collision_layers: CollisionLayers,
     velocity: Velocity,
-    abilities: Abilities,
 
     #[bundle]
     pbr: PbrBundle,
@@ -67,7 +65,6 @@ impl Default for CharacterBundle {
             collision_layers: CollisionLayers::all::<CollisionLayer>()
                 .with_group(CollisionLayer::Player),
             velocity: Velocity::default(),
-            abilities: Abilities::default(),
             pbr: PbrBundle::default(),
         }
     }

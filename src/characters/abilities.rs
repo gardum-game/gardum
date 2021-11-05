@@ -19,79 +19,117 @@
  */
 
 use bevy::prelude::*;
-use derive_more::{Deref, DerefMut, From, IntoIterator};
+use derive_more::{Deref, DerefMut};
 use std::time::Duration;
 
+use super::heroes::Hero;
 use crate::core::{AppState, Authority};
 
 pub struct AbilitiesPlugin;
 
 impl Plugin for AbilitiesPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.insert_resource(AbilityInput::None).add_system_set(
-            SystemSet::on_update(AppState::InGame)
-                .with_system(input_system.system())
-                .with_system(cooldown_system.system())
-                .with_system(cast_system.system()),
-        );
+        app.init_resource::<Option<AbilitySlot>>()
+            .add_event::<ActivationEvent>()
+            .add_system_set(
+                SystemSet::on_update(AppState::InGame)
+                    .with_system(input_system.system())
+                    .with_system(cooldown_system.system())
+                    .with_system(activation_system.system())
+                    .with_system(abilities_children_system.system()),
+            );
     }
 }
 
 fn input_system(
     keys: Res<Input<KeyCode>>,
     mouse_buttons: Res<Input<MouseButton>>,
-    mut input: ResMut<AbilityInput>,
+    mut input: ResMut<Option<AbilitySlot>>,
 ) {
     if keys.just_pressed(KeyCode::Q) {
-        *input = AbilityInput::Ability1;
+        *input = Some(AbilitySlot::Ability1);
         return;
     }
 
     if keys.just_pressed(KeyCode::E) {
-        *input = AbilityInput::Ability2;
+        *input = Some(AbilitySlot::Ability2);
         return;
     }
 
     if keys.just_pressed(KeyCode::LShift) {
-        *input = AbilityInput::Ability3;
+        *input = Some(AbilitySlot::Ability3);
         return;
     }
 
     if keys.just_pressed(KeyCode::R) {
-        *input = AbilityInput::Ultimate;
+        *input = Some(AbilitySlot::Ultimate);
         return;
     }
 
     if mouse_buttons.just_pressed(MouseButton::Left) {
-        *input = AbilityInput::BaseAttack;
+        *input = Some(AbilitySlot::BaseAttack);
         return;
     }
 
-    *input = AbilityInput::None;
+    *input = None;
 }
 
-fn cooldown_system(time: Res<Time>, mut query: Query<&mut Abilities>) {
-    for mut abilities in query.iter_mut() {
-        for ability in abilities.iter_mut() {
-            ability.cooldown.tick(time.delta());
+fn cooldown_system(time: Res<Time>, mut query: Query<&mut Cooldown>) {
+    for mut cooldown in query.iter_mut() {
+        cooldown.tick(time.delta());
+    }
+}
+
+fn activation_system(
+    activated_slot: Res<Option<AbilitySlot>>,
+    mut events: EventWriter<ActivationEvent>,
+    caster_query: Query<(Entity, &Abilities), (With<Authority>, With<Hero>)>,
+    mut abilities_query: Query<(Entity, &AbilitySlot, Option<&mut Cooldown>)>,
+) {
+    let input = match *activated_slot {
+        Some(input) => input,
+        None => return,
+    };
+
+    let (caster, abilities) = caster_query.single().unwrap();
+    for child in abilities.iter() {
+        let (ability, slot, cooldown) = match abilities_query.get_mut(*child) {
+            Ok(components) => components,
+            Err(_) => continue,
+        };
+
+        if input != *slot {
+            continue;
         }
+
+        if let Some(mut cooldown) = cooldown {
+            if !cooldown.finished() {
+                return;
+            }
+            cooldown.reset();
+        }
+
+        events.send(ActivationEvent { caster, ability });
+        return;
     }
 }
 
-fn cast_system(input: Res<AbilityInput>, mut query: Query<&mut Abilities, With<Authority>>) {
-    if *input == AbilityInput::None {
-        return;
+fn abilities_children_system(
+    mut commands: Commands,
+    query: Query<(Entity, &Abilities), Added<Abilities>>,
+) {
+    if let Ok((entity, abilities)) = query.single() {
+        commands.entity(entity).push_children(abilities);
     }
+}
 
-    let mut abilities = query.single_mut().unwrap();
-    if let Some(ability) = abilities.get_mut(*input as usize) {
-        ability.cast();
-    }
+pub struct ActivationEvent {
+    pub caster: Entity,
+    pub ability: Entity,
 }
 
 #[derive(Copy, Clone, PartialEq)]
-enum AbilityInput {
-    None = -1,
+pub enum AbilitySlot {
     BaseAttack,
     Ability1,
     Ability2,
@@ -99,27 +137,19 @@ enum AbilityInput {
     Ultimate,
 }
 
-#[derive(Default, Deref, DerefMut, IntoIterator, From)]
-pub struct Abilities(Vec<Ability>);
+#[derive(Deref, DerefMut)]
+pub struct Abilities(pub Vec<Entity>);
 
-pub struct Ability {
-    pub logic: fn(),
-    pub cooldown: Timer,
-}
+#[derive(Deref, DerefMut)]
+pub struct Cooldown(Timer);
 
-impl Ability {
-    pub fn new(logic: fn(), secs: u64) -> Self {
+impl Cooldown {
+    pub fn from_secs(secs: u64) -> Self {
         // Setup timer in finished state
         let duration = Duration::from_secs(secs);
-        let mut cooldown = Timer::new(duration, false);
-        cooldown.tick(duration);
+        let mut timer = Timer::new(duration, false);
+        timer.tick(duration);
 
-        Self { logic, cooldown }
-    }
-    fn cast(&mut self) {
-        if self.cooldown.finished() {
-            self.cooldown.reset();
-            (self.logic)();
-        }
+        Self(timer)
     }
 }

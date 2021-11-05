@@ -22,7 +22,7 @@ mod dummy;
 
 use bevy::prelude::*;
 
-use super::CharacterBundle;
+use super::{abilities::Abilities, CharacterBundle};
 use dummy::DummyPlugin;
 
 pub struct HeroesPlugin;
@@ -35,6 +35,7 @@ impl Plugin for HeroesPlugin {
 
 #[derive(Bundle)]
 struct HeroBundle {
+    abilities: Abilities,
     hero: Hero,
 
     #[bundle]
