@@ -153,3 +153,20 @@ impl Cooldown {
         Self(timer)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn cooldown_from_secs() {
+        const SECONDS: u64 = 4;
+
+        let cooldown = Cooldown::from_secs(SECONDS);
+        assert_eq!(cooldown.duration(), Duration::from_secs(SECONDS));
+        assert!(
+            cooldown.finished(),
+            "Object should be in finished state after creation"
+        );
+    }
+}
