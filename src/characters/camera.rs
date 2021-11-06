@@ -96,7 +96,7 @@ pub struct OrbitCameraBundle {
 }
 
 #[derive(Deref, DerefMut)]
-struct OrbitRotation(Vec2);
+pub struct OrbitRotation(Vec2);
 
 impl OrbitRotation {
     fn to_quat(&self) -> Quat {

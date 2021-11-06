@@ -18,17 +18,20 @@
  *
  */
 
-use bevy::prelude::*;
-use heron::CollisionShape;
+use bevy::{prelude::*, render::camera::Camera};
+use heron::{CollisionShape, Velocity};
 
 use super::{Hero, HeroBundle, HeroSpawnEvent};
 use crate::{
     characters::{
         abilities::{Abilities, AbilitySlot, ActivationEvent, Cooldown},
+        projectile::ProjectileBundle,
         CharacterBundle,
     },
     core::{AppState, Authority},
 };
+
+const PROJECTILE_SPEED: f32 = 20.0;
 
 pub struct DummyPlugin;
 
@@ -76,12 +79,44 @@ fn spawn_dummy_system(
     }
 }
 
-fn frost_bolt_system(mut events: EventReader<ActivationEvent>, query: Query<&FrostBoltAbility>) {
-    for _ in events
+fn frost_bolt_system(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut events: EventReader<ActivationEvent>,
+    frost_bolt_query: Query<(), With<FrostBoltAbility>>,
+    caster_query: Query<&Transform>,
+    camera_query: Query<&Transform, With<Camera>>,
+) {
+    for event in events
         .iter()
-        .filter(|event| query.get(event.ability).is_ok())
+        .filter(|event| frost_bolt_query.get(event.ability).is_ok())
     {
-        println!("Called!");
+        let camera_transform = camera_query.single().unwrap();
+        let caster_transform = caster_query.get(event.caster).unwrap();
+
+        commands.spawn_bundle(ProjectileBundle {
+            shape: CollisionShape::Capsule {
+                half_segment: 0.5,
+                radius: 0.5,
+            },
+            velocity: Velocity::from_linear(
+                camera_transform.rotation * -Vec3::Z * PROJECTILE_SPEED,
+            ),
+            pbr: PbrBundle {
+                mesh: meshes.add(Mesh::from(shape::Capsule::default())),
+                material: materials.add(Color::rgb(0.3, 0.3, 0.3).into()),
+                transform: Transform {
+                    translation: caster_transform.translation
+                        + camera_transform.rotation * -Vec3::Z * 4.0,
+                    rotation: camera_transform.rotation
+                        * Quat::from_rotation_x(90.0_f32.to_radians()),
+                    scale: caster_transform.scale,
+                },
+                ..Default::default()
+            },
+            ..Default::default()
+        });
     }
 }
 
