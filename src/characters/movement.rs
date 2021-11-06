@@ -36,12 +36,12 @@ impl Plugin for MovementPlugin {
         app.init_resource::<MovementInput>()
             .add_system_set(
                 SystemSet::on_update(AppState::InGame)
-                    .label("input")
+                    .label(MovementSystems::InputSet)
                     .with_system(input_system.system()),
             )
             .add_system_set(
                 SystemSet::on_update(AppState::InGame)
-                    .after("input")
+                    .after(MovementSystems::InputSet)
                     .with_system(movement_system.system()),
             );
     }
@@ -129,4 +129,9 @@ impl MovementInput {
 
         direction.normalize_or_zero()
     }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, SystemLabel)]
+enum MovementSystems {
+    InputSet,
 }
