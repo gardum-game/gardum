@@ -47,38 +47,6 @@ impl Plugin for MovementPlugin {
     }
 }
 
-#[derive(Default)]
-struct MovementInput {
-    forward: bool,
-    backward: bool,
-    left: bool,
-    right: bool,
-    jumping: bool,
-}
-
-impl MovementInput {
-    fn movement_direction(&self, rotation: Quat) -> Vec3 {
-        let mut direction = Vec3::ZERO;
-        if self.left {
-            direction.x -= 1.0;
-        }
-        if self.right {
-            direction.x += 1.0;
-        }
-        if self.forward {
-            direction.z -= 1.0;
-        }
-        if self.backward {
-            direction.z += 1.0;
-        }
-
-        direction = rotation * direction;
-        direction.y = 0.0;
-
-        direction.normalize_or_zero()
-    }
-}
-
 fn input_system(keys: Res<Input<KeyCode>>, mut input: ResMut<MovementInput>) {
     input.forward = keys.pressed(KeyCode::W);
     input.backward = keys.pressed(KeyCode::S);
@@ -129,4 +97,36 @@ fn is_on_floor(
             |hit_entity| entity != hit_entity,
         )
         .is_some()
+}
+
+#[derive(Default)]
+struct MovementInput {
+    forward: bool,
+    backward: bool,
+    left: bool,
+    right: bool,
+    jumping: bool,
+}
+
+impl MovementInput {
+    fn movement_direction(&self, rotation: Quat) -> Vec3 {
+        let mut direction = Vec3::ZERO;
+        if self.left {
+            direction.x -= 1.0;
+        }
+        if self.right {
+            direction.x += 1.0;
+        }
+        if self.forward {
+            direction.z -= 1.0;
+        }
+        if self.backward {
+            direction.z += 1.0;
+        }
+
+        direction = rotation * direction;
+        direction.y = 0.0;
+
+        direction.normalize_or_zero()
+    }
 }

@@ -47,7 +47,6 @@ pub enum AppState {
 
 #[derive(PhysicsLayer)]
 pub enum CollisionLayer {
-    World,
-    Player,
+    Character,
     Projectile,
 }

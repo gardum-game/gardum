@@ -63,7 +63,7 @@ impl Default for CharacterBundle {
             rigid_body: RigidBody::KinematicVelocityBased,
             shape: CollisionShape::default(),
             collision_layers: CollisionLayers::all::<CollisionLayer>()
-                .with_group(CollisionLayer::Player),
+                .with_group(CollisionLayer::Character),
             velocity: Velocity::default(),
             pbr: PbrBundle::default(),
         }

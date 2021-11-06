@@ -19,7 +19,7 @@
  */
 
 use bevy::prelude::*;
-use heron::{CollisionEvent, CollisionShape, RigidBody, Velocity};
+use heron::{CollisionEvent, CollisionLayers, CollisionShape, RigidBody, Velocity};
 
 use crate::core::{AppState, CollisionLayer};
 
@@ -27,63 +27,50 @@ pub struct ProjectilePlugin;
 
 impl Plugin for ProjectilePlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.add_system_set(
+        app.add_event::<ProjectileHitEvent>().add_system_set(
             SystemSet::on_update(AppState::InGame).with_system(collision_system.system()),
         );
     }
 }
 
 fn collision_system(
-    query: Query<&Projectile>,
     mut commands: Commands,
-    mut events: EventReader<CollisionEvent>,
+    mut collision_events: EventReader<CollisionEvent>,
+    mut hit_events: EventWriter<ProjectileHitEvent>,
 ) {
-    events
-        .iter()
-        .filter(|event| event.is_started())
-        .filter_map(|event| {
-            let (layers_1, layers_2) = event.collision_layers();
-            if layers_1.contains_group(CollisionLayer::Projectile)
-                && !layers_1.contains_group(CollisionLayer::World)
-            {
-                Some((
-                    event.rigid_body_entities().0,
-                    event.rigid_body_entities().1,
-                    layers_2,
-                ))
-            } else if layers_2.contains_group(CollisionLayer::Projectile)
-                && !layers_2.contains_group(CollisionLayer::World)
-            {
-                Some((
-                    event.rigid_body_entities().1,
-                    event.rigid_body_entities().0,
-                    layers_1,
-                ))
-            } else {
-                None
-            }
-        })
-        .for_each(|(projectile_entity, other_entity, other_entity_layers)| {
-            if other_entity_layers.contains_group(CollisionLayer::Player)
-                && !other_entity_layers.contains_group(CollisionLayer::World)
-            {
-                if let Ok(projectile) = query.get(projectile_entity) {
-                    (projectile.apply_on_hit)(&commands, other_entity);
-                }
-            }
-            commands.entity(projectile_entity).despawn();
-        });
+    for (projectile, target) in collision_events.iter().filter_map(|event| {
+        if event.is_started() {
+            return None;
+        }
+        let (layers_1, layers_2) = event.collision_layers();
+        if layers_1.contains_group(CollisionLayer::Projectile)
+            && !layers_1.contains_group(CollisionLayer::Character)
+        {
+            return Some(event.rigid_body_entities());
+        }
+        if layers_2.contains_group(CollisionLayer::Projectile)
+            && !layers_2.contains_group(CollisionLayer::Character)
+        {
+            let (target, projectile) = event.rigid_body_entities();
+            return Some((projectile, target));
+        }
+        None
+    }) {
+        hit_events.send(ProjectileHitEvent { projectile, target });
+        commands.entity(projectile).despawn();
+    }
 }
 
 #[derive(Bundle)]
 pub struct ProjectileBundle {
-    rigid_body: RigidBody,
-    shape: CollisionShape,
-    velocity: Velocity,
-    projectile: Projectile,
+    pub rigid_body: RigidBody,
+    pub shape: CollisionShape,
+    pub collision_layers: CollisionLayers,
+    pub velocity: Velocity,
+    pub projectile: Projectile,
 
     #[bundle]
-    pbr: PbrBundle,
+    pub pbr: PbrBundle,
 }
 
 impl Default for ProjectileBundle {
@@ -91,21 +78,21 @@ impl Default for ProjectileBundle {
         Self {
             rigid_body: RigidBody::KinematicVelocityBased,
             shape: CollisionShape::default(),
+            collision_layers: CollisionLayers::new(
+                CollisionLayer::Projectile,
+                CollisionLayer::Character,
+            ),
             velocity: Velocity::default(),
-            projectile: Projectile::default(),
+            projectile: Projectile,
             pbr: PbrBundle::default(),
         }
     }
 }
 
-struct Projectile {
-    apply_on_hit: fn(&Commands, Entity),
-}
+pub struct Projectile;
 
-impl Default for Projectile {
-    fn default() -> Self {
-        Self {
-            apply_on_hit: |_, _| (),
-        }
-    }
+#[allow(dead_code)]
+struct ProjectileHitEvent {
+    projectile: Entity,
+    target: Entity,
 }
