@@ -22,13 +22,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install libasound2-dev libudev-dev
 
-      - name: Install toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          components: clippy
-
       - name: Cache crates
         uses: Swatinem/rust-cache@v1
 
@@ -43,13 +36,6 @@ jobs:
     steps:
       - name: Clone repo
         uses: actions/checkout@v2
-
-      - name: Install toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          components: rustfmt
 
       - name: Format
         uses: actions-rs/cargo@v1
