@@ -135,3 +135,62 @@ impl MovementInput {
 enum MovementSystems {
     InputSet,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn movement_direction_normalization() {
+        let input = MovementInput {
+            forward: true,
+            backward: false,
+            left: true,
+            right: false,
+            jumping: true,
+        };
+
+        let direction = input.movement_direction(Quat::IDENTITY);
+        assert!(direction.is_normalized(), "Should be normalized");
+        assert_eq!(direction.y, 0.0, "Shouldn't point up");
+    }
+
+    #[test]
+    fn movement_direction_compensation() {
+        let input = MovementInput {
+            forward: true,
+            backward: true,
+            left: true,
+            right: true,
+            jumping: true,
+        };
+
+        let direction = input.movement_direction(Quat::IDENTITY);
+        assert_eq!(
+            direction.x, 0.0,
+            "Should be 0 when opposite buttons are pressed"
+        );
+        assert_eq!(
+            direction.z, 0.0,
+            "Should be 0 when opposite buttons are pressed"
+        );
+    }
+
+    #[test]
+    fn movement_direction_empty() {
+        let input = MovementInput {
+            forward: false,
+            backward: false,
+            left: false,
+            right: false,
+            jumping: false,
+        };
+
+        let direction = input.movement_direction(Quat::IDENTITY);
+        assert_eq!(
+            direction,
+            Vec3::ZERO,
+            "Should be zero when no buttons are pressed"
+        );
+    }
+}
