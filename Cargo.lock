@@ -219,7 +219,6 @@ version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c6b14f8ba7c373fdf7bd27547bb95f2849b2569bf02bbf3d19ca54e9d692de4f"
 dependencies = [
- "bevy_dylib",
  "bevy_internal",
  "syn",
 ]
@@ -276,9 +275,9 @@ dependencies = [
 
 [[package]]
 name = "bevy_atmosphere"
-version = "0.1.1"
+version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5e7fe13b7db49c2ec525545982c50c3022206f93857420362815f6a0a13d1ba6"
+checksum = "cdeb5cbfd40188165b833e438c8d589c00f684c4ae25e9a9637acfed08975669"
 dependencies = [
  "bevy",
 ]
@@ -339,15 +338,6 @@ dependencies = [
  "bevy_log",
  "bevy_utils",
  "parking_lot",
-]
-
-[[package]]
-name = "bevy_dylib"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "efa62c7c03470969539a07337bf8c5694c0b952678fd081d68b6331842134b85"
-dependencies = [
- "bevy_internal",
 ]
 
 [[package]]
