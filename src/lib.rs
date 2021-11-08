@@ -18,23 +18,8 @@
  *
  */
 
-use bevy::prelude::*;
-use bevy_atmosphere::AtmospherePlugin;
-use bevy_egui::EguiPlugin;
-use heron::PhysicsPlugin;
+#![allow(clippy::type_complexity)] // Do not warn about long QuerySet
 
-use gardum::characters::CharactersPlugin;
-use gardum::core::CorePlugin;
-use gardum::ui::UiPlugin;
-
-fn main() {
-    App::build()
-        .add_plugins(DefaultPlugins)
-        .add_plugin(AtmospherePlugin { dynamic: false })
-        .add_plugin(PhysicsPlugin::default())
-        .add_plugin(EguiPlugin)
-        .add_plugin(CorePlugin)
-        .add_plugin(UiPlugin)
-        .add_plugin(CharactersPlugin)
-        .run();
-}
+pub mod characters;
+pub mod core;
+pub mod ui;
