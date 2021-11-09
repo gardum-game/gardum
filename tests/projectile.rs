@@ -76,15 +76,25 @@ fn projectiles_do_not_collide() {
 }
 
 #[test]
-fn projectile_collides() {
+fn projectile_collides_with_world() {
     let mut app = setup_app();
     app.world.spawn().insert_bundle(ProjectileBundle::default());
-    app.world
-        .spawn()
-        .insert_bundle(PbrBundle::default())
-        .insert(RigidBody::Static)
-        .insert(CollisionShape::default());
+    app.world.spawn().insert_bundle(DummyBundle::default());
 
+    check_collisions(&mut app);
+}
+
+#[test]
+fn world_collides_with_projectile() {
+    let mut app = setup_app();
+    // Spawn in different order
+    app.world.spawn().insert_bundle(DummyBundle::default());
+    app.world.spawn().insert_bundle(ProjectileBundle::default());
+
+    check_collisions(&mut app);
+}
+
+fn check_collisions(app: &mut App) {
     app.update();
     app.update();
 
@@ -105,4 +115,23 @@ fn projectile_collides() {
         1,
         "One hit event should be triggered"
     );
+}
+
+#[derive(Bundle)]
+struct DummyBundle {
+    rigid_body: RigidBody,
+    shape: CollisionShape,
+    transform: Transform,
+    global_transform: GlobalTransform,
+}
+
+impl Default for DummyBundle {
+    fn default() -> Self {
+        Self {
+            rigid_body: RigidBody::Static,
+            shape: CollisionShape::default(),
+            transform: Transform::default(),
+            global_transform: GlobalTransform::default(),
+        }
+    }
 }
