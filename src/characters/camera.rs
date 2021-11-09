@@ -83,7 +83,7 @@ fn camera_position_system(
     let (mut camera_transform, orbit_rotation) = query.q1_mut().single_mut().unwrap();
 
     camera_transform.translation =
-        (orbit_rotation.to_quat() * Vec3::Y) * CAMERA_DISTANCE + player_translation;
+        orbit_rotation.to_quat() * Vec3::Y * CAMERA_DISTANCE + player_translation;
     camera_transform.look_at(player_translation, Vec3::Y);
 }
 

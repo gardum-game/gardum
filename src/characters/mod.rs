@@ -22,7 +22,7 @@ mod abilities;
 mod camera;
 pub mod heroes;
 mod movement;
-mod projectile;
+pub mod projectile;
 
 use bevy::prelude::*;
 use heron::{CollisionLayers, CollisionShape, RigidBody, Velocity};

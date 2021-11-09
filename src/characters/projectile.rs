@@ -39,9 +39,6 @@ fn collision_system(
     mut hit_events: EventWriter<ProjectileHitEvent>,
 ) {
     for (projectile, target) in collision_events.iter().filter_map(|event| {
-        if event.is_started() {
-            return None;
-        }
         let (layers_1, layers_2) = event.collision_layers();
         if layers_1.contains_group(CollisionLayer::Projectile)
             && !layers_1.contains_group(CollisionLayer::Character)
@@ -92,7 +89,7 @@ impl Default for ProjectileBundle {
 pub struct Projectile;
 
 #[allow(dead_code)]
-struct ProjectileHitEvent {
+pub struct ProjectileHitEvent {
     projectile: Entity,
     target: Entity,
 }
