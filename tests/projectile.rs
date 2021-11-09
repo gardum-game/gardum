@@ -65,6 +65,20 @@ fn projectiles_do_not_collide() {
     app.world.spawn().insert_bundle(ProjectileBundle::default());
     app.world.spawn().insert_bundle(ProjectileBundle::default());
 
+    assert_projectile_not_hit(&mut app);
+}
+
+#[test]
+fn objects_do_not_collide() {
+    let mut app = setup_app();
+    // Spawn in different order
+    app.world.spawn().insert_bundle(DummyBundle::default());
+    app.world.spawn().insert_bundle(DummyBundle::default());
+
+    assert_projectile_not_hit(&mut app);
+}
+
+fn assert_projectile_not_hit(app: &mut App) {
     app.update();
     app.update();
 
@@ -73,28 +87,40 @@ fn projectiles_do_not_collide() {
         2,
         "Projectiles do not collide with each other"
     );
+
+    let events = app
+        .world
+        .get_resource_mut::<Events<ProjectileHitEvent>>()
+        .unwrap();
+
+    let mut reader = events.get_reader();
+    assert_eq!(
+        reader.iter(&events).count(),
+        0,
+        "Hit events should not be triggered"
+    );
 }
 
 #[test]
-fn projectile_collides_with_world() {
+fn projectile_collides_with_object() {
     let mut app = setup_app();
     app.world.spawn().insert_bundle(ProjectileBundle::default());
     app.world.spawn().insert_bundle(DummyBundle::default());
 
-    check_collisions(&mut app);
+    assert_projectile_hit(&mut app);
 }
 
 #[test]
-fn world_collides_with_projectile() {
+fn object_collides_with_projectile() {
     let mut app = setup_app();
     // Spawn in different order
     app.world.spawn().insert_bundle(DummyBundle::default());
     app.world.spawn().insert_bundle(ProjectileBundle::default());
 
-    check_collisions(&mut app);
+    assert_projectile_hit(&mut app);
 }
 
-fn check_collisions(app: &mut App) {
+fn assert_projectile_hit(app: &mut App) {
     app.update();
     app.update();
 
