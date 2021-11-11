@@ -90,7 +90,7 @@ fn assert_projectile_not_hit(app: &mut App) {
 
     let events = app
         .world
-        .get_resource_mut::<Events<ProjectileHitEvent>>()
+        .get_resource::<Events<ProjectileHitEvent>>()
         .unwrap();
 
     let mut reader = events.get_reader();
@@ -132,7 +132,7 @@ fn assert_projectile_hit(app: &mut App) {
 
     let events = app
         .world
-        .get_resource_mut::<Events<ProjectileHitEvent>>()
+        .get_resource::<Events<ProjectileHitEvent>>()
         .unwrap();
 
     let mut reader = events.get_reader();
