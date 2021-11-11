@@ -22,7 +22,6 @@ use bevy::prelude::*;
 use derive_more::{Deref, DerefMut};
 use std::time::Duration;
 
-use super::heroes::Hero;
 use crate::core::{AppState, Authority};
 
 pub struct AbilityPlugin;
@@ -83,7 +82,7 @@ fn cooldown_system(time: Res<Time>, mut query: Query<&mut Cooldown>) {
 fn activation_system(
     activated_slot: Res<Option<AbilitySlot>>,
     mut events: EventWriter<ActivationEvent>,
-    caster_query: Query<(Entity, &Abilities), (With<Authority>, With<Hero>)>,
+    caster_query: Query<(Entity, &Abilities), With<Authority>>,
     mut abilities_query: Query<(Entity, &AbilitySlot, Option<&mut Cooldown>)>,
 ) {
     let input = match *activated_slot {
@@ -93,10 +92,7 @@ fn activation_system(
 
     for (caster, abilities) in caster_query.iter() {
         for child in abilities.iter() {
-            let (ability, slot, cooldown) = match abilities_query.get_mut(*child) {
-                Ok(components) => components,
-                Err(_) => continue,
-            };
+            let (ability, slot, cooldown) = abilities_query.get_mut(*child).unwrap();
 
             if input != *slot {
                 continue;

@@ -25,8 +25,8 @@ use bevy::{
 };
 
 use gardum::{
-    characters::ability::{AbilityPlugin, AbilitySlot},
-    core::AppState,
+    characters::ability::{Abilities, AbilityPlugin, AbilitySlot, ActivationEvent, Cooldown},
+    core::{AppState, Authority},
 };
 
 fn setup_app() -> App {
@@ -65,6 +65,75 @@ fn ability_input() {
     assert_ability_input(&mut app, None);
 }
 
+fn assert_ability_input(app: &mut App, slot: Option<AbilitySlot>) {
+    let activated_ability = app.world.get_resource::<Option<AbilitySlot>>().unwrap();
+    assert_eq!(*activated_ability, slot);
+}
+
+#[test]
+fn ability_activation() {
+    let mut app = setup_app();
+
+    let ability = app
+        .world
+        .spawn()
+        .insert_bundle(DummyAbilityBundle::default())
+        .id();
+    app.world
+        .spawn()
+        .insert(Abilities(vec![ability]))
+        .insert(Authority);
+
+    simulate_key_press(&mut app, KeyCode::E);
+    app.update();
+
+    let events = app.world.get_resource::<Events<ActivationEvent>>().unwrap();
+
+    let mut reader = events.get_reader();
+    assert_eq!(
+        reader.iter(&events).count(),
+        0,
+        "Ability shouldn't be activated because of different key"
+    );
+
+    simulate_key_press(&mut app, KeyCode::Q);
+    app.update();
+
+    let events = app.world.get_resource::<Events<ActivationEvent>>().unwrap();
+
+    assert_eq!(
+        reader.iter(&events).count(),
+        1,
+        "Ability should be activated"
+    );
+
+    simulate_key_press(&mut app, KeyCode::Q);
+    app.update();
+
+    let events = app.world.get_resource::<Events<ActivationEvent>>().unwrap();
+
+    assert_eq!(
+        reader.iter(&events).count(),
+        0,
+        "Ability shouldn't be activated because of cooldown"
+    );
+}
+
+#[derive(Bundle)]
+struct DummyAbilityBundle {
+    slot: AbilitySlot,
+    cooldown: Cooldown,
+}
+
+impl Default for DummyAbilityBundle {
+    fn default() -> Self {
+        Self {
+            slot: AbilitySlot::Ability1,
+            cooldown: Cooldown::from_secs(4),
+        }
+    }
+}
+
 fn simulate_key_press(app: &mut App, code: KeyCode) {
     let mut events = app
         .world
@@ -92,9 +161,4 @@ fn simulate_mouse_press(app: &mut App, button: MouseButton) {
     });
 
     app.update();
-}
-
-fn assert_ability_input(app: &mut App, slot: Option<AbilitySlot>) {
-    let activated_ability = app.world.get_resource::<Option<AbilitySlot>>().unwrap();
-    assert_eq!(*activated_ability, slot);
 }
