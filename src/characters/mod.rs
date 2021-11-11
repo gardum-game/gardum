@@ -18,7 +18,7 @@
  *
  */
 
-mod ability;
+pub mod ability;
 mod camera;
 pub mod heroes;
 mod movement;

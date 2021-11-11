@@ -91,26 +91,27 @@ fn activation_system(
         None => return,
     };
 
-    let (caster, abilities) = caster_query.single().unwrap();
-    for child in abilities.iter() {
-        let (ability, slot, cooldown) = match abilities_query.get_mut(*child) {
-            Ok(components) => components,
-            Err(_) => continue,
-        };
+    for (caster, abilities) in caster_query.iter() {
+        for child in abilities.iter() {
+            let (ability, slot, cooldown) = match abilities_query.get_mut(*child) {
+                Ok(components) => components,
+                Err(_) => continue,
+            };
 
-        if input != *slot {
-            continue;
-        }
-
-        if let Some(mut cooldown) = cooldown {
-            if !cooldown.finished() {
-                return;
+            if input != *slot {
+                continue;
             }
-            cooldown.reset();
-        }
 
-        events.send(ActivationEvent { caster, ability });
-        return;
+            if let Some(mut cooldown) = cooldown {
+                if !cooldown.finished() {
+                    return;
+                }
+                cooldown.reset();
+            }
+
+            events.send(ActivationEvent { caster, ability });
+            return;
+        }
     }
 }
 
@@ -128,7 +129,7 @@ pub struct ActivationEvent {
     pub ability: Entity,
 }
 
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub enum AbilitySlot {
     BaseAttack,
     Ability1,
