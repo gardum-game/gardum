@@ -25,9 +25,9 @@ use std::time::Duration;
 use super::heroes::Hero;
 use crate::core::{AppState, Authority};
 
-pub struct AbilitiesPlugin;
+pub struct AbilityPlugin;
 
-impl Plugin for AbilitiesPlugin {
+impl Plugin for AbilityPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.init_resource::<Option<AbilitySlot>>()
             .add_event::<ActivationEvent>()

@@ -22,7 +22,7 @@ mod dummy;
 
 use bevy::prelude::*;
 
-use super::{abilities::Abilities, CharacterBundle};
+use super::{ability::Abilities, CharacterBundle};
 use dummy::DummyPlugin;
 
 pub struct HeroesPlugin;

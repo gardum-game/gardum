@@ -18,7 +18,7 @@
  *
  */
 
-mod abilities;
+mod ability;
 mod camera;
 pub mod heroes;
 mod movement;
@@ -28,7 +28,7 @@ use bevy::prelude::*;
 use heron::{CollisionLayers, CollisionShape, RigidBody, Velocity};
 
 use crate::core::CollisionLayer;
-use abilities::AbilitiesPlugin;
+use ability::AbilityPlugin;
 use camera::CameraPlugin;
 use heroes::HeroesPlugin;
 use movement::MovementPlugin;
@@ -40,7 +40,7 @@ impl Plugin for CharactersPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.add_plugin(MovementPlugin)
             .add_plugin(CameraPlugin)
-            .add_plugin(AbilitiesPlugin)
+            .add_plugin(AbilityPlugin)
             .add_plugin(HeroesPlugin)
             .add_plugin(ProjectilePlugin);
     }

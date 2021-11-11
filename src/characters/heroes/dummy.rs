@@ -24,7 +24,7 @@ use heron::{CollisionShape, Velocity};
 use super::{Hero, HeroBundle, HeroSpawnEvent};
 use crate::{
     characters::{
-        abilities::{Abilities, AbilitySlot, ActivationEvent, Cooldown},
+        ability::{Abilities, AbilitySlot, ActivationEvent, Cooldown},
         projectile::ProjectileBundle,
         CharacterBundle,
     },
