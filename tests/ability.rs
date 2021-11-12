@@ -20,6 +20,7 @@
 
 use bevy::{
     app::Events,
+    ecs::system::CommandQueue,
     input::{keyboard::KeyboardInput, mouse::MouseButtonInput, ElementState, InputPlugin},
     prelude::*,
 };
@@ -71,7 +72,7 @@ fn assert_ability_input(app: &mut App, slot: Option<AbilitySlot>) {
 }
 
 #[test]
-fn ability_activation() {
+fn ability_activation_and_destruction() {
     let mut app = setup_app();
 
     let ability = app
@@ -79,10 +80,12 @@ fn ability_activation() {
         .spawn()
         .insert_bundle(DummyAbilityBundle::default())
         .id();
-    app.world
+    let caster = app
+        .world
         .spawn()
         .insert(Abilities(vec![ability]))
-        .insert(Authority);
+        .insert(Authority)
+        .id();
 
     simulate_key_press(&mut app, KeyCode::E);
     app.update();
@@ -116,6 +119,17 @@ fn ability_activation() {
         reader.iter(&events).count(),
         0,
         "Ability shouldn't be activated because of cooldown"
+    );
+
+    // TODO 0.6: Use world.entity_mut
+    let mut queue = CommandQueue::default();
+    let mut commands = Commands::new(&mut queue, &app.world);
+    commands.entity(caster).despawn_recursive();
+    queue.apply(&mut app.world);
+    assert_eq!(
+        app.world.entities().len(),
+        0,
+        "Entities of abilities must be destroyed along with the owner"
     );
 }
 
