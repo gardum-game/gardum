@@ -30,16 +30,6 @@ use gardum::{
     core::{AppState, Authority},
 };
 
-fn setup_app() -> App {
-    let mut app_builder = App::build();
-    app_builder
-        .add_state(AppState::InGame)
-        .add_plugins(MinimalPlugins)
-        .add_plugin(InputPlugin)
-        .add_plugin(AbilityPlugin);
-    app_builder.app
-}
-
 #[test]
 fn ability_input() {
     let mut app = setup_app();
@@ -133,21 +123,6 @@ fn ability_activation_and_destruction() {
     );
 }
 
-#[derive(Bundle)]
-struct DummyAbilityBundle {
-    slot: AbilitySlot,
-    cooldown: Cooldown,
-}
-
-impl Default for DummyAbilityBundle {
-    fn default() -> Self {
-        Self {
-            slot: AbilitySlot::Ability1,
-            cooldown: Cooldown::from_secs(4),
-        }
-    }
-}
-
 fn simulate_key_press(app: &mut App, code: KeyCode) {
     let mut events = app
         .world
@@ -175,4 +150,29 @@ fn simulate_mouse_press(app: &mut App, button: MouseButton) {
     });
 
     app.update();
+}
+
+fn setup_app() -> App {
+    let mut app_builder = App::build();
+    app_builder
+        .add_state(AppState::InGame)
+        .add_plugins(MinimalPlugins)
+        .add_plugin(InputPlugin)
+        .add_plugin(AbilityPlugin);
+    app_builder.app
+}
+
+#[derive(Bundle)]
+struct DummyAbilityBundle {
+    slot: AbilitySlot,
+    cooldown: Cooldown,
+}
+
+impl Default for DummyAbilityBundle {
+    fn default() -> Self {
+        Self {
+            slot: AbilitySlot::Ability1,
+            cooldown: Cooldown::from_secs(4),
+        }
+    }
 }

@@ -27,16 +27,6 @@ use gardum::{
     core::AppState,
 };
 
-fn setup_app() -> App {
-    let mut app_builder = App::build();
-    app_builder
-        .add_state(AppState::InGame)
-        .add_plugins(MinimalPlugins)
-        .add_plugin(PhysicsPlugin::default())
-        .add_plugin(ProjectilePlugin);
-    app_builder.app
-}
-
 #[test]
 fn projectile_moves() {
     let mut app = setup_app();
@@ -141,6 +131,16 @@ fn assert_projectile_hit(app: &mut App) {
         1,
         "One hit event should be triggered"
     );
+}
+
+fn setup_app() -> App {
+    let mut app_builder = App::build();
+    app_builder
+        .add_state(AppState::InGame)
+        .add_plugins(MinimalPlugins)
+        .add_plugin(PhysicsPlugin::default())
+        .add_plugin(ProjectilePlugin);
+    app_builder.app
 }
 
 #[derive(Bundle)]
