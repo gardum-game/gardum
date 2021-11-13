@@ -34,35 +34,51 @@ use gardum::{
 fn ability_input() {
     let mut app = setup_app();
 
-    assert_ability_input(&mut app, None);
+    assert_eq!(
+        *app.world.get_resource::<Option<AbilitySlot>>().unwrap(),
+        None
+    );
 
     simulate_key_press(&mut app, KeyCode::Q);
-    assert_ability_input(&mut app, Some(AbilitySlot::Ability1));
+    assert_eq!(
+        *app.world.get_resource::<Option<AbilitySlot>>().unwrap(),
+        Some(AbilitySlot::Ability1)
+    );
 
     simulate_key_press(&mut app, KeyCode::E);
-    assert_ability_input(&mut app, Some(AbilitySlot::Ability2));
+    assert_eq!(
+        *app.world.get_resource::<Option<AbilitySlot>>().unwrap(),
+        Some(AbilitySlot::Ability2)
+    );
 
     simulate_key_press(&mut app, KeyCode::LShift);
-    assert_ability_input(&mut app, Some(AbilitySlot::Ability3));
+    assert_eq!(
+        *app.world.get_resource::<Option<AbilitySlot>>().unwrap(),
+        Some(AbilitySlot::Ability3)
+    );
 
     simulate_key_press(&mut app, KeyCode::R);
-    assert_ability_input(&mut app, Some(AbilitySlot::Ultimate));
+    assert_eq!(
+        *app.world.get_resource::<Option<AbilitySlot>>().unwrap(),
+        Some(AbilitySlot::Ultimate)
+    );
 
     simulate_mouse_press(&mut app, MouseButton::Left);
-    assert_ability_input(&mut app, Some(AbilitySlot::BaseAttack));
+    assert_eq!(
+        *app.world.get_resource::<Option<AbilitySlot>>().unwrap(),
+        Some(AbilitySlot::BaseAttack)
+    );
 
     // Check if input was cleared
     app.update();
-    assert_ability_input(&mut app, None);
-}
-
-fn assert_ability_input(app: &mut App, slot: Option<AbilitySlot>) {
-    let activated_ability = app.world.get_resource::<Option<AbilitySlot>>().unwrap();
-    assert_eq!(*activated_ability, slot);
+    assert_eq!(
+        *app.world.get_resource::<Option<AbilitySlot>>().unwrap(),
+        None
+    );
 }
 
 #[test]
-fn ability_activation_and_destruction() {
+fn ability_ignores_unrelated_action() {
     let mut app = setup_app();
 
     let ability = app
@@ -70,46 +86,98 @@ fn ability_activation_and_destruction() {
         .spawn()
         .insert_bundle(DummyAbilityBundle::default())
         .id();
-    let caster = app
-        .world
+
+    app.world
         .spawn()
-        .insert(Abilities(vec![ability]))
-        .insert(Authority)
+        .insert_bundle(DummyCasterBundle::new(ability))
         .id();
 
     simulate_key_press(&mut app, KeyCode::E);
-    app.update();
 
     let events = app.world.get_resource::<Events<ActivationEvent>>().unwrap();
-
     let mut reader = events.get_reader();
     assert_eq!(
         reader.iter(&events).count(),
         0,
         "Ability shouldn't be activated because of different key"
     );
+}
+
+#[test]
+fn ability_activates() {
+    let mut app = setup_app();
+
+    let ability = app
+        .world
+        .spawn()
+        .insert_bundle(DummyAbilityBundle::default())
+        .id();
+
+    app.world
+        .spawn()
+        .insert_bundle(DummyCasterBundle::new(ability))
+        .id();
 
     simulate_key_press(&mut app, KeyCode::Q);
-    app.update();
 
     let events = app.world.get_resource::<Events<ActivationEvent>>().unwrap();
-
+    let mut reader = events.get_reader();
     assert_eq!(
         reader.iter(&events).count(),
         1,
         "Ability should be activated"
     );
 
+    let cooldown = app.world.get::<Cooldown>(ability).unwrap();
+    assert!(!cooldown.finished(), "Cooldown should be triggered");
+}
+
+#[test]
+fn ability_affected_by_cooldown() {
+    let mut app = setup_app();
+
+    let ability = app
+        .world
+        .spawn()
+        .insert_bundle(DummyAbilityBundle::default())
+        .id();
+
+    app.world
+        .spawn()
+        .insert_bundle(DummyCasterBundle::new(ability))
+        .id();
+
+    let mut cooldown = app.world.get_mut::<Cooldown>(ability).unwrap();
+    cooldown.reset();
+
     simulate_key_press(&mut app, KeyCode::Q);
-    app.update();
 
     let events = app.world.get_resource::<Events<ActivationEvent>>().unwrap();
-
+    let mut reader = events.get_reader();
     assert_eq!(
         reader.iter(&events).count(),
         0,
         "Ability shouldn't be activated because of cooldown"
     );
+}
+
+#[test]
+fn ability_destroyed_with_actor() {
+    let mut app = setup_app();
+
+    let ability = app
+        .world
+        .spawn()
+        .insert_bundle(DummyAbilityBundle::default())
+        .id();
+
+    let caster = app
+        .world
+        .spawn()
+        .insert_bundle(DummyCasterBundle::new(ability))
+        .id();
+
+    app.update();
 
     // TODO 0.6: Use world.entity_mut
     let mut queue = CommandQueue::default();
@@ -160,6 +228,21 @@ fn setup_app() -> App {
         .add_plugin(InputPlugin)
         .add_plugin(AbilityPlugin);
     app_builder.app
+}
+
+#[derive(Bundle)]
+struct DummyCasterBundle {
+    authority: Authority,
+    abilities: Abilities,
+}
+
+impl DummyCasterBundle {
+    fn new(dummy_ability: Entity) -> Self {
+        Self {
+            authority: Authority,
+            abilities: Abilities(vec![dummy_ability]),
+        }
+    }
 }
 
 #[derive(Bundle)]

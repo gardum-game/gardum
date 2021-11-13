@@ -32,7 +32,12 @@ impl Plugin for AbilityPlugin {
             .add_event::<ActivationEvent>()
             .add_system_set(
                 SystemSet::on_update(AppState::InGame)
-                    .with_system(input_system.system())
+                    .label(AbilitySystems::InputSet)
+                    .with_system(input_system.system()),
+            )
+            .add_system_set(
+                SystemSet::on_update(AppState::InGame)
+                    .after(AbilitySystems::InputSet)
                     .with_system(cooldown_system.system())
                     .with_system(activation_system.system())
                     .with_system(abilities_children_system.system()),
@@ -149,6 +154,11 @@ impl Cooldown {
 
         Self(timer)
     }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, SystemLabel)]
+enum AbilitySystems {
+    InputSet,
 }
 
 #[cfg(test)]
