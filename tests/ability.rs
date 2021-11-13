@@ -18,13 +18,11 @@
  *
  */
 
-use bevy::{
-    app::Events,
-    ecs::system::CommandQueue,
-    input::{keyboard::KeyboardInput, mouse::MouseButtonInput, ElementState, InputPlugin},
-    prelude::*,
-};
+pub mod common;
 
+use bevy::{ecs::system::CommandQueue, input::InputPlugin, prelude::*};
+
+use common::{events_count, simulate_key_press, simulate_mouse_press};
 use gardum::{
     characters::ability::{Abilities, AbilityPlugin, AbilitySlot, ActivationEvent, Cooldown},
     core::{AppState, Authority},
@@ -94,10 +92,8 @@ fn ability_ignores_unrelated_action() {
 
     simulate_key_press(&mut app, KeyCode::E);
 
-    let events = app.world.get_resource::<Events<ActivationEvent>>().unwrap();
-    let mut reader = events.get_reader();
     assert_eq!(
-        reader.iter(&events).count(),
+        events_count::<ActivationEvent>(&mut app.world),
         0,
         "Ability shouldn't be activated because of different key"
     );
@@ -120,10 +116,8 @@ fn ability_activates() {
 
     simulate_key_press(&mut app, KeyCode::Q);
 
-    let events = app.world.get_resource::<Events<ActivationEvent>>().unwrap();
-    let mut reader = events.get_reader();
     assert_eq!(
-        reader.iter(&events).count(),
+        events_count::<ActivationEvent>(&mut app.world),
         1,
         "Ability should be activated"
     );
@@ -152,10 +146,8 @@ fn ability_affected_by_cooldown() {
 
     simulate_key_press(&mut app, KeyCode::Q);
 
-    let events = app.world.get_resource::<Events<ActivationEvent>>().unwrap();
-    let mut reader = events.get_reader();
     assert_eq!(
-        reader.iter(&events).count(),
+        events_count::<ActivationEvent>(&mut app.world),
         0,
         "Ability shouldn't be activated because of cooldown"
     );
@@ -189,35 +181,6 @@ fn ability_destroyed_with_actor() {
         0,
         "Entities of abilities must be destroyed along with the owner"
     );
-}
-
-fn simulate_key_press(app: &mut App, code: KeyCode) {
-    let mut events = app
-        .world
-        .get_resource_mut::<Events<KeyboardInput>>()
-        .unwrap();
-
-    events.send(KeyboardInput {
-        scan_code: 0,
-        key_code: Some(code),
-        state: ElementState::Pressed,
-    });
-
-    app.update();
-}
-
-fn simulate_mouse_press(app: &mut App, button: MouseButton) {
-    let mut events = app
-        .world
-        .get_resource_mut::<Events<MouseButtonInput>>()
-        .unwrap();
-
-    events.send(MouseButtonInput {
-        button,
-        state: ElementState::Pressed,
-    });
-
-    app.update();
 }
 
 fn setup_app() -> App {

@@ -18,10 +18,12 @@
  *
  */
 
-use bevy::app::Events;
+pub mod common;
+
 use bevy::prelude::*;
 use heron::{CollisionShape, PhysicsPlugin, RigidBody, Velocity};
 
+use common::events_count;
 use gardum::{
     characters::projectile::{ProjectileBundle, ProjectileHitEvent, ProjectilePlugin},
     core::AppState,
@@ -45,7 +47,7 @@ fn projectile_moves() {
     let transform = app.world.get::<Transform>(projectile_entity).unwrap();
     assert!(
         transform.translation.length() > 0.0,
-        "Should be moved by velocity"
+        "Projectile should be moved by velocity"
     );
 }
 
@@ -55,20 +57,6 @@ fn projectiles_do_not_collide() {
     app.world.spawn().insert_bundle(ProjectileBundle::default());
     app.world.spawn().insert_bundle(ProjectileBundle::default());
 
-    assert_projectile_not_hit(&mut app);
-}
-
-#[test]
-fn objects_do_not_collide() {
-    let mut app = setup_app();
-    // Spawn in different order
-    app.world.spawn().insert_bundle(DummyBundle::default());
-    app.world.spawn().insert_bundle(DummyBundle::default());
-
-    assert_projectile_not_hit(&mut app);
-}
-
-fn assert_projectile_not_hit(app: &mut App) {
     app.update();
     app.update();
 
@@ -78,14 +66,31 @@ fn assert_projectile_not_hit(app: &mut App) {
         "Projectiles do not collide with each other"
     );
 
-    let events = app
-        .world
-        .get_resource::<Events<ProjectileHitEvent>>()
-        .unwrap();
-
-    let mut reader = events.get_reader();
     assert_eq!(
-        reader.iter(&events).count(),
+        events_count::<ProjectileHitEvent>(&mut app.world),
+        0,
+        "Hit events should not be triggered"
+    );
+}
+
+#[test]
+fn objects_do_not_collide() {
+    let mut app = setup_app();
+    // Spawn in different order
+    app.world.spawn().insert_bundle(DummyBundle::default());
+    app.world.spawn().insert_bundle(DummyBundle::default());
+
+    app.update();
+    app.update();
+
+    assert_eq!(
+        app.world.entities().len(),
+        2,
+        "Objects do not collide with each other"
+    );
+
+    assert_eq!(
+        events_count::<ProjectileHitEvent>(&mut app.world),
         0,
         "Hit events should not be triggered"
     );
@@ -97,20 +102,6 @@ fn projectile_collides_with_object() {
     app.world.spawn().insert_bundle(ProjectileBundle::default());
     app.world.spawn().insert_bundle(DummyBundle::default());
 
-    assert_projectile_hit(&mut app);
-}
-
-#[test]
-fn object_collides_with_projectile() {
-    let mut app = setup_app();
-    // Spawn in different order
-    app.world.spawn().insert_bundle(DummyBundle::default());
-    app.world.spawn().insert_bundle(ProjectileBundle::default());
-
-    assert_projectile_hit(&mut app);
-}
-
-fn assert_projectile_hit(app: &mut App) {
     app.update();
     app.update();
 
@@ -120,14 +111,31 @@ fn assert_projectile_hit(app: &mut App) {
         "Projectiles are destroyed when colliding with other objects"
     );
 
-    let events = app
-        .world
-        .get_resource::<Events<ProjectileHitEvent>>()
-        .unwrap();
-
-    let mut reader = events.get_reader();
     assert_eq!(
-        reader.iter(&events).count(),
+        events_count::<ProjectileHitEvent>(&mut app.world),
+        1,
+        "One hit event should be triggered"
+    );
+}
+
+#[test]
+fn object_collides_with_projectile() {
+    let mut app = setup_app();
+    // Spawn in different order
+    app.world.spawn().insert_bundle(DummyBundle::default());
+    app.world.spawn().insert_bundle(ProjectileBundle::default());
+
+    app.update();
+    app.update();
+
+    assert_eq!(
+        app.world.entities().len(),
+        1,
+        "Projectiles are destroyed when colliding with other objects"
+    );
+
+    assert_eq!(
+        events_count::<ProjectileHitEvent>(&mut app.world),
         1,
         "One hit event should be triggered"
     );
