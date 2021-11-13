@@ -24,7 +24,10 @@ use bevy::{ecs::system::CommandQueue, input::InputPlugin, prelude::*};
 
 use common::{events_count, simulate_key_press, simulate_mouse_press};
 use gardum::{
-    characters::ability::{Abilities, AbilityPlugin, AbilitySlot, ActivationEvent, Cooldown},
+    characters::{
+        ability::{Abilities, AbilityPlugin, AbilitySlot, ActivationEvent},
+        cooldown::{Cooldown, CooldownPlugin},
+    },
     core::{AppState, Authority},
 };
 
@@ -189,6 +192,7 @@ fn setup_app() -> App {
         .add_state(AppState::InGame)
         .add_plugins(MinimalPlugins)
         .add_plugin(InputPlugin)
+        .add_plugin(CooldownPlugin)
         .add_plugin(AbilityPlugin);
     app_builder.app
 }
@@ -218,7 +222,7 @@ impl Default for DummyAbilityBundle {
     fn default() -> Self {
         Self {
             slot: AbilitySlot::Ability1,
-            cooldown: Cooldown::from_secs(4),
+            cooldown: Cooldown::from_secs(1),
         }
     }
 }

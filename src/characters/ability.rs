@@ -20,8 +20,8 @@
 
 use bevy::prelude::*;
 use derive_more::{Deref, DerefMut};
-use std::time::Duration;
 
+use super::cooldown::Cooldown;
 use crate::core::{AppState, Authority};
 
 pub struct AbilityPlugin;
@@ -38,7 +38,6 @@ impl Plugin for AbilityPlugin {
             .add_system_set(
                 SystemSet::on_update(AppState::InGame)
                     .after(AbilitySystems::InputSet)
-                    .with_system(cooldown_system.system())
                     .with_system(activation_system.system())
                     .with_system(abilities_children_system.system()),
             );
@@ -76,12 +75,6 @@ fn input_system(
     }
 
     *input = None;
-}
-
-fn cooldown_system(time: Res<Time>, mut query: Query<&mut Cooldown>) {
-    for mut cooldown in query.iter_mut() {
-        cooldown.tick(time.delta());
-    }
 }
 
 fn activation_system(
@@ -142,38 +135,7 @@ pub enum AbilitySlot {
 #[derive(Deref, DerefMut)]
 pub struct Abilities(pub Vec<Entity>);
 
-#[derive(Deref, DerefMut)]
-pub struct Cooldown(Timer);
-
-impl Cooldown {
-    pub fn from_secs(secs: u64) -> Self {
-        // Setup timer in finished state
-        let duration = Duration::from_secs(secs);
-        let mut timer = Timer::new(duration, false);
-        timer.tick(duration);
-
-        Self(timer)
-    }
-}
-
 #[derive(Debug, Clone, PartialEq, Eq, Hash, SystemLabel)]
 enum AbilitySystems {
     InputSet,
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn cooldown_from_secs() {
-        const SECONDS: u64 = 4;
-
-        let cooldown = Cooldown::from_secs(SECONDS);
-        assert_eq!(cooldown.duration(), Duration::from_secs(SECONDS));
-        assert!(
-            cooldown.finished(),
-            "Object should be in finished state after creation"
-        );
-    }
 }

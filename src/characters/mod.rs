@@ -20,6 +20,7 @@
 
 pub mod ability;
 mod camera;
+pub mod cooldown;
 pub mod heroes;
 mod movement;
 pub mod projectile;
@@ -30,6 +31,7 @@ use heron::{CollisionLayers, CollisionShape, RigidBody, Velocity};
 use crate::core::CollisionLayer;
 use ability::AbilityPlugin;
 use camera::CameraPlugin;
+use cooldown::CooldownPlugin;
 use heroes::HeroesPlugin;
 use movement::MovementPlugin;
 use projectile::ProjectilePlugin;
@@ -40,6 +42,7 @@ impl Plugin for CharactersPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.add_plugin(MovementPlugin)
             .add_plugin(CameraPlugin)
+            .add_plugin(CooldownPlugin)
             .add_plugin(AbilityPlugin)
             .add_plugin(HeroesPlugin)
             .add_plugin(ProjectilePlugin);
