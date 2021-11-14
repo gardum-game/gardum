@@ -37,6 +37,7 @@ impl Plugin for CorePlugin {
     }
 }
 
+#[derive(Default)]
 pub struct Authority;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]

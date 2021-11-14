@@ -7,6 +7,7 @@ edition = "2021"
 bevy = "0.5"
 bevy_egui = "0.7.1"
 bevy_atmosphere = "0.1.2"
+approx = "0.5.0"
 heron = { version = "0.12.1", features = ["3d"] }
 clap = "3.0.0-beta.2"
 derive_more  = { version = "0.99.16", features = ["deref", "deref_mut"] }

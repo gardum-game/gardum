@@ -19,7 +19,7 @@
  */
 
 pub mod ability;
-mod camera;
+pub mod camera;
 pub mod cooldown;
 pub mod heroes;
 mod movement;

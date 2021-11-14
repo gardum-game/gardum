@@ -24,7 +24,7 @@ use heron::PhysicsSystem;
 
 use crate::core::{AppState, Authority};
 
-const CAMERA_DISTANCE: f32 = 10.0;
+pub const CAMERA_DISTANCE: f32 = 10.0;
 const CAMERA_SENSETIVITY: f32 = 0.2;
 
 pub struct CameraPlugin;
@@ -71,7 +71,7 @@ fn camera_input_system(
 fn camera_position_system(
     app_state: Res<State<AppState>>,
     mut query: QuerySet<(
-        Query<&Transform, (With<Handle<Mesh>>, With<Authority>)>,
+        Query<&Transform, (With<Authority>, Without<OrbitRotation>)>,
         Query<(&mut Transform, &OrbitRotation), With<Authority>>,
     )>,
 ) {
@@ -79,9 +79,12 @@ fn camera_position_system(
         return;
     }
 
-    let player_translation = query.q0().single().unwrap().translation;
-    let (mut camera_transform, orbit_rotation) = query.q1_mut().single_mut().unwrap();
+    let player_translation = match query.q0().single() {
+        Ok(transform) => transform.translation,
+        Err(_) => return,
+    };
 
+    let (mut camera_transform, orbit_rotation) = query.q1_mut().single_mut().unwrap();
     camera_transform.translation =
         orbit_rotation.to_quat() * Vec3::Y * CAMERA_DISTANCE + player_translation;
     camera_transform.look_at(player_translation, Vec3::Y);
@@ -95,8 +98,8 @@ pub struct OrbitCameraBundle {
     camera: PerspectiveCameraBundle,
 }
 
-#[derive(Deref, DerefMut)]
-pub struct OrbitRotation(Vec2);
+#[derive(Deref, DerefMut, Debug, PartialEq)]
+pub struct OrbitRotation(pub Vec2);
 
 impl OrbitRotation {
     fn to_quat(&self) -> Quat {

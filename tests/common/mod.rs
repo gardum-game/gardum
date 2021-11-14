@@ -21,7 +21,11 @@
 use bevy::{
     app::Events,
     ecs::component::Component,
-    input::{keyboard::KeyboardInput, mouse::MouseButtonInput, ElementState},
+    input::{
+        keyboard::KeyboardInput,
+        mouse::{MouseButtonInput, MouseMotion},
+        ElementState,
+    },
     prelude::*,
 };
 
@@ -50,6 +54,14 @@ pub fn simulate_mouse_press(app: &mut App, button: MouseButton) {
         button,
         state: ElementState::Pressed,
     });
+
+    app.update();
+}
+
+pub fn simulate_mouse_movement(app: &mut App, delta: Vec2) {
+    let mut events = app.world.get_resource_mut::<Events<MouseMotion>>().unwrap();
+
+    events.send(MouseMotion { delta });
 
     app.update();
 }
