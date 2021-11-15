@@ -21,10 +21,13 @@
 pub mod common;
 
 use approx::assert_relative_eq;
-use bevy::{input::InputPlugin, prelude::*};
+use bevy::{
+    app::Events,
+    input::{mouse::MouseMotion, InputPlugin},
+    prelude::*,
+};
 use heron::PhysicsPlugin;
 
-use common::simulate_mouse_movement;
 use gardum::{
     characters::camera::{CameraPlugin, OrbitRotation, CAMERA_DISTANCE},
     core::{AppState, Authority},
@@ -35,7 +38,8 @@ fn camera_input() {
     let mut app = setup_app();
 
     app.update();
-    simulate_mouse_movement(&mut app, Vec2::ONE);
+    let mut events = app.world.get_resource_mut::<Events<MouseMotion>>().unwrap();
+    events.send(MouseMotion { delta: Vec2::ONE });
     app.update();
 
     let mut query = app.world.query::<&OrbitRotation>();

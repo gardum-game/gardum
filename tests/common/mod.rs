@@ -18,53 +18,7 @@
  *
  */
 
-use bevy::{
-    app::Events,
-    ecs::component::Component,
-    input::{
-        keyboard::KeyboardInput,
-        mouse::{MouseButtonInput, MouseMotion},
-        ElementState,
-    },
-    prelude::*,
-};
-
-pub fn simulate_key_press(app: &mut App, code: KeyCode) {
-    let mut events = app
-        .world
-        .get_resource_mut::<Events<KeyboardInput>>()
-        .unwrap();
-
-    events.send(KeyboardInput {
-        scan_code: 0,
-        key_code: Some(code),
-        state: ElementState::Pressed,
-    });
-
-    app.update();
-}
-
-pub fn simulate_mouse_press(app: &mut App, button: MouseButton) {
-    let mut events = app
-        .world
-        .get_resource_mut::<Events<MouseButtonInput>>()
-        .unwrap();
-
-    events.send(MouseButtonInput {
-        button,
-        state: ElementState::Pressed,
-    });
-
-    app.update();
-}
-
-pub fn simulate_mouse_movement(app: &mut App, delta: Vec2) {
-    let mut events = app.world.get_resource_mut::<Events<MouseMotion>>().unwrap();
-
-    events.send(MouseMotion { delta });
-
-    app.update();
-}
+use bevy::{app::Events, ecs::component::Component, prelude::*};
 
 pub fn events_count<T: Component>(world: &mut World) -> usize {
     let events = world.get_resource::<Events<T>>().unwrap();

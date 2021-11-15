@@ -20,9 +20,14 @@
 
 pub mod common;
 
-use bevy::{ecs::system::CommandQueue, input::InputPlugin, prelude::*};
+use bevy::{
+    app::Events,
+    ecs::system::CommandQueue,
+    input::{keyboard::KeyboardInput, mouse::MouseButtonInput, ElementState, InputPlugin},
+    prelude::*,
+};
 
-use common::{events_count, simulate_key_press, simulate_mouse_press};
+use common::events_count;
 use gardum::{
     characters::{
         ability::{Abilities, AbilityPlugin, AbilitySlot, ActivationEvent},
@@ -35,36 +40,51 @@ use gardum::{
 fn ability_input() {
     let mut app = setup_app();
 
+    // No Inputs
     assert_eq!(
         *app.world.get_resource::<Option<AbilitySlot>>().unwrap(),
         None
     );
 
-    simulate_key_press(&mut app, KeyCode::Q);
-    assert_eq!(
-        *app.world.get_resource::<Option<AbilitySlot>>().unwrap(),
-        Some(AbilitySlot::Ability1)
-    );
+    let inputs = [
+        (KeyCode::Q, AbilitySlot::Ability1),
+        (KeyCode::E, AbilitySlot::Ability2),
+        (KeyCode::LShift, AbilitySlot::Ability3),
+        (KeyCode::R, AbilitySlot::Ultimate),
+    ];
+    for (key, ability_slot) in inputs {
+        let mut events = app
+            .world
+            .get_resource_mut::<Events<KeyboardInput>>()
+            .unwrap();
 
-    simulate_key_press(&mut app, KeyCode::E);
-    assert_eq!(
-        *app.world.get_resource::<Option<AbilitySlot>>().unwrap(),
-        Some(AbilitySlot::Ability2)
-    );
+        events.send(KeyboardInput {
+            scan_code: 0,
+            key_code: Some(key),
+            state: ElementState::Pressed,
+        });
 
-    simulate_key_press(&mut app, KeyCode::LShift);
-    assert_eq!(
-        *app.world.get_resource::<Option<AbilitySlot>>().unwrap(),
-        Some(AbilitySlot::Ability3)
-    );
+        app.update();
 
-    simulate_key_press(&mut app, KeyCode::R);
-    assert_eq!(
-        *app.world.get_resource::<Option<AbilitySlot>>().unwrap(),
-        Some(AbilitySlot::Ultimate)
-    );
+        assert_eq!(
+            *app.world.get_resource::<Option<AbilitySlot>>().unwrap(),
+            Some(ability_slot),
+            "Ability slot shoud correspond to the pressed key"
+        );
+    }
 
-    simulate_mouse_press(&mut app, MouseButton::Left);
+    let mut events = app
+        .world
+        .get_resource_mut::<Events<MouseButtonInput>>()
+        .unwrap();
+
+    events.send(MouseButtonInput {
+        button: MouseButton::Left,
+        state: ElementState::Pressed,
+    });
+
+    app.update();
+
     assert_eq!(
         *app.world.get_resource::<Option<AbilitySlot>>().unwrap(),
         Some(AbilitySlot::BaseAttack)
@@ -93,7 +113,18 @@ fn ability_ignores_unrelated_action() {
         .insert_bundle(DummyCasterBundle::new(ability))
         .id();
 
-    simulate_key_press(&mut app, KeyCode::E);
+    let mut events = app
+        .world
+        .get_resource_mut::<Events<KeyboardInput>>()
+        .unwrap();
+
+    events.send(KeyboardInput {
+        scan_code: 0,
+        key_code: Some(KeyCode::E),
+        state: ElementState::Pressed,
+    });
+
+    app.update();
 
     assert_eq!(
         events_count::<ActivationEvent>(&mut app.world),
@@ -117,7 +148,18 @@ fn ability_activates() {
         .insert_bundle(DummyCasterBundle::new(ability))
         .id();
 
-    simulate_key_press(&mut app, KeyCode::Q);
+    let mut events = app
+        .world
+        .get_resource_mut::<Events<KeyboardInput>>()
+        .unwrap();
+
+    events.send(KeyboardInput {
+        scan_code: 0,
+        key_code: Some(KeyCode::Q),
+        state: ElementState::Pressed,
+    });
+
+    app.update();
 
     assert_eq!(
         events_count::<ActivationEvent>(&mut app.world),
@@ -147,7 +189,18 @@ fn ability_affected_by_cooldown() {
     let mut cooldown = app.world.get_mut::<Cooldown>(ability).unwrap();
     cooldown.reset();
 
-    simulate_key_press(&mut app, KeyCode::Q);
+    let mut events = app
+        .world
+        .get_resource_mut::<Events<KeyboardInput>>()
+        .unwrap();
+
+    events.send(KeyboardInput {
+        scan_code: 0,
+        key_code: Some(KeyCode::Q),
+        state: ElementState::Pressed,
+    });
+
+    app.update();
 
     assert_eq!(
         events_count::<ActivationEvent>(&mut app.world),
