@@ -70,6 +70,9 @@ jobs:
     needs: [Test, Clippy, Format]
     runs-on: ubuntu-latest
     steps:
+      - name: Clone repo
+        uses: actions/checkout@v2
+
       - name: Download code coverage results
         uses: actions/download-artifact@v2
         with:
