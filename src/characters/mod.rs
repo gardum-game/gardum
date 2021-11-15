@@ -21,6 +21,7 @@
 pub mod ability;
 pub mod camera;
 pub mod cooldown;
+pub mod despawn_timer;
 pub mod heroes;
 mod movement;
 pub mod projectile;
@@ -32,6 +33,7 @@ use crate::core::CollisionLayer;
 use ability::AbilityPlugin;
 use camera::CameraPlugin;
 use cooldown::CooldownPlugin;
+use despawn_timer::DespawnTimerPlugin;
 use heroes::HeroesPlugin;
 use movement::MovementPlugin;
 use projectile::ProjectilePlugin;
@@ -43,6 +45,7 @@ impl Plugin for CharactersPlugin {
         app.add_plugin(MovementPlugin)
             .add_plugin(CameraPlugin)
             .add_plugin(CooldownPlugin)
+            .add_plugin(DespawnTimerPlugin)
             .add_plugin(AbilityPlugin)
             .add_plugin(HeroesPlugin)
             .add_plugin(ProjectilePlugin);

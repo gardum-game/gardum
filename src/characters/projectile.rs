@@ -21,6 +21,7 @@
 use bevy::prelude::*;
 use heron::{CollisionEvent, CollisionLayers, CollisionShape, RigidBody, Velocity};
 
+use super::despawn_timer::DespawnTimer;
 use crate::core::{AppState, CollisionLayer};
 
 pub struct ProjectilePlugin;
@@ -65,6 +66,7 @@ pub struct ProjectileBundle {
     pub collision_layers: CollisionLayers,
     pub velocity: Velocity,
     pub projectile: Projectile,
+    pub despawn_timer: DespawnTimer,
 
     #[bundle]
     pub pbr: PbrBundle,
@@ -81,6 +83,7 @@ impl Default for ProjectileBundle {
             ),
             velocity: Velocity::default(),
             projectile: Projectile,
+            despawn_timer: DespawnTimer::from_secs(4),
             pbr: PbrBundle::default(),
         }
     }

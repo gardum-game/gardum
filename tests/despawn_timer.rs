@@ -18,28 +18,41 @@
  *
  */
 
-use bevy::prelude::*;
 use std::time::Duration;
 
+use bevy::prelude::*;
+
 use gardum::{
-    characters::cooldown::{Cooldown, CooldownPlugin},
+    characters::despawn_timer::{DespawnTimer, DespawnTimerPlugin},
     core::AppState,
 };
 
 #[test]
-fn cooldown_ticks() {
+fn despawn_timer_ticks() {
     let mut app = setup_app();
-
-    let mut cooldown = Cooldown::from_secs(1);
-    cooldown.reset(); // Activate cooldown
-    let cooldown_entity = app.world.spawn().insert(cooldown).id();
+    let dummy = app.world.spawn().insert(DespawnTimer::from_secs(1)).id();
 
     app.update();
     app.update();
-    let cooldown = app.world.get::<Cooldown>(cooldown_entity).unwrap();
+
+    let despawn_timer = app.world.get::<DespawnTimer>(dummy).unwrap();
     assert!(
-        cooldown.elapsed() > Duration::default(),
-        "Cooldown should tick"
+        despawn_timer.elapsed() > Duration::default(),
+        "Despawn timer should tick"
+    );
+}
+
+#[test]
+fn despawn_timer_destroys() {
+    let mut app = setup_app();
+    app.world.spawn().insert(DespawnTimer::default()).id();
+
+    app.update();
+
+    assert_eq!(
+        app.world.entities().len(),
+        0,
+        "Despawn timer should destroy its entity after the time expires"
     );
 }
 
@@ -48,6 +61,6 @@ fn setup_app() -> App {
     app_builder
         .add_state(AppState::InGame)
         .add_plugins(MinimalPlugins)
-        .add_plugin(CooldownPlugin);
+        .add_plugin(DespawnTimerPlugin);
     app_builder.app
 }
