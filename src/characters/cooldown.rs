@@ -66,7 +66,7 @@ mod tests {
         assert_eq!(cooldown.duration(), Duration::from_secs(SECONDS));
         assert!(
             cooldown.finished(),
-            "Cooldown should be in finished state after creation"
+            "Cooldown shouldn't tick after creation"
         );
     }
 }

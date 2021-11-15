@@ -64,3 +64,20 @@ fn setup_app() -> App {
         .add_plugin(DespawnTimerPlugin);
     app_builder.app
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn despawn_timer_from_secs() {
+        const SECONDS: u64 = 4;
+
+        let cooldown = DespawnTimer::from_secs(SECONDS);
+        assert_eq!(cooldown.duration(), Duration::from_secs(SECONDS));
+        assert!(
+            !cooldown.finished(),
+            "Despawn timer should tick after creation"
+        );
+    }
+}
