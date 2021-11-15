@@ -11,7 +11,8 @@ on:
       - "**.md"
       - ".gitignore"
 jobs:
-  Test:
+  test:
+    name: Test
     runs-on: ubuntu-latest
     steps:
       - name: Clone repo
@@ -34,7 +35,8 @@ jobs:
           name: code-coverage-report
           path: cobertura.xml
 
-  Clippy:
+  clippy:
+    name: Clippy
     runs-on: ubuntu-latest
     steps:
       - name: Clone repo
@@ -54,7 +56,8 @@ jobs:
           command: clippy
           args: -- -D warnings
 
-  Format:
+  format:
+    name: Format
     runs-on: ubuntu-latest
     steps:
       - name: Clone repo
@@ -66,8 +69,9 @@ jobs:
           command: fmt
           args: -- --check
 
-  Codecov:
-    needs: [Test, Clippy, Format]
+  codecov:
+    name: Upload to Codecov
+    needs: [test, clippy, format]
     runs-on: ubuntu-latest
     steps:
       - name: Clone repo
