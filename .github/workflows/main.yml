@@ -28,8 +28,11 @@ jobs:
       - name: Test
         uses: actions-rs/tarpaulin@v0.1
 
-      - name: Upload to Codecov
-        uses: codecov/codecov-action@v2
+      - name: Upload code coverage results
+        uses: actions/upload-artifact@v2
+        with:
+          name: code-coverage-report
+          path: cobertura.xml
 
   Clippy:
     runs-on: ubuntu-latest
@@ -62,3 +65,15 @@ jobs:
         with:
           command: fmt
           args: -- --check
+
+  Codecov:
+    needs: [Test, Clippy, Format]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download code coverage results
+        uses: actions/download-artifact@v2
+        with:
+          name: code-coverage-report
+
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v2
