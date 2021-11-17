@@ -27,6 +27,7 @@ use bevy::{
     prelude::*,
 };
 use heron::PhysicsPlugin;
+use std::f32::consts::PI;
 
 use gardum::{
     characters::camera::{CameraPlugin, OrbitRotation, CAMERA_DISTANCE},
@@ -38,8 +39,10 @@ fn camera_input() {
     let mut app = setup_app();
 
     app.update();
+
     let mut events = app.world.get_resource_mut::<Events<MouseMotion>>().unwrap();
     events.send(MouseMotion { delta: Vec2::ONE });
+
     app.update();
 
     let mut query = app.world.query::<&OrbitRotation>();
@@ -61,12 +64,14 @@ fn camera_moves_around_player() {
         .id();
 
     app.update();
+
     let mut query = app.world.query_filtered::<Entity, With<OrbitRotation>>();
     let camera = query.iter(&app.world).next().unwrap();
 
-    for _ in 1..4 {
-        app.world.get_mut::<Transform>(player).unwrap().translation += Vec3::ONE * 20.0;
-        app.world.get_mut::<OrbitRotation>(camera).unwrap().0 += Vec2::ONE * 120.0;
+    for i in 1..=4 {
+        app.world.get_mut::<Transform>(player).unwrap().translation =
+            Vec3::ONE * CAMERA_DISTANCE * (i as f32);
+        app.world.get_mut::<OrbitRotation>(camera).unwrap().0 = Vec2::ONE / PI * (i as f32);
 
         app.update();
 

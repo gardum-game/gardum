@@ -92,6 +92,7 @@ fn ability_input() {
 
     // Check if input was cleared
     app.update();
+
     assert_eq!(
         *app.world.get_resource::<Option<AbilitySlot>>().unwrap(),
         None
@@ -101,13 +102,11 @@ fn ability_input() {
 #[test]
 fn ability_ignores_unrelated_action() {
     let mut app = setup_app();
-
     let ability = app
         .world
         .spawn()
         .insert_bundle(DummyAbilityBundle::default())
         .id();
-
     app.world
         .spawn()
         .insert_bundle(DummyCasterBundle::new(ability))
@@ -136,13 +135,11 @@ fn ability_ignores_unrelated_action() {
 #[test]
 fn ability_activates() {
     let mut app = setup_app();
-
     let ability = app
         .world
         .spawn()
         .insert_bundle(DummyAbilityBundle::default())
         .id();
-
     app.world
         .spawn()
         .insert_bundle(DummyCasterBundle::new(ability))
@@ -174,13 +171,11 @@ fn ability_activates() {
 #[test]
 fn ability_affected_by_cooldown() {
     let mut app = setup_app();
-
     let ability = app
         .world
         .spawn()
         .insert_bundle(DummyAbilityBundle::default())
         .id();
-
     app.world
         .spawn()
         .insert_bundle(DummyCasterBundle::new(ability))
@@ -212,13 +207,11 @@ fn ability_affected_by_cooldown() {
 #[test]
 fn ability_destroyed_with_actor() {
     let mut app = setup_app();
-
     let ability = app
         .world
         .spawn()
         .insert_bundle(DummyAbilityBundle::default())
         .id();
-
     let caster = app
         .world
         .spawn()
@@ -232,6 +225,7 @@ fn ability_destroyed_with_actor() {
     let mut commands = Commands::new(&mut queue, &app.world);
     commands.entity(caster).despawn_recursive();
     queue.apply(&mut app.world);
+
     assert_eq!(
         app.world.entities().len(),
         0,
