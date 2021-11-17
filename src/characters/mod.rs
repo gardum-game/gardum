@@ -23,7 +23,7 @@ pub mod camera;
 pub mod cooldown;
 pub mod despawn_timer;
 pub mod heroes;
-mod movement;
+pub mod movement;
 pub mod projectile;
 
 use bevy::prelude::*;

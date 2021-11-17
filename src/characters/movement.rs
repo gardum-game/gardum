@@ -99,13 +99,13 @@ fn is_on_floor(
         .is_some()
 }
 
-#[derive(Default)]
-struct MovementInput {
-    forward: bool,
-    backward: bool,
-    left: bool,
-    right: bool,
-    jumping: bool,
+#[derive(Default, Debug, PartialEq)]
+pub struct MovementInput {
+    pub forward: bool,
+    pub backward: bool,
+    pub left: bool,
+    pub right: bool,
+    pub jumping: bool,
 }
 
 impl MovementInput {
