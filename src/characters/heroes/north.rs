@@ -34,19 +34,19 @@ use crate::{
 
 const PROJECTILE_SPEED: f32 = 20.0;
 
-pub struct DummyPlugin;
+pub struct NorthPlugin;
 
-impl Plugin for DummyPlugin {
+impl Plugin for NorthPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.add_system_set(
             SystemSet::on_update(AppState::InGame)
-                .with_system(spawn_dummy_system.system())
+                .with_system(spawn_north_system.system())
                 .with_system(frost_bolt_system.system()),
         );
     }
 }
 
-fn spawn_dummy_system(
+fn spawn_north_system(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
@@ -54,7 +54,7 @@ fn spawn_dummy_system(
 ) {
     for event in spawn_events
         .iter()
-        .filter(|event| event.hero == Hero::Dummy)
+        .filter(|event| event.hero == Hero::North)
     {
         let abilities = Abilities(vec![commands.spawn_bundle(FrostBoltBundle::default()).id()]);
         let mut entity_commands = commands.spawn_bundle(HeroBundle {

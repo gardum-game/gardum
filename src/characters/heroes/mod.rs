@@ -18,18 +18,18 @@
  *
  */
 
-mod dummy;
+mod north;
 
 use bevy::prelude::*;
 
 use super::{ability::Abilities, CharacterBundle};
-use dummy::DummyPlugin;
+use north::NorthPlugin;
 
 pub struct HeroesPlugin;
 
 impl Plugin for HeroesPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.add_event::<HeroSpawnEvent>().add_plugin(DummyPlugin);
+        app.add_event::<HeroSpawnEvent>().add_plugin(NorthPlugin);
     }
 }
 
@@ -44,7 +44,7 @@ struct HeroBundle {
 
 #[derive(Clone, Copy, PartialEq)]
 pub enum Hero {
-    Dummy,
+    North,
 }
 
 pub struct HeroSpawnEvent {

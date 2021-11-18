@@ -70,7 +70,7 @@ fn create_world_system(
     });
 
     hero_spawn_events.send(HeroSpawnEvent {
-        hero: Hero::Dummy,
+        hero: Hero::North,
         transform: Transform::from_translation(Vec3::new(5.0, 15.0, 5.0)),
         authority: true,
     })
