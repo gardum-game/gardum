@@ -21,7 +21,7 @@
 use bevy::{prelude::*, render::camera::Camera};
 use heron::{CollisionShape, Velocity};
 
-use super::{Hero, HeroBundle, HeroSpawnEvent};
+use super::{Hero, HeroBundle};
 use crate::{
     characters::{
         ability::{Abilities, AbilitySlot, ActivationEvent},
@@ -29,7 +29,7 @@ use crate::{
         projectile::ProjectileBundle,
         CharacterBundle,
     },
-    core::{AppState, Authority},
+    core::AppState,
 };
 
 const PROJECTILE_SPEED: f32 = 20.0;
@@ -39,44 +39,8 @@ pub struct NorthPlugin;
 impl Plugin for NorthPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.add_system_set(
-            SystemSet::on_update(AppState::InGame)
-                .with_system(spawn_north_system.system())
-                .with_system(frost_bolt_system.system()),
+            SystemSet::on_update(AppState::InGame).with_system(frost_bolt_system.system()),
         );
-    }
-}
-
-fn spawn_north_system(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-    mut spawn_events: EventReader<HeroSpawnEvent>,
-) {
-    for event in spawn_events
-        .iter()
-        .filter(|event| event.hero == Hero::North)
-    {
-        let abilities = Abilities(vec![commands.spawn_bundle(FrostBoltBundle::default()).id()]);
-        let mut entity_commands = commands.spawn_bundle(HeroBundle {
-            abilities,
-            hero: event.hero,
-            character: CharacterBundle {
-                pbr: PbrBundle {
-                    mesh: meshes.add(Mesh::from(shape::Capsule::default())),
-                    material: materials.add(Color::rgb(0.3, 0.3, 0.3).into()),
-                    transform: event.transform,
-                    ..Default::default()
-                },
-                shape: CollisionShape::Capsule {
-                    half_segment: 0.5,
-                    radius: 0.5,
-                },
-                ..Default::default()
-            },
-        });
-        if event.authority {
-            entity_commands.insert(Authority);
-        }
     }
 }
 
@@ -139,3 +103,32 @@ impl Default for FrostBoltBundle {
 }
 
 struct FrostBoltAbility;
+
+impl HeroBundle {
+    pub fn north(
+        commands: &mut Commands,
+        meshes: &mut Assets<Mesh>,
+        materials: &mut Assets<StandardMaterial>,
+        transform: Transform,
+    ) -> Self {
+        let abilities = Abilities(vec![commands.spawn_bundle(FrostBoltBundle::default()).id()]);
+
+        HeroBundle {
+            abilities,
+            hero: Hero::North,
+            character: CharacterBundle {
+                pbr: PbrBundle {
+                    mesh: meshes.add(Mesh::from(shape::Capsule::default())),
+                    material: materials.add(Color::rgb(0.3, 0.3, 0.3).into()),
+                    transform,
+                    ..Default::default()
+                },
+                shape: CollisionShape::Capsule {
+                    half_segment: 0.5,
+                    radius: 0.5,
+                },
+                ..Default::default()
+            },
+        }
+    }
+}

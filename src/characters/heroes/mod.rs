@@ -23,13 +23,38 @@ mod north;
 use bevy::prelude::*;
 
 use super::{ability::Abilities, CharacterBundle};
+use crate::core::{AppState, Authority};
 use north::NorthPlugin;
 
 pub struct HeroesPlugin;
 
 impl Plugin for HeroesPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.add_event::<HeroSpawnEvent>().add_plugin(NorthPlugin);
+        app.add_event::<HeroSpawnEvent>()
+            .add_plugin(NorthPlugin)
+            .add_system_set(
+                SystemSet::on_update(AppState::InGame).with_system(spawn_hero_system.system()),
+            );
+    }
+}
+
+fn spawn_hero_system(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut spawn_events: EventReader<HeroSpawnEvent>,
+) {
+    for event in spawn_events.iter() {
+        let hero_bundle = match event.hero {
+            Hero::North => {
+                HeroBundle::north(&mut commands, &mut meshes, &mut materials, event.transform)
+            }
+        };
+
+        let mut entity_commands = commands.spawn_bundle(hero_bundle);
+        if event.authority {
+            entity_commands.insert(Authority);
+        }
     }
 }
 
