@@ -28,6 +28,8 @@ jobs:
 
       - name: Test
         uses: actions-rs/tarpaulin@v0.1
+        with:
+          args: --ignore-tests 
 
       - name: Upload code coverage results
         uses: actions/upload-artifact@v2
