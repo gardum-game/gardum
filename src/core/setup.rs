@@ -45,14 +45,16 @@ fn start_session_system(opts: Res<Opts>, mut app_state: ResMut<State<AppState>>)
 
 fn create_world_system(
     mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
     mut hero_spawn_events: EventWriter<HeroSpawnEvent>,
+    #[cfg(not(feature = "headless"))] mut meshes: ResMut<Assets<Mesh>>,
+    #[cfg(not(feature = "headless"))] mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     // Plane
     commands
         .spawn_bundle(PbrBundle {
+            #[cfg(not(feature = "headless"))]
             mesh: meshes.add(Mesh::from(shape::Plane { size: 20.0 })),
+            #[cfg(not(feature = "headless"))]
             material: materials.add(Color::rgb(1.0, 0.9, 0.9).into()),
             ..Default::default()
         })

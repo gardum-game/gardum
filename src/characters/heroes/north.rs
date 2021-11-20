@@ -46,9 +46,9 @@ impl Plugin for NorthPlugin {
 
 fn frost_bolt_system(
     mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
     mut events: EventReader<ActivationEvent>,
+    #[cfg(not(feature = "headless"))] mut meshes: ResMut<Assets<Mesh>>,
+    #[cfg(not(feature = "headless"))] mut materials: ResMut<Assets<StandardMaterial>>,
     frost_bolt_query: Query<(), With<FrostBoltAbility>>,
     caster_query: Query<&Transform>,
     camera_query: Query<&Transform, With<Camera>>,
@@ -69,7 +69,9 @@ fn frost_bolt_system(
                 camera_transform.rotation * -Vec3::Z * PROJECTILE_SPEED,
             ),
             pbr: PbrBundle {
+                #[cfg(not(feature = "headless"))]
                 mesh: meshes.add(Mesh::from(shape::Capsule::default())),
+                #[cfg(not(feature = "headless"))]
                 material: materials.add(Color::rgb(0.3, 0.3, 0.3).into()),
                 transform: Transform {
                     translation: caster_transform.translation
@@ -107,9 +109,9 @@ struct FrostBoltAbility;
 impl HeroBundle {
     pub fn north(
         commands: &mut Commands,
-        meshes: &mut Assets<Mesh>,
-        materials: &mut Assets<StandardMaterial>,
         transform: Transform,
+        #[cfg(not(feature = "headless"))] meshes: &mut Assets<Mesh>,
+        #[cfg(not(feature = "headless"))] materials: &mut Assets<StandardMaterial>,
     ) -> Self {
         let abilities = Abilities(vec![commands.spawn_bundle(FrostBoltBundle::default()).id()]);
 
@@ -118,7 +120,9 @@ impl HeroBundle {
             hero: Hero::North,
             character: CharacterBundle {
                 pbr: PbrBundle {
+                    #[cfg(not(feature = "headless"))]
                     mesh: meshes.add(Mesh::from(shape::Capsule::default())),
+                    #[cfg(not(feature = "headless"))]
                     material: materials.add(Color::rgb(0.3, 0.3, 0.3).into()),
                     transform,
                     ..Default::default()

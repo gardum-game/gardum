@@ -1354,6 +1354,7 @@ dependencies = [
  "bevy_egui",
  "clap",
  "derive_more",
+ "gardum",
  "heron",
 ]
 

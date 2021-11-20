@@ -40,15 +40,20 @@ impl Plugin for HeroesPlugin {
 
 fn spawn_hero_system(
     mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
     mut spawn_events: EventReader<HeroSpawnEvent>,
+    #[cfg(not(feature = "headless"))] mut meshes: ResMut<Assets<Mesh>>,
+    #[cfg(not(feature = "headless"))] mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     for event in spawn_events.iter() {
         let hero_bundle = match event.hero {
-            Hero::North => {
-                HeroBundle::north(&mut commands, &mut meshes, &mut materials, event.transform)
-            }
+            Hero::North => HeroBundle::north(
+                &mut commands,
+                event.transform,
+                #[cfg(not(feature = "headless"))]
+                &mut meshes,
+                #[cfg(not(feature = "headless"))]
+                &mut materials,
+            ),
         };
 
         let mut entity_commands = commands.spawn_bundle(hero_bundle);

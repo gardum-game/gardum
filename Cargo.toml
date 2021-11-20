@@ -13,3 +13,7 @@ derive_more  = { version = "0.99.16", features = ["deref", "deref_mut"] }
 
 [dev-dependencies]
 approx = "0.5.0"
+gardum = { path = ".", features = ["headless"] }
+
+[features]
+headless = []
