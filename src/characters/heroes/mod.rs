@@ -18,7 +18,7 @@
  *
  */
 
-mod north;
+pub mod north;
 
 use bevy::prelude::*;
 use strum::EnumIter;

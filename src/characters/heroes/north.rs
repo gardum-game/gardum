@@ -33,6 +33,7 @@ use crate::{
 };
 
 const PROJECTILE_SPEED: f32 = 20.0;
+pub const FROST_BOLT_SPAWN_OFFSET: f32 = 4.0;
 
 pub struct NorthPlugin;
 
@@ -75,7 +76,7 @@ fn frost_bolt_system(
                 material: materials.add(Color::rgb(0.3, 0.3, 0.3).into()),
                 transform: Transform {
                     translation: caster_transform.translation
-                        + camera_transform.rotation * -Vec3::Z * 4.0,
+                        + camera_transform.rotation * -Vec3::Z * FROST_BOLT_SPAWN_OFFSET,
                     rotation: camera_transform.rotation
                         * Quat::from_rotation_x(90.0_f32.to_radians()),
                     scale: caster_transform.scale,
@@ -88,10 +89,10 @@ fn frost_bolt_system(
 }
 
 #[derive(Bundle)]
-struct FrostBoltBundle {
-    kind: FrostBoltAbility,
-    slot: AbilitySlot,
-    cooldown: Cooldown,
+pub struct FrostBoltBundle {
+    pub kind: FrostBoltAbility,
+    pub slot: AbilitySlot,
+    pub cooldown: Cooldown,
 }
 
 impl Default for FrostBoltBundle {
@@ -104,7 +105,7 @@ impl Default for FrostBoltBundle {
     }
 }
 
-struct FrostBoltAbility;
+pub struct FrostBoltAbility;
 
 impl HeroBundle {
     pub fn north(
