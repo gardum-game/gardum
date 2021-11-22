@@ -21,6 +21,7 @@
 mod north;
 
 use bevy::prelude::*;
+use strum::EnumIter;
 
 use super::{ability::Abilities, CharacterBundle};
 use crate::core::{AppState, Authority};
@@ -66,13 +67,13 @@ fn spawn_hero_system(
 #[derive(Bundle)]
 struct HeroBundle {
     abilities: Abilities,
-    hero: Hero,
+    kind: Hero,
 
     #[bundle]
     character: CharacterBundle,
 }
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, EnumIter, Debug)]
 pub enum Hero {
     North,
 }

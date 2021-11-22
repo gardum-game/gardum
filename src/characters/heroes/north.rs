@@ -117,7 +117,7 @@ impl HeroBundle {
 
         HeroBundle {
             abilities,
-            hero: Hero::North,
+            kind: Hero::North,
             character: CharacterBundle {
                 pbr: PbrBundle {
                     #[cfg(not(feature = "headless"))]
