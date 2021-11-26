@@ -18,10 +18,9 @@
  *
  */
 
-use std::time::Duration;
-
 use bevy::prelude::*;
 use derive_more::{Deref, DerefMut};
+use std::time::Duration;
 
 use crate::core::AppState;
 
