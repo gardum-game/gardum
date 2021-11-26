@@ -22,6 +22,7 @@ pub mod ability;
 pub mod camera;
 pub mod cooldown;
 pub mod despawn_timer;
+pub mod health;
 pub mod heroes;
 pub mod movement;
 pub mod projectile;
@@ -34,9 +35,12 @@ use ability::AbilityPlugin;
 use camera::CameraPlugin;
 use cooldown::CooldownPlugin;
 use despawn_timer::DespawnTimerPlugin;
+use health::HealthPlugin;
 use heroes::HeroesPlugin;
 use movement::MovementPlugin;
 use projectile::ProjectilePlugin;
+
+use self::health::Health;
 
 pub struct CharactersPlugin;
 
@@ -45,6 +49,7 @@ impl Plugin for CharactersPlugin {
         app.add_plugin(MovementPlugin)
             .add_plugin(CameraPlugin)
             .add_plugin(CooldownPlugin)
+            .add_plugin(HealthPlugin)
             .add_plugin(DespawnTimerPlugin)
             .add_plugin(AbilityPlugin)
             .add_plugin(HeroesPlugin)
@@ -54,6 +59,7 @@ impl Plugin for CharactersPlugin {
 
 #[derive(Bundle)]
 pub struct CharacterBundle {
+    health: Health,
     rigid_body: RigidBody,
     shape: CollisionShape,
     collision_layers: CollisionLayers,
@@ -66,6 +72,7 @@ pub struct CharacterBundle {
 impl Default for CharacterBundle {
     fn default() -> Self {
         Self {
+            health: Health::default(),
             rigid_body: RigidBody::KinematicVelocityBased,
             shape: CollisionShape::default(),
             collision_layers: CollisionLayers::all::<CollisionLayer>()
