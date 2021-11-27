@@ -28,40 +28,78 @@ use bevy::{
     render::camera::Camera,
 };
 use heron::{CollisionShape, PhysicsPlugin, RigidBody, Velocity};
-use test_case::test_case;
 
 use gardum::{
     characters::movement::{MovementInput, MovementPlugin},
     core::{AppState, Authority},
 };
 
-#[test_case(KeyCode::W, MovementInput { forward: true, ..Default::default() }; "Forward")]
-#[test_case(KeyCode::S, MovementInput { backward: true, ..Default::default() }; "Backward")]
-#[test_case(KeyCode::A, MovementInput { left: true, ..Default::default() }; "Left")]
-#[test_case(KeyCode::D, MovementInput { right: true, ..Default::default() }; "Right")]
-fn movement_input(key: KeyCode, expected_input: MovementInput) {
+#[test]
+fn movement_input() {
     let mut app = setup_app();
     app.update();
 
-    let mut events = app
-        .world
-        .get_resource_mut::<Events<KeyboardInput>>()
-        .unwrap();
+    let test_data = [
+        (
+            KeyCode::W,
+            MovementInput {
+                forward: true,
+                ..Default::default()
+            },
+        ),
+        (
+            KeyCode::S,
+            MovementInput {
+                backward: true,
+                ..Default::default()
+            },
+        ),
+        (
+            KeyCode::A,
+            MovementInput {
+                left: true,
+                ..Default::default()
+            },
+        ),
+        (
+            KeyCode::D,
+            MovementInput {
+                right: true,
+                ..Default::default()
+            },
+        ),
+    ];
 
-    events.send(KeyboardInput {
-        scan_code: 0,
-        key_code: Some(key),
-        state: ElementState::Pressed,
-    });
+    for (i, (key, expected_input)) in test_data.iter().enumerate() {
+        let mut events = app
+            .world
+            .get_resource_mut::<Events<KeyboardInput>>()
+            .unwrap();
 
-    app.update();
+        if i != 0 {
+            // Previous key should be released manually
+            events.send(KeyboardInput {
+                scan_code: 0,
+                key_code: Some(test_data[i - 1].0),
+                state: ElementState::Released,
+            });
+        }
 
-    assert_eq!(
-        *app.world.get_resource::<MovementInput>().unwrap(),
-        expected_input,
-        "Movement input should correspond to the pressed key: {:?}",
-        key
-    );
+        events.send(KeyboardInput {
+            scan_code: 0,
+            key_code: Some(*key),
+            state: ElementState::Pressed,
+        });
+
+        app.update();
+
+        assert_eq!(
+            app.world.get_resource::<MovementInput>().unwrap(),
+            expected_input,
+            "Movement input should correspond to the pressed key: {:?}",
+            key
+        );
+    }
 }
 
 #[test]
@@ -153,11 +191,8 @@ fn player_standing_on_platform() {
     );
 }
 
-#[test_case(KeyCode::W, -Vec3::Z; "Forward")]
-#[test_case(KeyCode::S, Vec3::Z; "Backward")]
-#[test_case(KeyCode::A, -Vec3::X; "Left")]
-#[test_case(KeyCode::D, Vec3::X; "Right")]
-fn player_moves(key: KeyCode, expected_direction: Vec3) {
+#[test]
+fn player_moves() {
     let mut app = setup_app();
     app.world
         .spawn()
@@ -170,26 +205,54 @@ fn player_moves(key: KeyCode, expected_direction: Vec3) {
 
     app.update();
 
-    let mut events = app
-        .world
-        .get_resource_mut::<Events<KeyboardInput>>()
-        .unwrap();
+    let test_data = [
+        (KeyCode::W, -Vec3::Z),
+        (KeyCode::S, Vec3::Z),
+        (KeyCode::A, -Vec3::X),
+        (KeyCode::D, Vec3::X),
+    ];
 
-    events.send(KeyboardInput {
-        scan_code: 0,
-        key_code: Some(key),
-        state: ElementState::Pressed,
-    });
+    for (i, (key, expected_direction)) in test_data.iter().enumerate() {
+        let mut events = app
+            .world
+            .get_resource_mut::<Events<KeyboardInput>>()
+            .unwrap();
 
-    app.update();
+        if i != 0 {
+            // Previous key should be released manually
+            events.send(KeyboardInput {
+                scan_code: 0,
+                key_code: Some(test_data[i - 1].0),
+                state: ElementState::Released,
+            });
+        }
 
-    let mut direction = app.world.get::<Transform>(player).unwrap().translation
-        - DummyPlayerBundle::default().transform.translation;
-    direction.y = 0.0; // Remove gravity
-    direction = direction.normalize();
+        events.send(KeyboardInput {
+            scan_code: 0,
+            key_code: Some(*key),
+            state: ElementState::Pressed,
+        });
 
-    assert_relative_eq!(direction.x, expected_direction.x);
-    assert_relative_eq!(direction.y, expected_direction.y);
+        let previous_translation = app
+            .world
+            .get::<Transform>(player)
+            .unwrap()
+            .translation
+            .clone();
+
+        // Clean previous velocity to avoid interpolation
+        app.world.get_mut::<Velocity>(player).unwrap().linear = Vec3::ZERO;
+
+        app.update();
+
+        let mut direction =
+            app.world.get::<Transform>(player).unwrap().translation - previous_translation;
+        direction.y = 0.0; // Remove gravity
+        direction = direction.normalize();
+
+        assert_relative_eq!(direction.x, expected_direction.x);
+        assert_relative_eq!(direction.y, expected_direction.y);
+    }
 }
 
 fn setup_app() -> App {

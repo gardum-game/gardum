@@ -19,29 +19,16 @@
  */
 
 use bevy::{app::Events, prelude::*};
-use test_case::test_case;
 
 use gardum::{
     characters::health::{DamageEvent, HealEvent, Health, HealthPlugin},
     core::{AppState, Damage, Healing, PlayerBundle},
 };
 
-const MAX_HEALTH: usize = 100;
-
-#[test_case(90, 5, 5, 95; "With underflow")]
-#[test_case(90, 20, 10, 100; "With overflow")]
-#[test_case(90, 10, 10, 100; "To full health")]
-#[test_case(0, 20, 0, 0; "Dead immune to healing")]
-fn healing(current_health: usize, heal: usize, expected_healing: usize, expected_health: usize) {
+#[test]
+fn healing() {
     let mut app = setup_app();
-    let target = app
-        .world
-        .spawn()
-        .insert(Health {
-            current: current_health,
-            max: MAX_HEALTH,
-        })
-        .id();
+    let target = app.world.spawn().insert(Health::default()).id();
     app.world
         .spawn()
         .insert_bundle(PlayerBundle::default())
@@ -56,36 +43,44 @@ fn healing(current_health: usize, heal: usize, expected_healing: usize, expected
         .push_children(&[instigator])
         .id();
 
-    let mut events = app.world.get_resource_mut::<Events<HealEvent>>().unwrap();
-    events.send(HealEvent {
-        instigator,
-        target,
-        heal,
-    });
+    for (initial_health, heal, expected_healing, expected_health) in [
+        (90, 5, 5, 95),
+        (90, 20, 10, Health::default().max),
+        (90, 10, 10, Health::default().max),
+        (0, 20, 0, 0),
+    ] {
+        app.world.get_mut::<Health>(target).unwrap().current = initial_health;
+        app.world.get_mut::<Healing>(instigator_player).unwrap().0 = 0;
 
-    app.update();
+        let mut events = app.world.get_resource_mut::<Events<HealEvent>>().unwrap();
+        events.send(HealEvent {
+            instigator,
+            target,
+            heal,
+        });
 
-    let health = app.world.get::<Health>(target).unwrap();
-    assert_eq!(health.current, expected_health);
+        app.update();
 
-    let healing = app.world.get::<Healing>(instigator_player).unwrap();
-    assert_eq!(healing.0, expected_healing);
+        let health = app.world.get::<Health>(target).unwrap();
+        assert_eq!(
+            health.current, expected_health,
+            "Healing from {} for {} points should set health to {}",
+            initial_health, heal, expected_health
+        );
+
+        let healing = app.world.get::<Healing>(instigator_player).unwrap();
+        assert_eq!(
+            healing.0, expected_healing,
+            "Healing from {} for {} points should set amount of healing to {}",
+            initial_health, heal, expected_healing
+        );
+    }
 }
 
-#[test_case(90, 5, 5, 85; "With underflow")]
-#[test_case(90, 95, 90, 0; "With overflow")]
-#[test_case(90, 90, 90, 0; "To death")]
-#[test_case(0, 20, 0, 0; "Dead immune to damage")]
-fn damaging(current_health: usize, damage: usize, expected_damage: usize, expected_health: usize) {
+#[test]
+fn damaging() {
     let mut app = setup_app();
-    let target = app
-        .world
-        .spawn()
-        .insert(Health {
-            current: current_health,
-            max: MAX_HEALTH,
-        })
-        .id();
+    let target = app.world.spawn().insert(Health::default()).id();
     app.world
         .spawn()
         .insert_bundle(PlayerBundle::default())
@@ -100,36 +95,46 @@ fn damaging(current_health: usize, damage: usize, expected_damage: usize, expect
         .push_children(&[instigator])
         .id();
 
-    let mut events = app.world.get_resource_mut::<Events<DamageEvent>>().unwrap();
-    events.send(DamageEvent {
-        instigator,
-        target,
-        damage,
-    });
+    for (initial_health, damage, expected_damage, expected_health) in [
+        (90, 5, 5, 85),
+        (90, 95, 90, 0),
+        (90, 90, 90, 0),
+        (0, 20, 0, 0),
+    ] {
+        app.world.get_mut::<Health>(target).unwrap().current = initial_health;
+        app.world.get_mut::<Damage>(instigator_player).unwrap().0 = 0;
 
-    app.update();
+        let mut events = app.world.get_resource_mut::<Events<DamageEvent>>().unwrap();
+        events.send(DamageEvent {
+            instigator,
+            target,
+            damage,
+        });
 
-    let health = app.world.get::<Health>(target).unwrap();
-    assert_eq!(health.current, expected_health);
+        app.update();
 
-    let damage = app.world.get::<Damage>(instigator_player).unwrap();
-    assert_eq!(damage.0, expected_damage);
+        let health = app.world.get::<Health>(target).unwrap();
+        assert_eq!(
+            health.current, expected_health,
+            "Damaging from {} for {} points should set health to {}",
+            initial_health, damage, expected_health
+        );
+
+        let damaging = app.world.get::<Damage>(instigator_player).unwrap();
+        assert_eq!(
+            damaging.0, expected_damage,
+            "Damaging from {} for {} points should set amount of damage to {}",
+            initial_health, damage, expected_damage
+        );
+    }
 }
 
 #[test]
 fn self_damaging() {
-    const CURRENT_HEALTH: usize = MAX_HEALTH / 2;
-    const DAMAGE: usize = CURRENT_HEALTH / 2;
+    let damage: usize = Health::default().max / 2;
 
     let mut app = setup_app();
-    let target = app
-        .world
-        .spawn()
-        .insert(Health {
-            current: CURRENT_HEALTH,
-            max: MAX_HEALTH,
-        })
-        .id();
+    let target = app.world.spawn().insert(Health::default()).id();
     let target_player = app
         .world
         .spawn()
@@ -141,7 +146,7 @@ fn self_damaging() {
     events.send(DamageEvent {
         instigator: target,
         target,
-        damage: DAMAGE,
+        damage,
     });
 
     app.update();
@@ -149,7 +154,7 @@ fn self_damaging() {
     let health = app.world.get::<Health>(target).unwrap();
     assert_eq!(
         health.current,
-        CURRENT_HEALTH - DAMAGE,
+        Health::default().current - damage,
         "Health should decrease by the amount of damage"
     );
 
