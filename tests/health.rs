@@ -22,7 +22,7 @@ use bevy::{app::Events, prelude::*};
 
 use gardum::{
     characters::health::{DamageEvent, HealEvent, Health, HealthPlugin},
-    core::{AppState, Damage, Healing, PlayerBundle},
+    core::{AppState, Damage, Deaths, Healing, Kills, PlayerBundle},
 };
 
 #[test]
@@ -81,7 +81,8 @@ fn healing() {
 fn damaging() {
     let mut app = setup_app();
     let target = app.world.spawn().insert(Health::default()).id();
-    app.world
+    let target_player = app
+        .world
         .spawn()
         .insert_bundle(PlayerBundle::default())
         .push_children(&[target])
@@ -126,6 +127,24 @@ fn damaging() {
             "Damaging from {} for {} points should set amount of damage to {}",
             initial_health, damage, expected_damage
         );
+
+        if health.current == 0 {
+            let kills = app.world.get::<Kills>(instigator_player).unwrap();
+            assert_eq!(
+                kills.0, 1,
+                "The instigator gets a kill if the target's health drops to 0"
+            );
+
+            let deaths = app.world.get::<Deaths>(target_player).unwrap();
+            assert_eq!(
+                deaths.0, 1,
+                "The target gets a death if its health drops to 0"
+            );
+
+            // Reset for the next iteration
+            app.world.get_mut::<Kills>(instigator_player).unwrap().0 = 0;
+            app.world.get_mut::<Deaths>(target_player).unwrap().0 = 0;
+        }
     }
 }
 
