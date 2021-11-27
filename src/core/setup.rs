@@ -24,6 +24,8 @@ use heron::{CollisionShape, RigidBody};
 use crate::characters::heroes::{Hero, HeroSpawnEvent};
 use crate::core::{cli::Opts, AppState};
 
+use super::{Authority, PlayerBundle};
+
 pub struct SetupPlugin;
 
 impl Plugin for SetupPlugin {
@@ -71,10 +73,14 @@ fn create_world_system(
         ..Default::default()
     });
 
+    let player = commands
+        .spawn_bundle(PlayerBundle::default())
+        .insert(Authority)
+        .id();
     hero_spawn_events.send(HeroSpawnEvent {
+        player,
         hero: Hero::North,
         transform: Transform::from_translation(Vec3::new(5.0, 15.0, 5.0)),
-        authority: true,
     })
 }
 

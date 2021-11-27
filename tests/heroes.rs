@@ -33,6 +33,7 @@ use strum::IntoEnumIterator;
 #[test]
 fn hero_spawns_with_authority() {
     let mut app = setup_app();
+    let player = app.world.spawn().insert(Authority).id();
 
     let mut events = app
         .world
@@ -40,9 +41,9 @@ fn hero_spawns_with_authority() {
         .unwrap();
 
     events.send(HeroSpawnEvent {
+        player,
         hero: Hero::iter().next().unwrap(),
         transform: Transform::default(),
-        authority: true,
     });
 
     app.update();
@@ -59,6 +60,7 @@ fn hero_spawns_with_authority() {
 #[test]
 fn hero_spawns_without_authority() {
     let mut app = setup_app();
+    let player = app.world.spawn().id();
 
     let mut events = app
         .world
@@ -66,9 +68,9 @@ fn hero_spawns_without_authority() {
         .unwrap();
 
     events.send(HeroSpawnEvent {
+        player,
         hero: Hero::iter().next().unwrap(),
         transform: Transform::default(),
-        authority: false,
     });
 
     app.update();
@@ -85,6 +87,7 @@ fn hero_spawns_without_authority() {
 #[test]
 fn hero_spawns_at_position() {
     let mut app = setup_app();
+    let player = app.world.spawn().id();
 
     for expected_translation in [Vec3::ZERO, Vec3::ONE] {
         let mut events = app
@@ -93,9 +96,9 @@ fn hero_spawns_at_position() {
             .unwrap();
 
         events.send(HeroSpawnEvent {
+            player,
             hero: Hero::iter().next().unwrap(),
             transform: Transform::from_translation(expected_translation),
-            authority: false,
         });
 
         app.update();
@@ -123,6 +126,7 @@ fn hero_spawns_at_position() {
 #[test]
 fn hero_spawns_with_kind() {
     let mut app = setup_app();
+    let player = app.world.spawn().id();
 
     for expected_kind in Hero::iter() {
         let mut events = app
@@ -131,9 +135,9 @@ fn hero_spawns_with_kind() {
             .unwrap();
 
         events.send(HeroSpawnEvent {
+            player,
             hero: expected_kind,
             transform: Transform::default(),
-            authority: false,
         });
 
         app.update();

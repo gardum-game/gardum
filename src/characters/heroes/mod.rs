@@ -42,6 +42,7 @@ impl Plugin for HeroesPlugin {
 fn spawn_hero_system(
     mut commands: Commands,
     mut spawn_events: EventReader<HeroSpawnEvent>,
+    authority_query: Query<(), With<Authority>>,
     #[cfg(not(feature = "headless"))] mut meshes: ResMut<Assets<Mesh>>,
     #[cfg(not(feature = "headless"))] mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
@@ -58,7 +59,7 @@ fn spawn_hero_system(
         };
 
         let mut entity_commands = commands.spawn_bundle(hero_bundle);
-        if event.authority {
+        if authority_query.get(event.player).is_ok() {
             entity_commands.insert(Authority);
         }
     }
@@ -79,7 +80,7 @@ pub enum Hero {
 }
 
 pub struct HeroSpawnEvent {
+    pub player: Entity,
     pub hero: Hero,
     pub transform: Transform,
-    pub authority: bool,
 }
