@@ -150,7 +150,7 @@ fn damaging() {
 
 #[test]
 fn self_damaging() {
-    let damage: usize = Health::default().max / 2;
+    let damage: usize = Health::default().max;
 
     let mut app = setup_app();
     let target = app.world.spawn().insert(Health::default()).id();
@@ -182,6 +182,12 @@ fn self_damaging() {
         healing.0, 0,
         "Amount of damage shouldn't increase for self-damage"
     );
+
+    let kills = app.world.get::<Kills>(target_player).unwrap();
+    assert_eq!(kills.0, 0, "Kills shouldn't counted for self-damage");
+
+    let deaths = app.world.get::<Deaths>(target_player).unwrap();
+    assert_eq!(deaths.0, 1, "Deaths should counted for self-damage");
 }
 
 fn setup_app() -> App {

@@ -68,22 +68,21 @@ fn damage_system(
         let (target_player, mut health) = target_query.get_mut(event.target).unwrap();
         let delta = health.current.min(event.damage);
         health.current -= delta;
-
-        if event.target == event.instigator {
-            continue;
-        }
-
-        let instigator_player = instigator_query.get(event.instigator).unwrap();
-        let (mut damage, mut kills) = instigator_player_query
-            .get_mut(instigator_player.0)
-            .unwrap();
-        damage.0 += delta;
-
         if health.current == 0 {
-            kills.0 += 1;
-
             let mut deaths = target_player_query.get_mut(target_player.0).unwrap();
             deaths.0 += 1;
+        }
+
+        if event.target != event.instigator {
+            let instigator_player = instigator_query.get(event.instigator).unwrap();
+            let (mut damage, mut kills) = instigator_player_query
+                .get_mut(instigator_player.0)
+                .unwrap();
+            damage.0 += delta;
+
+            if health.current == 0 {
+                kills.0 += 1;
+            }
         }
     }
 }
