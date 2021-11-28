@@ -22,7 +22,6 @@ pub mod common;
 
 use bevy::{
     app::Events,
-    ecs::system::CommandQueue,
     input::{keyboard::KeyboardInput, mouse::MouseButtonInput, ElementState, InputPlugin},
     prelude::*,
 };
@@ -201,35 +200,6 @@ fn ability_affected_by_cooldown() {
         events_count::<ActivationEvent>(&mut app.world),
         0,
         "Ability shouldn't be activated because of cooldown"
-    );
-}
-
-#[test]
-fn ability_destroyed_with_actor() {
-    let mut app = setup_app();
-    let ability = app
-        .world
-        .spawn()
-        .insert_bundle(DummyAbilityBundle::default())
-        .id();
-    let caster = app
-        .world
-        .spawn()
-        .insert_bundle(DummyCasterBundle::new(ability))
-        .id();
-
-    app.update();
-
-    // TODO 0.6: Use world.entity_mut
-    let mut queue = CommandQueue::default();
-    let mut commands = Commands::new(&mut queue, &app.world);
-    commands.entity(caster).despawn_recursive();
-    queue.apply(&mut app.world);
-
-    assert_eq!(
-        app.world.entities().len(),
-        0,
-        "Entities of abilities must be destroyed along with the owner"
     );
 }
 

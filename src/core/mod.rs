@@ -64,6 +64,9 @@ pub struct Damage(pub usize);
 #[derive(Default, Debug, PartialEq)]
 pub struct Healing(pub usize);
 
+/// Used to store reference to the player
+pub struct Player(pub Entity);
+
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub enum AppState {
     MainMenu,

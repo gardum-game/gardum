@@ -22,26 +22,30 @@ use bevy::{app::Events, prelude::*};
 
 use gardum::{
     characters::health::{DamageEvent, HealEvent, Health, HealthPlugin},
-    core::{AppState, Damage, Deaths, Healing, Kills, PlayerBundle},
+    core::{AppState, Damage, Deaths, Healing, Kills, Player, PlayerBundle},
 };
 
 #[test]
 fn healing() {
     let mut app = setup_app();
-    let target = app.world.spawn().insert(Health::default()).id();
-    app.world
+    let target_player = app
+        .world
         .spawn()
         .insert_bundle(PlayerBundle::default())
-        .push_children(&[target])
+        .id();
+    let target = app
+        .world
+        .spawn()
+        .insert(Health::default())
+        .insert(Player(target_player))
         .id();
 
-    let instigator = app.world.spawn().id();
     let instigator_player = app
         .world
         .spawn()
         .insert_bundle(PlayerBundle::default())
-        .push_children(&[instigator])
         .id();
+    let instigator = app.world.spawn().insert(Player(instigator_player)).id();
 
     for (initial_health, heal, expected_healing, expected_health) in [
         (90, 5, 5, 95),
@@ -80,21 +84,24 @@ fn healing() {
 #[test]
 fn damaging() {
     let mut app = setup_app();
-    let target = app.world.spawn().insert(Health::default()).id();
     let target_player = app
         .world
         .spawn()
         .insert_bundle(PlayerBundle::default())
-        .push_children(&[target])
+        .id();
+    let target = app
+        .world
+        .spawn()
+        .insert(Health::default())
+        .insert(Player(target_player))
         .id();
 
-    let instigator = app.world.spawn().id();
     let instigator_player = app
         .world
         .spawn()
         .insert_bundle(PlayerBundle::default())
-        .push_children(&[instigator])
         .id();
+    let instigator = app.world.spawn().insert(Player(instigator_player)).id();
 
     for (initial_health, damage, expected_damage, expected_health) in [
         (90, 5, 5, 85),
@@ -153,12 +160,16 @@ fn self_damaging() {
     let damage: usize = Health::default().max;
 
     let mut app = setup_app();
-    let target = app.world.spawn().insert(Health::default()).id();
     let target_player = app
         .world
         .spawn()
         .insert_bundle(PlayerBundle::default())
-        .push_children(&[target])
+        .id();
+    let target = app
+        .world
+        .spawn()
+        .insert(Health::default())
+        .insert(Player(target_player))
         .id();
 
     let mut events = app.world.get_resource_mut::<Events<DamageEvent>>().unwrap();

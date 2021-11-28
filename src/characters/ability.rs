@@ -38,8 +38,7 @@ impl Plugin for AbilityPlugin {
             .add_system_set(
                 SystemSet::on_update(AppState::InGame)
                     .after(AbilitySystems::InputSet)
-                    .with_system(activation_system.system())
-                    .with_system(abilities_children_system.system()),
+                    .with_system(activation_system.system()),
             );
     }
 }
@@ -89,8 +88,8 @@ fn activation_system(
     };
 
     for (caster, abilities) in caster_query.iter() {
-        for child in abilities.iter() {
-            let (ability, slot, cooldown) = abilities_query.get_mut(*child).unwrap();
+        for ability in abilities.iter() {
+            let (ability, slot, cooldown) = abilities_query.get_mut(*ability).unwrap();
 
             if input != *slot {
                 continue;
@@ -106,15 +105,6 @@ fn activation_system(
             events.send(ActivationEvent { caster, ability });
             return;
         }
-    }
-}
-
-fn abilities_children_system(
-    mut commands: Commands,
-    query: Query<(Entity, &Abilities), Added<Abilities>>,
-) {
-    if let Ok((entity, abilities)) = query.single() {
-        commands.entity(entity).push_children(abilities);
     }
 }
 
