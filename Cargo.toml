@@ -9,7 +9,7 @@ bevy_egui = "0.7.1"
 bevy_atmosphere = "0.1.3"
 heron = { version = "0.12.1", features = ["3d"] }
 clap = "3.0.0-beta.2"
-derive_more  = { version = "0.99.16", features = ["deref", "deref_mut"] }
+derive_more  = { version = "0.99.16", default-features = false, features = ["deref", "deref_mut"] }
 strum = { version = "0.23", features = ["derive"] }
 
 [dev-dependencies]
