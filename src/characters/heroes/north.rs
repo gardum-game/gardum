@@ -98,10 +98,8 @@ impl HeroBundle {
         #[cfg(not(feature = "headless"))] meshes: &mut Assets<Mesh>,
         #[cfg(not(feature = "headless"))] materials: &mut Assets<StandardMaterial>,
     ) -> Self {
-        let abilities = Abilities(vec![commands.spawn_bundle(FrostBoltBundle::default()).id()]);
-
-        HeroBundle {
-            abilities,
+        Self {
+            abilities: Abilities(vec![commands.spawn_bundle(FrostBoltBundle::default()).id()]),
             kind: Hero::North,
             character: CharacterBundle {
                 pbr: PbrBundle {
