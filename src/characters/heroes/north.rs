@@ -61,30 +61,14 @@ fn frost_bolt_system(
         let camera_transform = camera_query.single().unwrap();
         let caster_transform = caster_query.get(event.caster).unwrap();
 
-        commands.spawn_bundle(ProjectileBundle {
-            shape: CollisionShape::Capsule {
-                half_segment: 0.5,
-                radius: 0.5,
-            },
-            velocity: Velocity::from_linear(
-                camera_transform.rotation * -Vec3::Z * PROJECTILE_SPEED,
-            ),
-            pbr: PbrBundle {
-                #[cfg(not(feature = "headless"))]
-                mesh: meshes.add(Mesh::from(shape::Capsule::default())),
-                #[cfg(not(feature = "headless"))]
-                material: materials.add(Color::rgb(0.3, 0.3, 0.3).into()),
-                transform: Transform {
-                    translation: caster_transform.translation
-                        + camera_transform.rotation * -Vec3::Z * FROST_BOLT_SPAWN_OFFSET,
-                    rotation: camera_transform.rotation
-                        * Quat::from_rotation_x(90.0_f32.to_radians()),
-                    scale: caster_transform.scale,
-                },
-                ..Default::default()
-            },
-            ..Default::default()
-        });
+        commands.spawn_bundle(ProjectileBundle::frost_bolt(
+            camera_transform,
+            caster_transform,
+            #[cfg(not(feature = "headless"))]
+            &mut meshes,
+            #[cfg(not(feature = "headless"))]
+            &mut materials,
+        ));
     }
 }
 
@@ -134,6 +118,40 @@ impl HeroBundle {
                 },
                 ..Default::default()
             },
+        }
+    }
+}
+
+impl ProjectileBundle {
+    fn frost_bolt(
+        camera_transform: &Transform,
+        caster_transform: &Transform,
+        #[cfg(not(feature = "headless"))] meshes: &mut Assets<Mesh>,
+        #[cfg(not(feature = "headless"))] materials: &mut Assets<StandardMaterial>,
+    ) -> Self {
+        Self {
+            shape: CollisionShape::Capsule {
+                half_segment: 0.5,
+                radius: 0.5,
+            },
+            velocity: Velocity::from_linear(
+                camera_transform.rotation * -Vec3::Z * PROJECTILE_SPEED,
+            ),
+            pbr: PbrBundle {
+                #[cfg(not(feature = "headless"))]
+                mesh: meshes.add(Mesh::from(shape::Capsule::default())),
+                #[cfg(not(feature = "headless"))]
+                material: materials.add(Color::rgb(0.3, 0.3, 0.3).into()),
+                transform: Transform {
+                    translation: caster_transform.translation
+                        + camera_transform.rotation * -Vec3::Z * FROST_BOLT_SPAWN_OFFSET,
+                    rotation: camera_transform.rotation
+                        * Quat::from_rotation_x(90.0_f32.to_radians()),
+                    scale: caster_transform.scale,
+                },
+                ..Default::default()
+            },
+            ..Default::default()
         }
     }
 }
