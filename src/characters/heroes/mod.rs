@@ -24,7 +24,7 @@ use bevy::prelude::*;
 use strum::EnumIter;
 
 use super::{ability::Abilities, CharacterBundle};
-use crate::core::{AppState, Authority};
+use crate::core::{AppState, Authority, Player};
 use north::NorthPlugin;
 
 pub struct HeroesPlugin;
@@ -59,6 +59,7 @@ fn spawn_hero_system(
         };
 
         let mut entity_commands = commands.spawn_bundle(hero_bundle);
+        entity_commands.insert(Player(event.player));
         if authority_query.get(event.player).is_ok() {
             entity_commands.insert(Authority);
         }

@@ -25,7 +25,7 @@ use gardum::{
         ability::ActivationEvent,
         heroes::{HeroKind, HeroSpawnEvent, HeroesPlugin},
     },
-    core::{AppState, Authority},
+    core::{AppState, Authority, Player},
 };
 
 use strum::IntoEnumIterator;
@@ -50,11 +50,15 @@ fn hero_spawns_with_authority() {
 
     let mut query = app
         .world
-        .query_filtered::<(), (With<Authority>, With<HeroKind>)>();
-    assert!(
-        query.iter(&app.world).next().is_some(),
-        "Hero should be spawned with authority"
-    );
+        .query_filtered::<&Player, (With<Authority>, With<HeroKind>)>();
+    let assigned_player = query
+        .iter(&app.world)
+        .next()
+        .expect("Hero should be spawned with authority and assigned player"); // TODO 0.6: Use single
+    assert_eq!(
+        assigned_player.0, player,
+        "Assigned player should be equal to specified"
+    )
 }
 
 #[test]
@@ -77,11 +81,15 @@ fn hero_spawns_without_authority() {
 
     let mut query = app
         .world
-        .query_filtered::<(), (Without<Authority>, With<HeroKind>)>();
-    assert!(
-        query.iter(&app.world).next().is_some(),
-        "Hero should be spawned without authority"
-    );
+        .query_filtered::<&Player, (Without<Authority>, With<HeroKind>)>();
+    let assigned_player = query
+        .iter(&app.world)
+        .next()
+        .expect("Hero should be spawned with authority and assigned player"); // TODO 0.6: Use single
+    assert_eq!(
+        assigned_player.0, player,
+        "Assigned player should be equal to specified"
+    )
 }
 
 #[test]
