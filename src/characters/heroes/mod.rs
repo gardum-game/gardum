@@ -47,8 +47,8 @@ fn spawn_hero_system(
     #[cfg(not(feature = "headless"))] mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     for event in spawn_events.iter() {
-        let hero_bundle = match event.hero {
-            Hero::North => HeroBundle::north(
+        let hero_bundle = match event.kind {
+            HeroKind::North => HeroBundle::north(
                 &mut commands,
                 event.transform,
                 #[cfg(not(feature = "headless"))]
@@ -68,19 +68,19 @@ fn spawn_hero_system(
 #[derive(Bundle)]
 struct HeroBundle {
     abilities: Abilities,
-    kind: Hero,
+    kind: HeroKind,
 
     #[bundle]
     character: CharacterBundle,
 }
 
 #[derive(Clone, Copy, PartialEq, EnumIter, Debug)]
-pub enum Hero {
+pub enum HeroKind {
     North,
 }
 
 pub struct HeroSpawnEvent {
     pub player: Entity,
-    pub hero: Hero,
+    pub kind: HeroKind,
     pub transform: Transform,
 }

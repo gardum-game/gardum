@@ -23,7 +23,7 @@ use bevy::{app::Events, ecs::system::CommandQueue, prelude::*};
 use gardum::{
     characters::{
         ability::ActivationEvent,
-        heroes::{Hero, HeroSpawnEvent, HeroesPlugin},
+        heroes::{HeroKind, HeroSpawnEvent, HeroesPlugin},
     },
     core::{AppState, Authority},
 };
@@ -42,7 +42,7 @@ fn hero_spawns_with_authority() {
 
     events.send(HeroSpawnEvent {
         player,
-        hero: Hero::iter().next().unwrap(),
+        kind: HeroKind::iter().next().unwrap(),
         transform: Transform::default(),
     });
 
@@ -50,7 +50,7 @@ fn hero_spawns_with_authority() {
 
     let mut query = app
         .world
-        .query_filtered::<(), (With<Authority>, With<Hero>)>();
+        .query_filtered::<(), (With<Authority>, With<HeroKind>)>();
     assert!(
         query.iter(&app.world).next().is_some(),
         "Hero should be spawned with authority"
@@ -69,7 +69,7 @@ fn hero_spawns_without_authority() {
 
     events.send(HeroSpawnEvent {
         player,
-        hero: Hero::iter().next().unwrap(),
+        kind: HeroKind::iter().next().unwrap(),
         transform: Transform::default(),
     });
 
@@ -77,7 +77,7 @@ fn hero_spawns_without_authority() {
 
     let mut query = app
         .world
-        .query_filtered::<(), (Without<Authority>, With<Hero>)>();
+        .query_filtered::<(), (Without<Authority>, With<HeroKind>)>();
     assert!(
         query.iter(&app.world).next().is_some(),
         "Hero should be spawned without authority"
@@ -97,7 +97,7 @@ fn hero_spawns_at_position() {
 
         events.send(HeroSpawnEvent {
             player,
-            hero: Hero::iter().next().unwrap(),
+            kind: HeroKind::iter().next().unwrap(),
             transform: Transform::from_translation(expected_translation),
         });
 
@@ -105,7 +105,7 @@ fn hero_spawns_at_position() {
 
         let mut query = app
             .world
-            .query_filtered::<(Entity, &Transform), With<Hero>>();
+            .query_filtered::<(Entity, &Transform), With<HeroKind>>();
         let (kind, transform) = query
             .iter(&app.world)
             .next()
@@ -128,7 +128,7 @@ fn hero_spawns_with_kind() {
     let mut app = setup_app();
     let player = app.world.spawn().id();
 
-    for expected_kind in Hero::iter() {
+    for expected_kind in HeroKind::iter() {
         let mut events = app
             .world
             .get_resource_mut::<Events<HeroSpawnEvent>>()
@@ -136,13 +136,13 @@ fn hero_spawns_with_kind() {
 
         events.send(HeroSpawnEvent {
             player,
-            hero: expected_kind,
+            kind: expected_kind,
             transform: Transform::default(),
         });
 
         app.update();
 
-        let mut query = app.world.query::<(Entity, &Hero)>();
+        let mut query = app.world.query::<(Entity, &HeroKind)>();
 
         let (hero, kind) = query
             .iter(&app.world)

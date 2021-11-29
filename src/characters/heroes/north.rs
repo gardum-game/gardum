@@ -21,7 +21,7 @@
 use bevy::{prelude::*, render::camera::Camera};
 use heron::{CollisionShape, Velocity};
 
-use super::{Hero, HeroBundle};
+use super::{HeroKind, HeroBundle};
 use crate::{
     characters::{
         ability::{Abilities, AbilitySlot, ActivationEvent},
@@ -100,7 +100,7 @@ impl HeroBundle {
     ) -> Self {
         Self {
             abilities: Abilities(vec![commands.spawn_bundle(FrostBoltBundle::default()).id()]),
-            kind: Hero::North,
+            kind: HeroKind::North,
             character: CharacterBundle {
                 pbr: PbrBundle {
                     #[cfg(not(feature = "headless"))]
