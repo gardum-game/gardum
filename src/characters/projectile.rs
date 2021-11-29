@@ -93,6 +93,6 @@ pub struct Projectile;
 
 #[allow(dead_code)]
 pub struct ProjectileHitEvent {
-    projectile: Entity,
-    target: Entity,
+    pub projectile: Entity,
+    pub target: Entity,
 }

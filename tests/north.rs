@@ -24,8 +24,13 @@ use bevy::{app::Events, prelude::*, render::camera::Camera};
 use gardum::{
     characters::{
         ability::ActivationEvent,
-        heroes::north::{FrostBoltBundle, NorthPlugin, FROST_BOLT_SPAWN_OFFSET},
-        projectile::Projectile,
+        health::DamageEvent,
+        heroes::north::{
+            FrostBoltBundle, FrostBoltProjectile, NorthPlugin, FROST_BOLT_DAMAGE,
+            FROST_BOLT_SPAWN_OFFSET,
+        },
+        projectile::{Projectile, ProjectileHitEvent},
+        Character,
     },
     core::AppState,
 };
@@ -90,10 +95,48 @@ fn frost_bolt() {
     );
 }
 
+#[test]
+fn frost_bolt_hit() {
+    let mut app = setup_app();
+    let instigator = app.world.spawn().id();
+    let projectile = app
+        .world
+        .spawn()
+        .insert(FrostBoltProjectile)
+        .insert(Character(instigator))
+        .id();
+    let target = app.world.spawn().id();
+
+    let mut events = app
+        .world
+        .get_resource_mut::<Events<ProjectileHitEvent>>()
+        .unwrap();
+
+    events.send(ProjectileHitEvent { projectile, target });
+
+    app.update();
+
+    let events = app.world.get_resource::<Events<DamageEvent>>().unwrap();
+    let mut reader = events.get_reader();
+    let event = reader.iter(&events).next().unwrap();
+
+    assert_eq!(
+        event.instigator, instigator,
+        "Instigator should be equal to specified"
+    );
+    assert_eq!(event.target, target, "Target should be equal to specified");
+    assert_eq!(
+        event.damage, FROST_BOLT_DAMAGE,
+        "Damage should be equal to frost bolt damage"
+    );
+}
+
 fn setup_app() -> App {
     let mut app_builder = App::build();
     app_builder
         .add_event::<ActivationEvent>()
+        .add_event::<ProjectileHitEvent>()
+        .add_event::<DamageEvent>()
         .add_state(AppState::InGame)
         .add_plugins(MinimalPlugins)
         .add_plugin(NorthPlugin);

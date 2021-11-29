@@ -21,26 +21,30 @@
 use bevy::{prelude::*, render::camera::Camera};
 use heron::{CollisionShape, Velocity};
 
-use super::{HeroKind, HeroBundle};
+use super::{HeroBundle, HeroKind};
 use crate::{
     characters::{
         ability::{Abilities, AbilitySlot, ActivationEvent},
         cooldown::Cooldown,
-        projectile::ProjectileBundle,
-        CharacterBundle,
+        health::DamageEvent,
+        projectile::{ProjectileBundle, ProjectileHitEvent},
+        Character, CharacterBundle,
     },
     core::AppState,
 };
 
 const PROJECTILE_SPEED: f32 = 20.0;
 pub const FROST_BOLT_SPAWN_OFFSET: f32 = 4.0;
+pub const FROST_BOLT_DAMAGE: usize = 20;
 
 pub struct NorthPlugin;
 
 impl Plugin for NorthPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.add_system_set(
-            SystemSet::on_update(AppState::InGame).with_system(frost_bolt_system.system()),
+            SystemSet::on_update(AppState::InGame)
+                .with_system(frost_bolt_system.system())
+                .with_system(frost_bolt_hit_system.system()),
         );
     }
 }
@@ -61,14 +65,33 @@ fn frost_bolt_system(
         let camera_transform = camera_query.single().unwrap();
         let caster_transform = caster_query.get(event.caster).unwrap();
 
-        commands.spawn_bundle(ProjectileBundle::frost_bolt(
-            camera_transform,
-            caster_transform,
-            #[cfg(not(feature = "headless"))]
-            &mut meshes,
-            #[cfg(not(feature = "headless"))]
-            &mut materials,
-        ));
+        commands
+            .spawn_bundle(ProjectileBundle::frost_bolt(
+                camera_transform,
+                caster_transform,
+                #[cfg(not(feature = "headless"))]
+                &mut meshes,
+                #[cfg(not(feature = "headless"))]
+                &mut materials,
+            ))
+            .insert(FrostBoltProjectile)
+            .insert(Character(event.caster));
+    }
+}
+
+fn frost_bolt_hit_system(
+    mut hit_events: EventReader<ProjectileHitEvent>,
+    mut damage_events: EventWriter<DamageEvent>,
+    query: Query<&Character, With<FrostBoltProjectile>>,
+) {
+    for event in hit_events.iter() {
+        if let Ok(character) = query.get(event.projectile) {
+            damage_events.send(DamageEvent {
+                instigator: character.0,
+                target: event.target,
+                damage: FROST_BOLT_DAMAGE,
+            });
+        }
     }
 }
 
@@ -90,6 +113,7 @@ impl Default for FrostBoltBundle {
 }
 
 pub struct FrostBoltAbility;
+pub struct FrostBoltProjectile;
 
 impl HeroBundle {
     pub fn north(

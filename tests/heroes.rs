@@ -23,7 +23,9 @@ use bevy::{app::Events, ecs::system::CommandQueue, prelude::*};
 use gardum::{
     characters::{
         ability::ActivationEvent,
+        health::{DamageEvent, HealEvent},
         heroes::{HeroKind, HeroSpawnEvent, HeroesPlugin},
+        projectile::ProjectileHitEvent,
     },
     core::{AppState, Authority, Player},
 };
@@ -170,6 +172,9 @@ fn setup_app() -> App {
     let mut app_builder = App::build();
     app_builder
         .add_event::<ActivationEvent>()
+        .add_event::<ProjectileHitEvent>()
+        .add_event::<DamageEvent>()
+        .add_event::<HealEvent>()
         .add_state(AppState::InGame)
         .add_plugins(MinimalPlugins)
         .add_plugin(HeroesPlugin);
