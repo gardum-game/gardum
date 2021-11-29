@@ -64,26 +64,20 @@ fn main_menu_system(
     Area::new("Main Menu")
         .anchor(Align2::LEFT_CENTER, (MARGIN, 0.0))
         .show(egui.ctx(), |ui| {
-            ui.add(
-                Button::new("Play")
-                    .text_style(TextStyle::Heading)
-                    .enabled(false),
-            );
+            ui.add_enabled(false, Button::new("Play").text_style(TextStyle::Heading));
             if ui
                 .add(Button::new("Custom game").text_style(TextStyle::Heading))
                 .clicked()
             {
                 main_menu_state.set(MainMenuState::CustomGame).unwrap();
             }
-            ui.add(
-                Button::new("Characters")
-                    .text_style(TextStyle::Heading)
-                    .enabled(false),
+            ui.add_enabled(
+                false,
+                Button::new("Characters").text_style(TextStyle::Heading),
             );
-            ui.add(
-                Button::new("Settings")
-                    .text_style(TextStyle::Heading)
-                    .enabled(false),
+            ui.add_enabled(
+                false,
+                Button::new("Settings").text_style(TextStyle::Heading),
             );
             if ui
                 .add(Button::new("Exit").text_style(TextStyle::Heading))
