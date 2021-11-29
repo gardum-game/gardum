@@ -18,8 +18,6 @@
  *
  */
 
-pub mod common;
-
 use approx::assert_relative_eq;
 use bevy::{
     app::Events,

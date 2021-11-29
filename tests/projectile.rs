@@ -18,12 +18,9 @@
  *
  */
 
-pub mod common;
-
-use bevy::prelude::*;
+use bevy::{app::Events, prelude::*};
 use heron::{CollisionShape, PhysicsPlugin, RigidBody, Velocity};
 
-use common::events_count;
 use gardum::{
     characters::projectile::{ProjectileBundle, ProjectileHitEvent, ProjectilePlugin},
     core::AppState,
@@ -63,13 +60,19 @@ fn projectiles_do_not_collide() {
     assert_eq!(
         app.world.entities().len(),
         2,
-        "Projectiles do not collide with each other"
+        "Projectiles shouldn't be destroyed when colliding with each other"
     );
 
+    let events = app
+        .world
+        .get_resource::<Events<ProjectileHitEvent>>()
+        .unwrap();
+    let mut reader = events.get_reader();
+
     assert_eq!(
-        events_count::<ProjectileHitEvent>(&mut app.world),
+        reader.iter(&events).count(),
         0,
-        "Hit events should not be triggered"
+        "Hit event shouldn't be triggered for collision between two projectiles"
     );
 }
 
@@ -86,21 +89,31 @@ fn objects_do_not_collide() {
     assert_eq!(
         app.world.entities().len(),
         2,
-        "Objects do not collide with each other"
+        "Objects shouldn't be destroyed when colliding with each other"
     );
 
+    let events = app
+        .world
+        .get_resource::<Events<ProjectileHitEvent>>()
+        .unwrap();
+    let mut reader = events.get_reader();
+
     assert_eq!(
-        events_count::<ProjectileHitEvent>(&mut app.world),
+        reader.iter(&events).count(),
         0,
-        "Hit events should not be triggered"
+        "Hit event shouldn't be triggered for collision between two objects"
     );
 }
 
 #[test]
 fn projectile_collides_with_object() {
     let mut app = setup_app();
-    app.world.spawn().insert_bundle(ProjectileBundle::default());
-    app.world.spawn().insert_bundle(DummyBundle::default());
+    let projectile = app
+        .world
+        .spawn()
+        .insert_bundle(ProjectileBundle::default())
+        .id();
+    let object = app.world.spawn().insert_bundle(DummyBundle::default()).id();
 
     app.update();
     app.update();
@@ -111,10 +124,27 @@ fn projectile_collides_with_object() {
         "Projectiles are destroyed when colliding with other objects"
     );
 
+    let events = app
+        .world
+        .get_resource::<Events<ProjectileHitEvent>>()
+        .unwrap();
+    let mut reader = events.get_reader();
+    let event = reader
+        .iter(&events)
+        .next()
+        .expect("Hit event should be triggered");
+
     assert_eq!(
-        events_count::<ProjectileHitEvent>(&mut app.world),
-        1,
-        "One hit event should be triggered"
+        event.projectile, projectile,
+        "Hit event should have the same projectile"
+    );
+    assert_eq!(
+        event.target, object,
+        "Hit event should have the same target"
+    );
+    assert!(
+        reader.iter(&events).next().is_none(),
+        "There should be no more collision events"
     );
 }
 
@@ -122,8 +152,12 @@ fn projectile_collides_with_object() {
 fn object_collides_with_projectile() {
     let mut app = setup_app();
     // Spawn in different order
-    app.world.spawn().insert_bundle(DummyBundle::default());
-    app.world.spawn().insert_bundle(ProjectileBundle::default());
+    let object = app.world.spawn().insert_bundle(DummyBundle::default()).id();
+    let projectile = app
+        .world
+        .spawn()
+        .insert_bundle(ProjectileBundle::default())
+        .id();
 
     app.update();
     app.update();
@@ -134,10 +168,27 @@ fn object_collides_with_projectile() {
         "Projectiles are destroyed when colliding with other objects"
     );
 
+    let events = app
+        .world
+        .get_resource::<Events<ProjectileHitEvent>>()
+        .unwrap();
+    let mut reader = events.get_reader();
+    let event = reader
+        .iter(&events)
+        .next()
+        .expect("Hit event should be triggered");
+
     assert_eq!(
-        events_count::<ProjectileHitEvent>(&mut app.world),
-        1,
-        "One hit event should be triggered"
+        event.projectile, projectile,
+        "Hit event should have the same projectile"
+    );
+    assert_eq!(
+        event.target, object,
+        "Hit event should have the same target"
+    );
+    assert!(
+        reader.iter(&events).next().is_none(),
+        "There should be no more collision events"
     );
 }
 

@@ -18,15 +18,12 @@
  *
  */
 
-pub mod common;
-
 use bevy::{
     app::Events,
     input::{keyboard::KeyboardInput, mouse::MouseButtonInput, ElementState, InputPlugin},
     prelude::*,
 };
 
-use common::events_count;
 use gardum::{
     characters::{
         ability::{Abilities, AbilityPlugin, AbilitySlot, ActivationEvent},
@@ -124,10 +121,13 @@ fn ability_ignores_unrelated_action() {
 
     app.update();
 
+    let events = app.world.get_resource::<Events<ActivationEvent>>().unwrap();
+    let mut reader = events.get_reader();
+
     assert_eq!(
-        events_count::<ActivationEvent>(&mut app.world),
+        reader.iter(&events).count(),
         0,
-        "Ability shouldn't be activated because of different key"
+        "Activation event shouldn't be triggered for unrelated key"
     );
 }
 
@@ -139,7 +139,8 @@ fn ability_activates() {
         .spawn()
         .insert_bundle(DummyAbilityBundle::default())
         .id();
-    app.world
+    let caster = app
+        .world
         .spawn()
         .insert_bundle(DummyCasterBundle::new(ability))
         .id();
@@ -157,10 +158,20 @@ fn ability_activates() {
 
     app.update();
 
+    let events = app.world.get_resource::<Events<ActivationEvent>>().unwrap();
+    let mut reader = events.get_reader();
+    let event = reader
+        .iter(&events)
+        .next()
+        .expect("Activation event should be triggered");
+
     assert_eq!(
-        events_count::<ActivationEvent>(&mut app.world),
-        1,
-        "Ability should be activated"
+        event.caster, caster,
+        "Activation event should have the same caster"
+    );
+    assert_eq!(
+        event.ability, ability,
+        "Activation event should have the same ability"
     );
 
     let cooldown = app.world.get::<Cooldown>(ability).unwrap();
@@ -196,10 +207,13 @@ fn ability_affected_by_cooldown() {
 
     app.update();
 
+    let events = app.world.get_resource::<Events<ActivationEvent>>().unwrap();
+    let mut reader = events.get_reader();
+
     assert_eq!(
-        events_count::<ActivationEvent>(&mut app.world),
+        reader.iter(&events).count(),
         0,
-        "Ability shouldn't be activated because of cooldown"
+        "Activation event shouldn't be triggered because of cooldown"
     );
 }
 
