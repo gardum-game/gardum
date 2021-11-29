@@ -80,7 +80,7 @@ fn activation_system(
     activated_slot: Res<Option<AbilitySlot>>,
     mut events: EventWriter<ActivationEvent>,
     caster_query: Query<(Entity, &Abilities), With<Authority>>,
-    mut abilities_query: Query<(Entity, &AbilitySlot, Option<&mut Cooldown>)>,
+    mut abilities_query: Query<(&AbilitySlot, Option<&mut Cooldown>)>,
 ) {
     let input = match *activated_slot {
         Some(input) => input,
@@ -89,7 +89,7 @@ fn activation_system(
 
     for (caster, abilities) in caster_query.iter() {
         for ability in abilities.iter() {
-            let (ability, slot, cooldown) = abilities_query.get_mut(*ability).unwrap();
+            let (slot, cooldown) = abilities_query.get_mut(*ability).unwrap();
 
             if input != *slot {
                 continue;
@@ -102,7 +102,10 @@ fn activation_system(
                 cooldown.reset();
             }
 
-            events.send(ActivationEvent { caster, ability });
+            events.send(ActivationEvent {
+                caster,
+                ability: *ability,
+            });
             return;
         }
     }
