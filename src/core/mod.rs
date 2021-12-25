@@ -32,6 +32,7 @@ pub struct CorePlugin;
 impl Plugin for CorePlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.add_state(AppState::MainMenu)
+            .init_resource::<GameSettings>()
             .add_plugin(CliPlugin)
             .add_plugin(SetupPlugin);
     }
@@ -66,6 +67,13 @@ pub struct Healing(pub usize);
 
 /// Used to store reference to the player
 pub struct Player(pub Entity);
+
+#[derive(Default)]
+pub struct GameSettings {
+    pub map: String,
+    pub teams_count: Option<u8>,
+    pub slots_count: u8,
+}
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub enum AppState {

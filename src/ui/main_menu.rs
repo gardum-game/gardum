@@ -24,7 +24,7 @@ use bevy_egui::{
     EguiContext,
 };
 
-use crate::core::AppState;
+use crate::core::{AppState, GameSettings};
 
 const MARGIN: f32 = 20.0;
 
@@ -39,7 +39,7 @@ pub struct MainMenuPlugin;
 
 impl Plugin for MainMenuPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.init_resource::<CustomGameWindowState>()
+        app.init_resource::<SearchText>()
             .add_state(MainMenuState::Idle)
             .add_system_set(
                 SystemSet::on_update(MainMenuState::Idle).with_system(main_menu_system.system()),
@@ -89,17 +89,12 @@ fn main_menu_system(
 }
 
 #[derive(Default)]
-struct CustomGameWindowState {
-    search_text: String,
-    map: String,
-    teams_enabled: bool,
-    teams_count: i8,
-    slots_count: i8,
-}
+struct SearchText(String);
 
 fn custom_game_window_system(
     egui: ResMut<EguiContext>,
-    mut custom_game_state: Local<CustomGameWindowState>,
+    mut game_settings: ResMut<GameSettings>,
+    mut search_text: Local<SearchText>,
     mut app_state: ResMut<State<AppState>>,
 ) {
     Window::new("Custom game")
@@ -107,23 +102,30 @@ fn custom_game_window_system(
         .collapsible(false)
         .show(egui.ctx(), |ui| {
             ui.horizontal(|ui| {
-                ui.text_edit_singleline(&mut custom_game_state.search_text);
+                ui.text_edit_singleline(&mut search_text.0);
                 if ui.button("Create").clicked() || ui.button("Connect").clicked() {
                     app_state.set(AppState::InGame).unwrap();
                 }
                 ui.group(|ui| {
+                    let mut teams_enabled = game_settings.teams_count.is_some();
+                    let mut teams_count = game_settings.teams_count.unwrap_or(0);
                     Grid::new("Server Settings").show(ui, |ui| {
                         ui.label("Map:");
-                        ui.text_edit_singleline(&mut custom_game_state.map);
+                        ui.text_edit_singleline(&mut game_settings.map);
                         ui.end_row();
-                        ui.checkbox(&mut custom_game_state.teams_enabled, "Teams enabled");
+                        ui.checkbox(&mut teams_enabled, "Teams enabled");
                         ui.end_row();
                         ui.label("Teams count:");
-                        ui.add(DragValue::new(&mut custom_game_state.teams_count));
+                        ui.add_enabled(teams_enabled, DragValue::new(&mut teams_count));
                         ui.end_row();
                         ui.label("Slots count:");
-                        ui.add(DragValue::new(&mut custom_game_state.slots_count));
+                        ui.add(DragValue::new(&mut game_settings.slots_count));
                     });
+                    game_settings.teams_count = if teams_enabled {
+                        Some(teams_count)
+                    } else {
+                        None
+                    };
                 });
             })
         });
