@@ -24,23 +24,15 @@ use bevy_egui::{
     EguiContext,
 };
 
-use super::GameMenuState;
-
-const MARGIN: f32 = 20.0;
+use super::{GameMenuState, MENU_MARGIN};
 
 pub struct MainMenuPlugin;
 
 impl Plugin for MainMenuPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.add_state(GameMenuState::MainMenu)
-            .add_system_set(
-                SystemSet::on_update(GameMenuState::MainMenu)
-                    .with_system(main_menu_system.system()),
-            )
-            .add_system_set(
-                SystemSet::on_update(GameMenuState::CustomGameMenu)
-                    .with_system(back_button_system.system()),
-            );
+        app.add_state(GameMenuState::MainMenu).add_system_set(
+            SystemSet::on_update(GameMenuState::MainMenu).with_system(main_menu_system.system()),
+        );
     }
 }
 
@@ -50,14 +42,14 @@ fn main_menu_system(
     mut main_menu_state: ResMut<State<GameMenuState>>,
 ) {
     Area::new("Main Menu")
-        .anchor(Align2::LEFT_CENTER, (MARGIN, 0.0))
+        .anchor(Align2::LEFT_CENTER, (MENU_MARGIN, 0.0))
         .show(egui.ctx(), |ui| {
             ui.add_enabled(false, Button::new("Play").text_style(TextStyle::Heading));
             if ui
                 .add(Button::new("Custom game").text_style(TextStyle::Heading))
                 .clicked()
             {
-                main_menu_state.set(GameMenuState::CustomGameMenu).unwrap();
+                main_menu_state.push(GameMenuState::CustomGameMenu).unwrap();
             }
             ui.add_enabled(
                 false,
@@ -72,20 +64,6 @@ fn main_menu_system(
                 .clicked()
             {
                 exit_event.send(AppExit);
-            }
-        });
-}
-
-fn back_button_system(
-    egui: ResMut<EguiContext>,
-    input: Res<Input<KeyCode>>,
-    mut main_menu_state: ResMut<State<GameMenuState>>,
-) {
-    Area::new("Back area")
-        .anchor(Align2::LEFT_BOTTOM, (MARGIN, -MARGIN))
-        .show(egui.ctx(), |ui| {
-            if input.just_pressed(KeyCode::Escape) || ui.button("Back").clicked() {
-                main_menu_state.set(GameMenuState::MainMenu).unwrap();
             }
         });
 }

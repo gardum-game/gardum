@@ -18,15 +18,19 @@
  *
  */
 
+mod back_button;
 mod custom_game_menu;
 mod ingame_menu;
 mod main_menu;
 
 use bevy::prelude::*;
 
+use back_button::BackButtonPlugin;
 use custom_game_menu::CustomGameMenuPlugin;
 use ingame_menu::IngameMenuPlugin;
 use main_menu::MainMenuPlugin;
+
+pub const MENU_MARGIN: f32 = 20.0;
 
 pub struct UiPlugin;
 
@@ -34,7 +38,8 @@ impl Plugin for UiPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.add_plugin(MainMenuPlugin)
             .add_plugin(IngameMenuPlugin)
-            .add_plugin(CustomGameMenuPlugin);
+            .add_plugin(CustomGameMenuPlugin)
+            .add_plugin(BackButtonPlugin);
     }
 }
 

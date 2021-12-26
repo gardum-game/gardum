@@ -19,20 +19,37 @@
  */
 
 use bevy::prelude::*;
+use bevy_egui::{
+    egui::{Align2, Area},
+    EguiContext,
+};
 
-use super::GameMenuState;
-use crate::core::AppState;
+use super::{GameMenuState, MENU_MARGIN};
 
-pub struct IngameMenuPlugin;
+pub struct BackButtonPlugin;
 
-impl Plugin for IngameMenuPlugin {
+impl Plugin for BackButtonPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.add_system_set(
-            SystemSet::on_enter(AppState::InGame).with_system(enable_ingame_menu.system()),
+            SystemSet::on_inactive_update(GameMenuState::IngameMenu)
+                .with_system(back_button_system.system()),
+        ).add_system_set(
+            SystemSet::on_inactive_update(GameMenuState::MainMenu)
+                .with_system(back_button_system.system()),
         );
     }
 }
 
-fn enable_ingame_menu(mut game_menu_state: ResMut<State<GameMenuState>>) {
-    game_menu_state.replace(GameMenuState::IngameMenu).unwrap();
+fn back_button_system(
+    egui: ResMut<EguiContext>,
+    input: Res<Input<KeyCode>>,
+    mut main_menu_state: ResMut<State<GameMenuState>>,
+) {
+    Area::new("Back area")
+        .anchor(Align2::LEFT_BOTTOM, (MENU_MARGIN, -MENU_MARGIN))
+        .show(egui.ctx(), |ui| {
+            if input.just_pressed(KeyCode::Escape) || ui.button("Back").clicked() {
+                main_menu_state.pop().unwrap();
+            }
+        });
 }
