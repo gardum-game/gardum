@@ -35,7 +35,8 @@ impl Plugin for CameraPlugin {
             SystemSet::on_enter(AppState::InGame).with_system(spawn_camera_system.system()),
         )
         .add_system_set(
-            SystemSet::on_update(AppState::InGame).with_system(camera_input_system.system()),
+            SystemSet::on_in_stack_update(AppState::InGame)
+                .with_system(camera_input_system.system()),
         )
         .add_system_to_stage(
             CoreStage::PostUpdate,

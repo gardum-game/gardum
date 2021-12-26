@@ -31,12 +31,12 @@ impl Plugin for AbilityPlugin {
         app.init_resource::<Option<AbilitySlot>>()
             .add_event::<ActivationEvent>()
             .add_system_set(
-                SystemSet::on_update(AppState::InGame)
+                SystemSet::on_in_stack_update(AppState::InGame)
                     .label(AbilitySystems::InputSet)
                     .with_system(input_system.system()),
             )
             .add_system_set(
-                SystemSet::on_update(AppState::InGame)
+                SystemSet::on_in_stack_update(AppState::InGame)
                     .after(AbilitySystems::InputSet)
                     .with_system(activation_system.system()),
             );

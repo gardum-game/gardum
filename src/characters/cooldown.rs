@@ -29,7 +29,7 @@ pub struct CooldownPlugin;
 impl Plugin for CooldownPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.add_system_set(
-            SystemSet::on_update(AppState::InGame).with_system(cooldown_system.system()),
+            SystemSet::on_in_stack_update(AppState::InGame).with_system(cooldown_system.system()),
         );
     }
 }

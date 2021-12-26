@@ -29,7 +29,8 @@ pub struct DespawnTimerPlugin;
 impl Plugin for DespawnTimerPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.add_system_set(
-            SystemSet::on_update(AppState::InGame).with_system(despawn_timer_system.system()),
+            SystemSet::on_in_stack_update(AppState::InGame)
+                .with_system(despawn_timer_system.system()),
         );
     }
 }

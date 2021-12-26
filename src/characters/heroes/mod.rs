@@ -34,7 +34,8 @@ impl Plugin for HeroesPlugin {
         app.add_event::<HeroSpawnEvent>()
             .add_plugin(NorthPlugin)
             .add_system_set(
-                SystemSet::on_update(AppState::InGame).with_system(spawn_hero_system.system()),
+                SystemSet::on_in_stack_update(AppState::InGame)
+                    .with_system(spawn_hero_system.system()),
             );
     }
 }

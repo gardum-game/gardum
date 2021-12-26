@@ -35,12 +35,12 @@ impl Plugin for MovementPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.init_resource::<MovementInput>()
             .add_system_set(
-                SystemSet::on_update(AppState::InGame)
+                SystemSet::on_in_stack_update(AppState::InGame)
                     .label(MovementSystems::InputSet)
                     .with_system(input_system.system()),
             )
             .add_system_set(
-                SystemSet::on_update(AppState::InGame)
+                SystemSet::on_in_stack_update(AppState::InGame)
                     .after(MovementSystems::InputSet)
                     .with_system(movement_system.system()),
             );

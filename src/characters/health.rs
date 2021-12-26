@@ -29,7 +29,7 @@ impl Plugin for HealthPlugin {
         app.add_event::<DamageEvent>()
             .add_event::<HealEvent>()
             .add_system_set(
-                SystemSet::on_update(AppState::InGame)
+                SystemSet::on_in_stack_update(AppState::InGame)
                     .with_system(heal_system.system())
                     .with_system(damage_system.system()),
             );

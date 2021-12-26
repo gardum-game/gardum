@@ -42,7 +42,7 @@ pub struct NorthPlugin;
 impl Plugin for NorthPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.add_system_set(
-            SystemSet::on_update(AppState::InGame)
+            SystemSet::on_in_stack_update(AppState::InGame)
                 .with_system(frost_bolt_system.system())
                 .with_system(frost_bolt_hit_system.system()),
         );
