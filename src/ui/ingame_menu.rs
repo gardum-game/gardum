@@ -18,29 +18,21 @@
  *
  */
 
-mod custom_game_menu;
-mod ingame_menu;
-mod main_menu;
-
 use bevy::prelude::*;
 
-use custom_game_menu::CustomGameMenuPlugin;
-use ingame_menu::IngameMenuPlugin;
-use main_menu::MainMenuPlugin;
+use super::GameMenuState;
+use crate::core::AppState;
 
-pub struct UiPlugin;
+pub struct IngameMenuPlugin;
 
-impl Plugin for UiPlugin {
+impl Plugin for IngameMenuPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.add_plugin(MainMenuPlugin)
-            .add_plugin(IngameMenuPlugin)
-            .add_plugin(CustomGameMenuPlugin);
+        app.add_system_set(
+            SystemSet::on_enter(AppState::InGame).with_system(enable_ingame_menu.system()),
+        );
     }
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Hash)]
-pub enum GameMenuState {
-    MainMenu,
-    CustomGameMenu,
-    IngameMenu,
+fn enable_ingame_menu(mut game_menu_state: ResMut<State<GameMenuState>>) {
+    game_menu_state.set(GameMenuState::IngameMenu).unwrap();
 }
