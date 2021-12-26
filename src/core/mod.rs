@@ -31,7 +31,7 @@ pub struct CorePlugin;
 
 impl Plugin for CorePlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.add_state(AppState::Menu)
+        app.add_state(AppState::MainMenu)
             .init_resource::<GameSettings>()
             .add_plugin(CliPlugin)
             .add_plugin(SetupPlugin);
@@ -77,7 +77,8 @@ pub struct GameSettings {
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub enum AppState {
-    Menu,
+    MainMenu,
+    CustomGameMenu,
     InGame,
 }
 

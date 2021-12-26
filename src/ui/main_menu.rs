@@ -24,14 +24,15 @@ use bevy_egui::{
     EguiContext,
 };
 
-use super::{GameMenuState, MENU_MARGIN};
+use super::MENU_MARGIN;
+use crate::core::AppState;
 
 pub struct MainMenuPlugin;
 
 impl Plugin for MainMenuPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.add_state(GameMenuState::MainMenu).add_system_set(
-            SystemSet::on_update(GameMenuState::MainMenu).with_system(main_menu_system.system()),
+        app.add_system_set(
+            SystemSet::on_update(AppState::MainMenu).with_system(main_menu_system.system()),
         );
     }
 }
@@ -39,7 +40,7 @@ impl Plugin for MainMenuPlugin {
 fn main_menu_system(
     egui: ResMut<EguiContext>,
     mut exit_event: EventWriter<AppExit>,
-    mut main_menu_state: ResMut<State<GameMenuState>>,
+    mut app_state: ResMut<State<AppState>>,
 ) {
     Area::new("Main Menu")
         .anchor(Align2::LEFT_CENTER, (MENU_MARGIN, 0.0))
@@ -49,7 +50,7 @@ fn main_menu_system(
                 .add(Button::new("Custom game").text_style(TextStyle::Heading))
                 .clicked()
             {
-                main_menu_state.push(GameMenuState::CustomGameMenu).unwrap();
+                app_state.push(AppState::CustomGameMenu).unwrap();
             }
             ui.add_enabled(
                 false,

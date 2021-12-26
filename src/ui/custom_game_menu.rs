@@ -24,7 +24,6 @@ use bevy_egui::{
     EguiContext,
 };
 
-use super::GameMenuState;
 use crate::core::{AppState, GameSettings};
 
 pub struct CustomGameMenuPlugin;
@@ -32,7 +31,7 @@ pub struct CustomGameMenuPlugin;
 impl Plugin for CustomGameMenuPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.init_resource::<SearchText>().add_system_set(
-            SystemSet::on_update(GameMenuState::CustomGameMenu)
+            SystemSet::on_update(AppState::CustomGameMenu)
                 .with_system(custom_game_menu_system.system()),
         );
     }
@@ -54,7 +53,7 @@ fn custom_game_menu_system(
             ui.horizontal(|ui| {
                 ui.text_edit_singleline(&mut search_text.0);
                 if ui.button("Create").clicked() || ui.button("Connect").clicked() {
-                    app_state.set(AppState::InGame).unwrap();
+                    app_state.replace(AppState::InGame).unwrap();
                 }
                 ui.group(|ui| {
                     let mut teams_enabled = game_settings.teams_count.is_some();
