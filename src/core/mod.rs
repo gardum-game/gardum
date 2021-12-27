@@ -79,6 +79,7 @@ pub struct GameSettings {
 pub enum AppState {
     MainMenu,
     CustomGameMenu,
+    DirectConnectMenu,
     InGame,
 }
 

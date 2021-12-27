@@ -30,10 +30,15 @@ pub struct CustomGameMenuPlugin;
 
 impl Plugin for CustomGameMenuPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.init_resource::<SearchText>().add_system_set(
-            SystemSet::on_update(AppState::CustomGameMenu)
-                .with_system(custom_game_menu_system.system()),
-        );
+        app.init_resource::<SearchText>()
+            .add_system_set(
+                SystemSet::on_update(AppState::CustomGameMenu)
+                    .with_system(custom_game_menu_system.system()),
+            )
+            .add_system_set(
+                SystemSet::on_update(AppState::DirectConnectMenu)
+                    .with_system(direct_connect_menu_system.system()),
+            );
     }
 }
 
@@ -52,7 +57,10 @@ fn custom_game_menu_system(
         .show(egui.ctx(), |ui| {
             ui.horizontal(|ui| {
                 ui.text_edit_singleline(&mut search_text.0);
-                if ui.button("Create").clicked() || ui.button("Connect").clicked() {
+                if ui.button("Connect").clicked() {
+                    app_state.push(AppState::DirectConnectMenu).unwrap();
+                }
+                if ui.button("Create").clicked() {
                     app_state.replace(AppState::InGame).unwrap();
                 }
                 ui.group(|ui| {
@@ -77,5 +85,47 @@ fn custom_game_menu_system(
                     };
                 });
             })
+        });
+}
+
+struct DirectConnectData {
+    ip: String,
+    port: String,
+}
+
+impl Default for DirectConnectData {
+    fn default() -> Self {
+        Self {
+            ip: "127.0.0.1".to_string(),
+            port: "4761".to_string(),
+        }
+    }
+}
+
+fn direct_connect_menu_system(
+    egui: ResMut<EguiContext>,
+    mut data: Local<DirectConnectData>,
+    mut app_state: ResMut<State<AppState>>,
+) {
+    Window::new("Direct connect")
+        .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
+        .collapsible(false)
+        .resizable(false)
+        .show(egui.ctx(), |ui| {
+            Grid::new("Direct connect grid")
+                .num_columns(2)
+                .show(ui, |ui| {
+                    ui.label("IP:");
+                    ui.text_edit_singleline(&mut data.ip);
+                    ui.end_row();
+                    ui.label("Port:");
+                    ui.text_edit_singleline(&mut data.port);
+                    ui.end_row();
+                });
+            ui.vertical_centered(|ui| {
+                if ui.button("Connect").clicked() {
+                    app_state.replace(AppState::InGame).unwrap();
+                }
+            });
         });
 }
