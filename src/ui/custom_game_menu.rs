@@ -54,6 +54,7 @@ fn custom_game_menu_system(
     Window::new("Custom game")
         .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
         .collapsible(false)
+        .resizable(false)
         .show(egui.ctx(), |ui| {
             ui.horizontal(|ui| {
                 ui.text_edit_singleline(&mut search_text.0);
