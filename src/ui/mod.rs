@@ -19,12 +19,14 @@
  */
 
 mod back_button;
+mod cursor;
 mod custom_game_menu;
 mod main_menu;
 
 use bevy::prelude::*;
 
 use back_button::BackButtonPlugin;
+use cursor::CursorPlugin;
 use custom_game_menu::CustomGameMenuPlugin;
 use main_menu::MainMenuPlugin;
 
@@ -34,7 +36,8 @@ pub struct UiPlugin;
 
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.add_plugin(MainMenuPlugin)
+        app.add_plugin(CursorPlugin)
+            .add_plugin(MainMenuPlugin)
             .add_plugin(CustomGameMenuPlugin)
             .add_plugin(BackButtonPlugin);
     }

@@ -32,9 +32,7 @@ impl Plugin for SetupPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.add_startup_system(start_session_system.system())
             .add_system_set(
-                SystemSet::on_enter(AppState::InGame)
-                    .with_system(create_world_system.system())
-                    .with_system(cursor_grab_system.system()),
+                SystemSet::on_enter(AppState::InGame).with_system(create_world_system.system()),
             );
     }
 }
@@ -82,11 +80,4 @@ fn create_world_system(
         kind: HeroKind::North,
         transform: Transform::from_translation(Vec3::new(5.0, 15.0, 5.0)),
     })
-}
-
-fn cursor_grab_system(mut windows: ResMut<Windows>) {
-    let window = windows.get_primary_mut().unwrap();
-
-    window.set_cursor_lock_mode(true);
-    window.set_cursor_visibility(false);
 }
