@@ -87,6 +87,7 @@ pub enum AppState {
     CreateGameMenu,
     LobbyMenu,
     InGame,
+    InGameMenu,
 }
 
 #[derive(PhysicsLayer)]

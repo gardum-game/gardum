@@ -21,6 +21,7 @@
 mod back_button;
 mod cursor;
 mod custom_game_menu;
+mod ingame_menu;
 mod main_menu;
 
 use bevy::prelude::*;
@@ -28,6 +29,7 @@ use bevy::prelude::*;
 use back_button::BackButtonPlugin;
 use cursor::CursorPlugin;
 use custom_game_menu::CustomGameMenuPlugin;
+use ingame_menu::InGameMenuPlugin;
 use main_menu::MainMenuPlugin;
 
 pub const MENU_MARGIN: f32 = 20.0;
@@ -39,6 +41,7 @@ impl Plugin for UiPlugin {
         app.add_plugin(CursorPlugin)
             .add_plugin(MainMenuPlugin)
             .add_plugin(CustomGameMenuPlugin)
-            .add_plugin(BackButtonPlugin);
+            .add_plugin(BackButtonPlugin)
+            .add_plugin(InGameMenuPlugin);
     }
 }
