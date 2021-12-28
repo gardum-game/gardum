@@ -85,6 +85,7 @@ pub enum AppState {
     CustomGameMenu,
     DirectConnectMenu,
     CreateGameMenu,
+    LobbyMenu,
     InGame,
 }
 

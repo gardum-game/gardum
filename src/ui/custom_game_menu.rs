@@ -42,6 +42,9 @@ impl Plugin for CustomGameMenuPlugin {
             .add_system_set(
                 SystemSet::on_update(AppState::CreateGameMenu)
                     .with_system(create_game_menu_system.system()),
+            )
+            .add_system_set(
+                SystemSet::on_update(AppState::LobbyMenu).with_system(lobby_menu_system.system()),
             );
     }
 }
@@ -81,12 +84,33 @@ fn create_game_menu_system(
         .collapsible(false)
         .resizable(false)
         .show(egui.ctx(), |ui| {
+            ui.vertical(|ui| {
+                show_server_settings(ui, &mut game_settings);
+                if ui.button("Create").clicked() {
+                    app_state.push(AppState::LobbyMenu).unwrap();
+                }
+            })
+        });
+}
+
+fn lobby_menu_system(
+    egui: ResMut<EguiContext>,
+    mut game_settings: ResMut<GameSettings>,
+    mut app_state: ResMut<State<AppState>>,
+) {
+    Window::new("Lobby")
+        .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
+        .collapsible(false)
+        .resizable(false)
+        .show(egui.ctx(), |ui| {
             ui.vertical_centered(|ui| {
                 ui.horizontal(|ui| {
                     show_teams(ui, &game_settings);
-                    show_server_settings(ui, &mut game_settings);
+                    SidePanel::right("Server settings").show_inside(ui, |ui| {
+                        show_server_settings(ui, &mut game_settings);
+                    })
                 });
-                if ui.button("Create").clicked() {
+                if ui.button("Start").clicked() {
                     app_state.replace(AppState::InGame).unwrap();
                 }
             })
@@ -94,32 +118,30 @@ fn create_game_menu_system(
 }
 
 fn show_server_settings(ui: &mut Ui, game_settings: &mut GameSettings) {
-    SidePanel::right("Server settings").show_inside(ui, |ui| {
-        let mut teams_enabled = game_settings.teams_count.is_some();
-        let mut teams_count = game_settings.teams_count.unwrap_or(0);
-        Grid::new("Server settings grid").show(ui, |ui| {
-            ui.heading("Settings");
-            ui.end_row();
-            ui.label("Map:");
-            ui.text_edit_singleline(&mut game_settings.map);
-            ui.end_row();
-            ui.checkbox(&mut teams_enabled, "Teams enabled");
-            ui.end_row();
-            ui.label("Teams count:");
-            ui.add_enabled(
-                teams_enabled,
-                DragValue::new(&mut teams_count).clamp_range(SLOTS_RANGE),
-            );
-            ui.end_row();
-            ui.label("Slots count:");
-            ui.add(DragValue::new(&mut game_settings.slots_count).clamp_range(TEAMS_RANGE));
-        });
-        game_settings.teams_count = if teams_enabled {
-            Some(teams_count)
-        } else {
-            None
-        };
+    let mut teams_enabled = game_settings.teams_count.is_some();
+    let mut teams_count = game_settings.teams_count.unwrap_or(0);
+    Grid::new("Server settings grid").show(ui, |ui| {
+        ui.heading("Settings");
+        ui.end_row();
+        ui.label("Map:");
+        ui.text_edit_singleline(&mut game_settings.map);
+        ui.end_row();
+        ui.checkbox(&mut teams_enabled, "Teams enabled");
+        ui.end_row();
+        ui.label("Teams count:");
+        ui.add_enabled(
+            teams_enabled,
+            DragValue::new(&mut teams_count).clamp_range(SLOTS_RANGE),
+        );
+        ui.end_row();
+        ui.label("Slots count:");
+        ui.add(DragValue::new(&mut game_settings.slots_count).clamp_range(TEAMS_RANGE));
     });
+    game_settings.teams_count = if teams_enabled {
+        Some(teams_count)
+    } else {
+        None
+    };
 }
 
 fn show_teams(ui: &mut Ui, game_settings: &GameSettings) {
