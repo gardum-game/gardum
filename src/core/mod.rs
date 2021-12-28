@@ -23,6 +23,7 @@ mod setup;
 
 use bevy::prelude::*;
 use heron::PhysicsLayer;
+use std::ops::RangeInclusive;
 
 use cli::CliPlugin;
 use setup::SetupPlugin;
@@ -75,11 +76,15 @@ pub struct GameSettings {
     pub slots_count: u8,
 }
 
+pub const TEAMS_RANGE: RangeInclusive<u8> = 2..=10;
+pub const SLOTS_RANGE: RangeInclusive<u8> = 2..=6;
+
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub enum AppState {
     MainMenu,
     CustomGameMenu,
     DirectConnectMenu,
+    CreateGameMenu,
     InGame,
 }
 
