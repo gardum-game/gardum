@@ -20,7 +20,7 @@
 
 use bevy::prelude::*;
 use bevy_egui::{
-    egui::{Align2, DragValue, Grid, SidePanel, Ui, Window},
+    egui::{Align2, DragValue, Grid, SidePanel, TextEdit, Ui, Window},
     EguiContext,
 };
 
@@ -63,14 +63,18 @@ fn custom_game_menu_system(
         .resizable(false)
         .show(egui.ctx(), |ui| {
             ui.horizontal(|ui| {
-                ui.text_edit_singleline(&mut search_text.0);
+                ui.add_enabled(
+                    false,
+                    TextEdit::singleline(&mut search_text.0).hint_text("Search servers"),
+                );
                 if ui.button("Connect").clicked() {
                     app_state.push(AppState::DirectConnectMenu).unwrap();
                 }
                 if ui.button("Create").clicked() {
                     app_state.push(AppState::CreateGameMenu).unwrap();
                 }
-            })
+            });
+            ui.add_space(400.0);
         });
 }
 
