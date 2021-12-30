@@ -20,11 +20,12 @@
 
 use bevy::prelude::*;
 use bevy_egui::{
-    egui::{Align2, DragValue, Grid, SidePanel, TextEdit, Ui, Window},
+    egui::{Align2, ComboBox, DragValue, Grid, SidePanel, TextEdit, Ui, Window},
     EguiContext,
 };
+use strum::IntoEnumIterator;
 
-use crate::core::{AppState, GameSettings, SLOTS_RANGE, TEAMS_RANGE};
+use crate::core::{gamemodes::GameMode, AppState, GameSettings};
 
 pub struct CustomGameMenuPlugin;
 
@@ -109,7 +110,7 @@ fn lobby_menu_system(
         .show(egui.ctx(), |ui| {
             ui.vertical_centered(|ui| {
                 ui.horizontal(|ui| {
-                    show_teams(ui, &game_settings);
+                    show_teams(ui, game_settings.game_mode);
                     SidePanel::right("Server settings").show_inside(ui, |ui| {
                         show_server_settings(ui, &mut game_settings);
                     })
@@ -122,52 +123,35 @@ fn lobby_menu_system(
 }
 
 fn show_server_settings(ui: &mut Ui, game_settings: &mut GameSettings) {
-    let mut teams_enabled = game_settings.teams_count.is_some();
-    let mut teams_count = game_settings.teams_count.unwrap_or(0);
     Grid::new("Server settings grid").show(ui, |ui| {
         ui.heading("Settings");
         ui.end_row();
-        ui.label("Map:");
-        ui.text_edit_singleline(&mut game_settings.map);
+        ui.label("Game name:");
+        ui.text_edit_singleline(&mut game_settings.game_name);
         ui.end_row();
-        ui.checkbox(&mut teams_enabled, "Teams enabled");
+        ui.label("Port:");
+        ui.add(DragValue::new(&mut game_settings.port));
         ui.end_row();
-        ui.label("Teams count:");
-        ui.add_enabled(
-            teams_enabled,
-            DragValue::new(&mut teams_count).clamp_range(SLOTS_RANGE),
-        );
-        ui.end_row();
-        ui.label("Slots count:");
-        ui.add(DragValue::new(&mut game_settings.slots_count).clamp_range(TEAMS_RANGE));
+        ui.label("GameMode:");
+        ComboBox::from_id_source("Game mode")
+            .selected_text(format!("{:?}", game_settings.game_mode))
+            .show_ui(ui, |ui| {
+                for game_mode in GameMode::iter() {
+                    ui.selectable_value(
+                        &mut game_settings.game_mode,
+                        game_mode,
+                        format!("{:?}", game_mode),
+                    );
+                }
+            });
     });
-    game_settings.teams_count = if teams_enabled {
-        Some(teams_count)
-    } else {
-        None
-    };
 }
 
-fn show_teams(ui: &mut Ui, game_settings: &GameSettings) {
-    ui.vertical(|ui| match game_settings.teams_count {
-        Some(teams_count) => {
-            for i in 0..teams_count {
-                ui.horizontal(|ui| {
-                    ui.heading(format!("Team {}", i + 1));
-                    if ui.button("Join").clicked() {
-                        unimplemented!()
-                    }
-                });
-                for _ in 0..game_settings.slots_count {
-                    ui.label("Empty slot");
-                }
-            }
-        }
-        None => {
-            ui.heading("Players");
-            for _ in 0..game_settings.slots_count {
-                ui.label("Empty slot");
-            }
+fn show_teams(ui: &mut Ui, game_mode: GameMode) {
+    ui.vertical(|ui| {
+        ui.heading("Players");
+        for _ in 0..game_mode.slots_count() {
+            ui.label("Empty slot");
         }
     });
 }

@@ -19,13 +19,14 @@
  */
 
 mod cli;
+pub mod gamemodes;
 mod setup;
 
 use bevy::prelude::*;
 use heron::PhysicsLayer;
-use std::ops::RangeInclusive;
 
 use cli::CliPlugin;
+use gamemodes::{GameMode, GamemodesPlugin};
 use setup::SetupPlugin;
 
 pub struct CorePlugin;
@@ -35,6 +36,7 @@ impl Plugin for CorePlugin {
         app.add_state(AppState::MainMenu)
             .init_resource::<GameSettings>()
             .add_plugin(CliPlugin)
+            .add_plugin(GamemodesPlugin)
             .add_plugin(SetupPlugin);
     }
 }
@@ -69,15 +71,21 @@ pub struct Healing(pub usize);
 /// Used to store reference to the player
 pub struct Player(pub Entity);
 
-#[derive(Default)]
 pub struct GameSettings {
-    pub map: String,
-    pub teams_count: Option<u8>,
-    pub slots_count: u8,
+    pub game_name: String,
+    pub port: u16,
+    pub game_mode: GameMode,
 }
 
-pub const TEAMS_RANGE: RangeInclusive<u8> = 2..=10;
-pub const SLOTS_RANGE: RangeInclusive<u8> = 2..=6;
+impl Default for GameSettings {
+    fn default() -> Self {
+        Self {
+            game_name: "My game".to_string(),
+            port: 4761,
+            game_mode: GameMode::Deathmatch,
+        }
+    }
+}
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub enum AppState {
