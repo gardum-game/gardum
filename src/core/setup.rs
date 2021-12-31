@@ -21,10 +21,11 @@
 use bevy::prelude::*;
 use heron::{CollisionShape, RigidBody};
 
-use crate::characters::heroes::{HeroKind, HeroSpawnEvent};
-use crate::core::{cli::Opts, AppState};
-
-use super::{Authority, PlayerBundle};
+use super::Authority;
+use crate::{
+    characters::heroes::{HeroKind, HeroSpawnEvent},
+    core::{cli::Opts, AppState},
+};
 
 pub struct SetupPlugin;
 
@@ -45,6 +46,7 @@ fn start_session_system(opts: Res<Opts>, mut app_state: ResMut<State<AppState>>)
 
 fn create_world_system(
     mut commands: Commands,
+    player_query: Query<Entity, With<Authority>>,
     mut hero_spawn_events: EventWriter<HeroSpawnEvent>,
     #[cfg(not(feature = "headless"))] mut meshes: ResMut<Assets<Mesh>>,
     #[cfg(not(feature = "headless"))] mut materials: ResMut<Assets<StandardMaterial>>,
@@ -71,12 +73,8 @@ fn create_world_system(
         ..Default::default()
     });
 
-    let player = commands
-        .spawn_bundle(PlayerBundle::default())
-        .insert(Authority)
-        .id();
     hero_spawn_events.send(HeroSpawnEvent {
-        player,
+        player: player_query.single().unwrap(),
         kind: HeroKind::North,
         transform: Transform::from_translation(Vec3::new(5.0, 15.0, 5.0)),
     })

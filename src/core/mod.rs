@@ -20,6 +20,7 @@
 
 mod cli;
 pub mod gamemodes;
+pub mod player;
 mod setup;
 
 use bevy::prelude::*;
@@ -27,6 +28,7 @@ use heron::PhysicsLayer;
 
 use cli::CliPlugin;
 use gamemodes::{GameMode, GamemodesPlugin};
+use player::PlayerPlugin;
 use setup::SetupPlugin;
 
 pub struct CorePlugin;
@@ -36,6 +38,7 @@ impl Plugin for CorePlugin {
         app.add_state(AppState::MainMenu)
             .init_resource::<GameSettings>()
             .add_plugin(CliPlugin)
+            .add_plugin(PlayerPlugin)
             .add_plugin(GamemodesPlugin)
             .add_plugin(SetupPlugin);
     }
@@ -43,33 +46,6 @@ impl Plugin for CorePlugin {
 
 #[derive(Default)]
 pub struct Authority;
-
-#[derive(Default, Bundle)]
-pub struct PlayerBundle {
-    kills: Kills,
-    deaths: Deaths,
-    damage: Damage,
-    healing: Healing,
-}
-
-/// Used to keep statistics of the number of kills
-#[derive(Default, Debug, PartialEq)]
-pub struct Kills(pub usize);
-
-/// Used to keep statistics of the number of deaths
-#[derive(Default, Debug, PartialEq)]
-pub struct Deaths(pub usize);
-
-/// Used to keep statistics of the damage done
-#[derive(Default, Debug, PartialEq)]
-pub struct Damage(pub usize);
-
-/// Used to keep statistics of the healing done
-#[derive(Default, Debug, PartialEq)]
-pub struct Healing(pub usize);
-
-/// Used to store reference to the player
-pub struct Player(pub Entity);
 
 pub struct GameSettings {
     pub game_name: String,

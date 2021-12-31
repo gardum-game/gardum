@@ -20,7 +20,10 @@
 
 use bevy::prelude::*;
 
-use crate::core::{AppState, Damage, Deaths, Healing, Kills, Player};
+use crate::core::{
+    player::{Damage, Deaths, Healing, Kills, Player},
+    AppState,
+};
 
 pub struct HealthPlugin;
 

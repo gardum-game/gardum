@@ -24,7 +24,7 @@ use bevy::prelude::*;
 use strum::EnumIter;
 
 use super::{ability::Abilities, CharacterBundle};
-use crate::core::{AppState, Authority, Player};
+use crate::core::{player::Player, AppState, Authority};
 use north::NorthPlugin;
 
 pub struct HeroesPlugin;

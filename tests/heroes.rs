@@ -27,7 +27,7 @@ use gardum::{
         heroes::{HeroKind, HeroSpawnEvent, HeroesPlugin},
         projectile::ProjectileHitEvent,
     },
-    core::{AppState, Authority, Player},
+    core::{player::Player, AppState, Authority},
 };
 
 use strum::IntoEnumIterator;
