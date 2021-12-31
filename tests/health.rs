@@ -23,7 +23,7 @@ use bevy::{app::Events, prelude::*};
 use gardum::{
     characters::health::{DamageEvent, HealEvent, Health, HealthPlugin},
     core::{
-        player::{Damage, Deaths, Healing, Kills, Player, PlayerBundle},
+        player::{Damage, Deaths, Healing, Kills, PlayerBundle, PlayerOwner},
         AppState,
     },
 };
@@ -40,7 +40,7 @@ fn healing() {
         .world
         .spawn()
         .insert(Health::default())
-        .insert(Player(target_player))
+        .insert(PlayerOwner(target_player))
         .id();
 
     let instigator_player = app
@@ -48,7 +48,11 @@ fn healing() {
         .spawn()
         .insert_bundle(PlayerBundle::default())
         .id();
-    let instigator = app.world.spawn().insert(Player(instigator_player)).id();
+    let instigator = app
+        .world
+        .spawn()
+        .insert(PlayerOwner(instigator_player))
+        .id();
 
     for (initial_health, heal, expected_healing, expected_health) in [
         (90, 5, 5, 95),
@@ -96,7 +100,7 @@ fn damaging() {
         .world
         .spawn()
         .insert(Health::default())
-        .insert(Player(target_player))
+        .insert(PlayerOwner(target_player))
         .id();
 
     let instigator_player = app
@@ -104,7 +108,11 @@ fn damaging() {
         .spawn()
         .insert_bundle(PlayerBundle::default())
         .id();
-    let instigator = app.world.spawn().insert(Player(instigator_player)).id();
+    let instigator = app
+        .world
+        .spawn()
+        .insert(PlayerOwner(instigator_player))
+        .id();
 
     for (initial_health, damage, expected_damage, expected_health) in [
         (90, 5, 5, 85),
@@ -172,7 +180,7 @@ fn self_damaging() {
         .world
         .spawn()
         .insert(Health::default())
-        .insert(Player(target_player))
+        .insert(PlayerOwner(target_player))
         .id();
 
     let mut events = app.world.get_resource_mut::<Events<DamageEvent>>().unwrap();

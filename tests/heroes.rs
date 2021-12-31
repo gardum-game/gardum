@@ -27,7 +27,7 @@ use gardum::{
         heroes::{HeroKind, HeroSpawnEvent, HeroesPlugin},
         projectile::ProjectileHitEvent,
     },
-    core::{player::Player, AppState, Authority},
+    core::{player::PlayerOwner, AppState, Authority},
 };
 
 use strum::IntoEnumIterator;
@@ -52,7 +52,7 @@ fn hero_spawns_with_authority() {
 
     let mut query = app
         .world
-        .query_filtered::<&Player, (With<Authority>, With<HeroKind>)>();
+        .query_filtered::<&PlayerOwner, (With<Authority>, With<HeroKind>)>();
     let assigned_player = query
         .iter(&app.world)
         .next()
@@ -83,7 +83,7 @@ fn hero_spawns_without_authority() {
 
     let mut query = app
         .world
-        .query_filtered::<&Player, (Without<Authority>, With<HeroKind>)>();
+        .query_filtered::<&PlayerOwner, (Without<Authority>, With<HeroKind>)>();
     let assigned_player = query
         .iter(&app.world)
         .next()

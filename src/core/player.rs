@@ -70,4 +70,4 @@ pub struct Damage(pub usize);
 pub struct Healing(pub usize);
 
 /// Used to store reference to the player
-pub struct Player(pub Entity);
+pub struct PlayerOwner(pub Entity);
