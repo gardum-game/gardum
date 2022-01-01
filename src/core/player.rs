@@ -41,17 +41,25 @@ fn create_server_player_from_opts(commands: Commands, opts: Res<Opts>) {
 
 fn create_server_player(mut commands: Commands) {
     commands
-        .spawn_bundle(PlayerBundle::default())
+        .spawn_bundle(PlayerBundle {
+            nickname: Nickname("New player".to_string()),
+            ..Default::default()
+        })
         .insert(Authority);
 }
 
 #[derive(Default, Bundle)]
 pub struct PlayerBundle {
+    nickname: Nickname,
     kills: Kills,
     deaths: Deaths,
     damage: Damage,
     healing: Healing,
 }
+
+/// Stores player name
+#[derive(Default)]
+pub struct Nickname(pub String);
 
 /// Used to keep statistics of the number of kills
 #[derive(Default, Debug, PartialEq)]

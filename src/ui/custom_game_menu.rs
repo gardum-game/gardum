@@ -25,7 +25,7 @@ use bevy_egui::{
 };
 use strum::IntoEnumIterator;
 
-use crate::core::{gamemodes::GameMode, AppState, GameSettings};
+use crate::core::{gamemodes::GameMode, player::Nickname, AppState, GameSettings};
 
 pub struct CustomGameMenuPlugin;
 
@@ -100,6 +100,7 @@ fn create_game_menu_system(
 
 fn lobby_menu_system(
     egui: ResMut<EguiContext>,
+    nicknames_query: Query<&Nickname>,
     mut game_settings: ResMut<GameSettings>,
     mut app_state: ResMut<State<AppState>>,
 ) {
@@ -110,7 +111,11 @@ fn lobby_menu_system(
         .show(egui.ctx(), |ui| {
             ui.vertical_centered(|ui| {
                 ui.horizontal(|ui| {
-                    show_teams(ui, game_settings.game_mode);
+                    show_teams(
+                        ui,
+                        game_settings.game_mode,
+                        nicknames_query.iter().collect(),
+                    );
                     SidePanel::right("Server settings").show_inside(ui, |ui| {
                         show_server_settings(ui, &mut game_settings);
                     })
@@ -147,11 +152,15 @@ fn show_server_settings(ui: &mut Ui, game_settings: &mut GameSettings) {
     });
 }
 
-fn show_teams(ui: &mut Ui, game_mode: GameMode) {
+fn show_teams(ui: &mut Ui, game_mode: GameMode, nicknames: Vec<&Nickname>) {
     ui.vertical(|ui| {
         ui.heading("Players");
-        for _ in 0..game_mode.slots_count() {
-            ui.label("Empty slot");
+        for i in 0..game_mode.slots_count() {
+            if let Some(nickname) = nicknames.get(i as usize) {
+                ui.label(nickname.0.clone());
+            } else {
+                ui.label("Empty slot");
+            }
         }
     });
 }
