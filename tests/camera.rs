@@ -44,7 +44,7 @@ fn camera_input() {
     app.update();
 
     let mut query = app.world.query::<&OrbitRotation>();
-    let orbit_rotation = query.iter(&mut app.world).next().unwrap();
+    let orbit_rotation = query.iter(&mut app.world).next().unwrap(); // TODO 0.6: Use single
     assert_ne!(
         *orbit_rotation,
         OrbitRotation::default(),
