@@ -20,7 +20,7 @@
 
 use bevy::{app::AppExit, prelude::*};
 use bevy_egui::{
-    egui::{Align2, Area, Button, TextStyle},
+    egui::{Align2, Area, Button, RichText, TextStyle},
     EguiContext,
 };
 
@@ -45,23 +45,30 @@ fn main_menu_system(
     Area::new("Main Menu")
         .anchor(Align2::LEFT_CENTER, (MENU_MARGIN, 0.0))
         .show(egui.ctx(), |ui| {
-            ui.add_enabled(false, Button::new("Play").text_style(TextStyle::Heading));
+            ui.add_enabled(
+                false,
+                Button::new(RichText::new("Play").text_style(TextStyle::Heading)),
+            );
             if ui
-                .add(Button::new("Custom game").text_style(TextStyle::Heading))
+                .add(Button::new(
+                    RichText::new("Custom game").text_style(TextStyle::Heading),
+                ))
                 .clicked()
             {
                 app_state.push(AppState::CustomGameMenu).unwrap();
             }
             ui.add_enabled(
                 false,
-                Button::new("Characters").text_style(TextStyle::Heading),
+                Button::new(RichText::new("Characters").text_style(TextStyle::Heading)),
             );
             ui.add_enabled(
                 false,
-                Button::new("Settings").text_style(TextStyle::Heading),
+                Button::new(RichText::new("Settings").text_style(TextStyle::Heading)),
             );
             if ui
-                .add(Button::new("Exit").text_style(TextStyle::Heading))
+                .add(Button::new(
+                    RichText::new("Exit").text_style(TextStyle::Heading),
+                ))
                 .clicked()
             {
                 exit_event.send(AppExit);
