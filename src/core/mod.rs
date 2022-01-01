@@ -18,7 +18,7 @@
  *
  */
 
-mod cli;
+pub mod cli;
 pub mod gamemodes;
 pub mod player;
 mod setup;

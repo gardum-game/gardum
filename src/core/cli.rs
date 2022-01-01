@@ -29,7 +29,7 @@ impl Plugin for CliPlugin {
     }
 }
 
-#[derive(Clap)]
+#[derive(Clap, Default)]
 pub struct Opts {
     #[clap(subcommand)]
     pub subcommand: Option<SubCommand>,
