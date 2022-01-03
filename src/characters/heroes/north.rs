@@ -30,7 +30,7 @@ use crate::{
         projectile::{ProjectileBundle, ProjectileHitEvent},
         Character, CharacterBundle,
     },
-    core::AppState,
+    core::{player::PlayerOwner, AppState},
 };
 
 const PROJECTILE_SPEED: f32 = 20.0;
@@ -117,14 +117,16 @@ pub struct FrostBoltProjectile;
 
 impl HeroBundle {
     pub fn north(
-        commands: &mut Commands,
+        player: PlayerOwner,
         transform: Transform,
+        commands: &mut Commands,
         #[cfg(not(feature = "headless"))] meshes: &mut Assets<Mesh>,
         #[cfg(not(feature = "headless"))] materials: &mut Assets<StandardMaterial>,
     ) -> Self {
         Self {
-            abilities: Abilities(vec![commands.spawn_bundle(FrostBoltBundle::default()).id()]),
+            player,
             kind: HeroKind::North,
+            abilities: Abilities(vec![commands.spawn_bundle(FrostBoltBundle::default()).id()]),
             character: CharacterBundle {
                 pbr: PbrBundle {
                     #[cfg(not(feature = "headless"))]

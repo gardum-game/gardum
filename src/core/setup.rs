@@ -21,9 +21,9 @@
 use bevy::prelude::*;
 use heron::{CollisionShape, RigidBody};
 
-use super::Authority;
+use super::{player::PlayerOwner, Authority};
 use crate::{
-    characters::heroes::{HeroKind, HeroSpawnEvent},
+    characters::heroes::{HeroBundle, HeroKind},
     core::{cli::Opts, AppState},
 };
 
@@ -47,7 +47,6 @@ fn start_session_system(opts: Res<Opts>, mut app_state: ResMut<State<AppState>>)
 fn create_world_system(
     mut commands: Commands,
     player_query: Query<Entity, With<Authority>>,
-    mut hero_spawn_events: EventWriter<HeroSpawnEvent>,
     #[cfg(not(feature = "headless"))] mut meshes: ResMut<Assets<Mesh>>,
     #[cfg(not(feature = "headless"))] mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
@@ -73,9 +72,15 @@ fn create_world_system(
         ..Default::default()
     });
 
-    hero_spawn_events.send(HeroSpawnEvent {
-        player: player_query.single().unwrap(),
-        kind: HeroKind::North,
-        transform: Transform::from_translation(Vec3::new(5.0, 15.0, 5.0)),
-    })
+    let hero_bundle = HeroBundle::hero(
+        PlayerOwner(player_query.single().unwrap()),
+        HeroKind::North,
+        Transform::from_translation(Vec3::new(5.0, 15.0, 5.0)),
+        &mut commands,
+        #[cfg(not(feature = "headless"))]
+        &mut meshes,
+        #[cfg(not(feature = "headless"))]
+        &mut materials,
+    );
+    commands.spawn_bundle(hero_bundle).insert(Authority);
 }
