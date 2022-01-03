@@ -35,7 +35,7 @@ use crate::{
 
 const PROJECTILE_SPEED: f32 = 20.0;
 pub const FROST_BOLT_SPAWN_OFFSET: f32 = 4.0;
-pub const FROST_BOLT_DAMAGE: usize = 20;
+pub const FROST_BOLT_DAMAGE: u32 = 20;
 
 pub struct NorthPlugin;
 

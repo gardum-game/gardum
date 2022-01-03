@@ -63,19 +63,19 @@ pub struct Nickname(pub String);
 
 /// Used to keep statistics of the number of kills
 #[derive(Default, Debug, PartialEq)]
-pub struct Kills(pub usize);
+pub struct Kills(pub u32);
 
 /// Used to keep statistics of the number of deaths
 #[derive(Default, Debug, PartialEq)]
-pub struct Deaths(pub usize);
+pub struct Deaths(pub u32);
 
 /// Used to keep statistics of the damage done
 #[derive(Default, Debug, PartialEq)]
-pub struct Damage(pub usize);
+pub struct Damage(pub u32);
 
 /// Used to keep statistics of the healing done
 #[derive(Default, Debug, PartialEq)]
-pub struct Healing(pub usize);
+pub struct Healing(pub u32);
 
 /// Used to store reference to the player
 pub struct PlayerOwner(pub Entity);

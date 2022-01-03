@@ -92,8 +92,8 @@ fn damage_system(
 
 #[derive(Debug, PartialEq)]
 pub struct Health {
-    pub current: usize,
-    pub max: usize,
+    pub current: u32,
+    pub max: u32,
 }
 
 impl Default for Health {
@@ -108,11 +108,11 @@ impl Default for Health {
 pub struct HealEvent {
     pub instigator: Entity,
     pub target: Entity,
-    pub heal: usize,
+    pub heal: u32,
 }
 
 pub struct DamageEvent {
     pub instigator: Entity,
     pub target: Entity,
-    pub damage: usize,
+    pub damage: u32,
 }

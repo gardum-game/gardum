@@ -168,7 +168,7 @@ fn damaging() {
 
 #[test]
 fn self_damaging() {
-    let damage: usize = Health::default().max;
+    let damage = Health::default().max;
 
     let mut app = setup_app();
     let target_player = app
