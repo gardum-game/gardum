@@ -24,7 +24,7 @@ use bevy_egui::{
     EguiContext,
 };
 
-use crate::{core::AppState, ui::MENU_MARGIN};
+use crate::{core::AppState, ui::UI_MARGIN};
 
 pub struct BackButtonPlugin;
 
@@ -47,7 +47,7 @@ fn back_button_system(
     mut app_state: ResMut<State<AppState>>,
 ) {
     Area::new("Back area")
-        .anchor(Align2::LEFT_BOTTOM, (MENU_MARGIN, -MENU_MARGIN))
+        .anchor(Align2::LEFT_BOTTOM, (UI_MARGIN, -UI_MARGIN))
         .show(egui.ctx(), |ui| {
             if input.just_pressed(KeyCode::Escape) || ui.button("Back").clicked() {
                 app_state.pop().unwrap();

@@ -24,7 +24,7 @@ use bevy_egui::{
     EguiContext,
 };
 
-use crate::{core::AppState, ui::MENU_MARGIN};
+use crate::{core::AppState, ui::UI_MARGIN};
 
 pub struct MainMenuPlugin;
 
@@ -42,7 +42,7 @@ fn main_menu_system(
     mut app_state: ResMut<State<AppState>>,
 ) {
     Area::new("Main Menu")
-        .anchor(Align2::LEFT_CENTER, (MENU_MARGIN, 0.0))
+        .anchor(Align2::LEFT_CENTER, (UI_MARGIN, 0.0))
         .show(egui.ctx(), |ui| {
             ui.add_enabled(
                 false,

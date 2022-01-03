@@ -26,7 +26,7 @@ use bevy_egui::{
     EguiContext,
 };
 
-use super::MENU_MARGIN;
+use super::UI_MARGIN;
 use crate::{
     characters::health::Health,
     core::{AppState, Authority},
@@ -45,7 +45,7 @@ impl Plugin for HudPlugin {
 
 fn health_and_abilities(health_query: Query<&Health, With<Authority>>, egui: ResMut<EguiContext>) {
     Area::new("Health and abilities")
-        .anchor(Align2::CENTER_BOTTOM, (0.0, -MENU_MARGIN))
+        .anchor(Align2::CENTER_BOTTOM, (0.0, -UI_MARGIN))
         .show(egui.ctx(), |ui| {
             ui.set_width(300.0);
             let health = health_query.single().unwrap();

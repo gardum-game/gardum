@@ -28,7 +28,7 @@ use cursor::CursorPlugin;
 use hud::HudPlugin;
 use menu::MenuPlugin;
 
-pub const MENU_MARGIN: f32 = 20.0;
+pub const UI_MARGIN: f32 = 20.0;
 
 pub struct UiPlugin;
 
