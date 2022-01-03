@@ -24,8 +24,7 @@ use bevy_egui::{
     EguiContext,
 };
 
-use super::MENU_MARGIN;
-use crate::core::AppState;
+use crate::{core::AppState, ui::MENU_MARGIN};
 
 pub struct MainMenuPlugin;
 

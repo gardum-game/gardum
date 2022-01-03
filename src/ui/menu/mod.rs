@@ -18,34 +18,25 @@
  *
  */
 
+mod back_button;
+mod custom_game_menu;
+mod ingame_menu;
+mod main_menu;
+
 use bevy::prelude::*;
-use bevy_egui::{
-    egui::{Align2, Area},
-    EguiContext,
-};
 
-use super::{health_bar::HealthBar, MENU_MARGIN};
-use crate::{
-    characters::health::Health,
-    core::{AppState, Authority},
-};
+use back_button::BackButtonPlugin;
+use custom_game_menu::CustomGameMenuPlugin;
+use ingame_menu::InGameMenuPlugin;
+use main_menu::MainMenuPlugin;
 
-pub struct HudPlugin;
+pub struct MenuPlugin;
 
-impl Plugin for HudPlugin {
+impl Plugin for MenuPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.add_system_set(
-            SystemSet::on_update(AppState::InGame).with_system(health_and_abilities.system()),
-        );
+        app.add_plugin(MainMenuPlugin)
+            .add_plugin(CustomGameMenuPlugin)
+            .add_plugin(BackButtonPlugin)
+            .add_plugin(InGameMenuPlugin);
     }
-}
-
-fn health_and_abilities(health_query: Query<&Health, With<Authority>>, egui: ResMut<EguiContext>) {
-    Area::new("Health and abilities")
-        .anchor(Align2::CENTER_BOTTOM, (0.0, -MENU_MARGIN))
-        .show(egui.ctx(), |ui| {
-            ui.set_width(300.0);
-            let health = health_query.single().unwrap();
-            ui.add(HealthBar::new(health.current, health.max));
-        });
 }
