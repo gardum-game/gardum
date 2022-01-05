@@ -40,7 +40,11 @@ impl Widget for HealthBar {
         let height = ui.spacing().interact_size.y;
         let (outer_rect, response) = ui.allocate_exact_size(
             vec2(ui.available_size_before_wrap().x, height),
-            Sense::hover(),
+            Sense {
+                click: false,
+                drag: false,
+                focusable: false,
+            },
         );
 
         let visuals = ui.style().visuals.clone();
