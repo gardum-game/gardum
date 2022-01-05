@@ -30,7 +30,7 @@ use gardum::{
             FROST_BOLT_SPAWN_OFFSET,
         },
         projectile::{Projectile, ProjectileHitEvent},
-        Character,
+        CharacterOwner,
     },
     core::AppState,
 };
@@ -103,7 +103,7 @@ fn frost_bolt_hit() {
         .world
         .spawn()
         .insert(FrostBoltProjectile)
-        .insert(Character(instigator))
+        .insert(CharacterOwner(instigator))
         .id();
     let target = app.world.spawn().id();
 

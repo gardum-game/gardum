@@ -84,4 +84,4 @@ impl Default for CharacterBundle {
 }
 
 /// Used to store reference to the character
-pub struct Character(pub Entity);
+pub struct CharacterOwner(pub Entity);

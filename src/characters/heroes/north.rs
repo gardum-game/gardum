@@ -28,7 +28,7 @@ use crate::{
         cooldown::Cooldown,
         health::DamageEvent,
         projectile::{ProjectileBundle, ProjectileHitEvent},
-        Character, CharacterBundle,
+        CharacterBundle, CharacterOwner,
     },
     core::{player::PlayerOwner, AppState},
 };
@@ -75,14 +75,14 @@ fn frost_bolt_system(
                 &mut materials,
             ))
             .insert(FrostBoltProjectile)
-            .insert(Character(event.caster));
+            .insert(CharacterOwner(event.caster));
     }
 }
 
 fn frost_bolt_hit_system(
     mut hit_events: EventReader<ProjectileHitEvent>,
     mut damage_events: EventWriter<DamageEvent>,
-    query: Query<&Character, With<FrostBoltProjectile>>,
+    query: Query<&CharacterOwner, With<FrostBoltProjectile>>,
 ) {
     for event in hit_events.iter() {
         if let Ok(character) = query.get(event.projectile) {
