@@ -47,7 +47,7 @@ impl Widget for HealthBar {
             },
         );
 
-        let visuals = ui.style().visuals.clone();
+        let visuals = &ui.style().visuals;
         ui.painter()
             .rect(outer_rect, 0.0, visuals.extreme_bg_color, Stroke::none());
 
