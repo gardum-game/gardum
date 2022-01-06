@@ -24,6 +24,7 @@ pub mod player;
 mod setup;
 
 use bevy::prelude::*;
+use derive_more::From;
 use heron::PhysicsLayer;
 
 use cli::CliPlugin;
@@ -79,3 +80,7 @@ pub enum CollisionLayer {
     Character,
     Projectile,
 }
+
+/// Path to icon resource.
+#[derive(From)]
+pub struct IconPath(pub &'static str);

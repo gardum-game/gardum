@@ -30,7 +30,7 @@ use crate::{
         projectile::{ProjectileBundle, ProjectileHitEvent},
         CharacterBundle, CharacterOwner,
     },
-    core::{player::PlayerOwner, AppState},
+    core::{player::PlayerOwner, AppState, IconPath},
 };
 
 const PROJECTILE_SPEED: f32 = 20.0;
@@ -98,6 +98,7 @@ fn frost_bolt_hit_system(
 #[derive(Bundle)]
 pub struct FrostBoltBundle {
     pub kind: FrostBoltAbility,
+    pub icon: IconPath,
     pub slot: AbilitySlot,
     pub cooldown: Cooldown,
 }
@@ -106,6 +107,7 @@ impl Default for FrostBoltBundle {
     fn default() -> Self {
         Self {
             kind: FrostBoltAbility,
+            icon: "charaters/heroes/north/frost_bolt.png".into(),
             slot: AbilitySlot::BaseAttack,
             cooldown: Cooldown::from_secs(4),
         }
