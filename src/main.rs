@@ -19,22 +19,29 @@
  */
 
 use bevy::prelude::*;
+#[cfg(feature = "client")]
 use bevy_atmosphere::AtmospherePlugin;
+#[cfg(feature = "client")]
 use bevy_egui::EguiPlugin;
 use heron::PhysicsPlugin;
 
 use gardum::characters::CharactersPlugin;
 use gardum::core::CorePlugin;
+#[cfg(feature = "client")]
 use gardum::ui::UiPlugin;
 
 fn main() {
-    App::build()
-        .add_plugins(DefaultPlugins)
-        .add_plugin(AtmospherePlugin { dynamic: false })
+    let mut app = App::build();
+
+    app.add_plugins(DefaultPlugins)
         .add_plugin(PhysicsPlugin::default())
-        .add_plugin(EguiPlugin)
         .add_plugin(CorePlugin)
-        .add_plugin(UiPlugin)
-        .add_plugin(CharactersPlugin)
-        .run();
+        .add_plugin(CharactersPlugin);
+
+    #[cfg(feature = "client")]
+    app.add_plugin(AtmospherePlugin { dynamic: false })
+        .add_plugin(EguiPlugin)
+        .add_plugin(UiPlugin);
+
+    app.run();
 }

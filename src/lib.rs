@@ -22,4 +22,5 @@
 
 pub mod characters;
 pub mod core;
+#[cfg(feature = "client")]
 pub mod ui;

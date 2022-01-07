@@ -51,17 +51,17 @@ impl HeroBundle {
         kind: HeroKind,
         transform: Transform,
         commands: &mut Commands,
-        #[cfg(not(feature = "headless"))] meshes: &mut ResMut<Assets<Mesh>>,
-        #[cfg(not(feature = "headless"))] materials: &mut ResMut<Assets<StandardMaterial>>,
+        #[cfg(feature = "client")] meshes: &mut ResMut<Assets<Mesh>>,
+        #[cfg(feature = "client")] materials: &mut ResMut<Assets<StandardMaterial>>,
     ) -> Self {
         match kind {
             HeroKind::North => HeroBundle::north(
                 player,
                 transform,
                 commands,
-                #[cfg(not(feature = "headless"))]
+                #[cfg(feature = "client")]
                 meshes,
-                #[cfg(not(feature = "headless"))]
+                #[cfg(feature = "client")]
                 materials,
             ),
         }
