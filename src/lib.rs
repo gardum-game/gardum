@@ -24,3 +24,36 @@ pub mod characters;
 pub mod core;
 #[cfg(feature = "client")]
 pub mod ui;
+
+use bevy::prelude::*;
+#[cfg(feature = "client")]
+use bevy_atmosphere::AtmospherePlugin;
+#[cfg(feature = "client")]
+use bevy_egui::EguiPlugin;
+use heron::PhysicsPlugin;
+
+use crate::characters::CharactersPlugin;
+use crate::core::CorePlugin;
+#[cfg(feature = "client")]
+use crate::ui::UiPlugin;
+
+pub struct GardumPlugin;
+
+impl Plugin for GardumPlugin {
+    fn build(&self, app: &mut AppBuilder) {
+        if cfg!(feature = "client") {
+            app.add_plugins(DefaultPlugins);
+        } else {
+            app.add_plugins(MinimalPlugins);
+        }
+
+        app.add_plugin(PhysicsPlugin::default())
+            .add_plugin(CorePlugin)
+            .add_plugin(CharactersPlugin);
+
+        #[cfg(feature = "client")]
+        app.add_plugin(AtmospherePlugin { dynamic: false })
+            .add_plugin(EguiPlugin)
+            .add_plugin(UiPlugin);
+    }
+}
