@@ -21,13 +21,10 @@ jobs:
       - name: Clone repo
         uses: actions/checkout@v2
 
-      - name: Cache crates
-        uses: Swatinem/rust-cache@v1
-
       - name: Test
         uses: actions-rs/tarpaulin@v0.1
         with:
-          args: --ignore-tests --skip-clean
+          args: --ignore-tests
 
       - name: Upload code coverage results
         uses: actions/upload-artifact@v2
