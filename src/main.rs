@@ -30,6 +30,7 @@ use gardum::core::CorePlugin;
 #[cfg(feature = "client")]
 use gardum::ui::UiPlugin;
 
+#[cfg(not(tarpaulin_include))]
 fn main() {
     let mut app = App::build();
 
