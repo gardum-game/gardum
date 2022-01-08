@@ -19,35 +19,18 @@
  */
 
 use bevy::prelude::*;
-use clap::Clap;
 
-pub struct CliPlugin;
+use gardum::GardumPlugin;
 
-impl Plugin for CliPlugin {
-    fn build(&self, app: &mut AppBuilder) {
-        if cfg!(tarpaulin) {
-            // Dont parse command line when tarpaulin is used
-            app.init_resource::<Opts>();
-        } else {
-            app.insert_resource(Opts::parse());
-        }
-    }
+#[test]
+fn update() {
+    let mut app = setup_app();
+    app.update();
 }
 
-#[derive(Clap, Default)]
-pub struct Opts {
-    #[clap(subcommand)]
-    pub subcommand: Option<SubCommand>,
+fn setup_app() -> App {
+    let mut app_builder = App::build();
+    app_builder.add_plugin(GardumPlugin);
+
+    app_builder.app
 }
-
-#[derive(Clap)]
-pub enum SubCommand {
-    Connect(ConnectSubcommand),
-    Host(HostSubcommand),
-}
-
-#[derive(Clap)]
-pub struct ConnectSubcommand {}
-
-#[derive(Clap)]
-pub struct HostSubcommand {}
