@@ -21,9 +21,9 @@
 use bevy::prelude::*;
 use heron::{CollisionShape, RigidBody};
 
-use super::{player::PlayerOwner, Authority};
+use super::Authority;
 use crate::{
-    characters::heroes::{HeroBundle, HeroKind},
+    characters::heroes::{HeroKind, HeroSelectEvent},
     core::{cli::Opts, AppState},
 };
 
@@ -47,6 +47,7 @@ fn start_session_system(opts: Res<Opts>, mut app_state: ResMut<State<AppState>>)
 fn create_world_system(
     mut commands: Commands,
     player_query: Query<Entity, With<Authority>>,
+    mut hero_spawn_events: EventWriter<HeroSelectEvent>,
     #[cfg(feature = "client")] mut meshes: ResMut<Assets<Mesh>>,
     #[cfg(feature = "client")] mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
@@ -72,15 +73,9 @@ fn create_world_system(
         ..Default::default()
     });
 
-    let hero_bundle = HeroBundle::hero(
-        PlayerOwner(player_query.single().unwrap()),
-        HeroKind::North,
-        Transform::from_translation(Vec3::new(5.0, 15.0, 5.0)),
-        &mut commands,
-        #[cfg(feature = "client")]
-        &mut meshes,
-        #[cfg(feature = "client")]
-        &mut materials,
-    );
-    commands.spawn_bundle(hero_bundle).insert(Authority);
+    hero_spawn_events.send(HeroSelectEvent {
+        player: player_query.single().unwrap(),
+        kind: HeroKind::North,
+        transform: Transform::from_translation(Vec3::new(5.0, 15.0, 5.0)),
+    })
 }

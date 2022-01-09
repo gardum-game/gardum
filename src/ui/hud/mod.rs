@@ -55,11 +55,15 @@ fn health_and_abilities_system(
     ability_query: Query<&Cooldown>,
     egui: ResMut<EguiContext>,
 ) {
+    let (abilities, health) = match hero_query.single() {
+        Ok(result) => result,
+        Err(_) => return,
+    };
+
     Area::new("Health and abilities")
         .anchor(Align2::CENTER_BOTTOM, (0.0, -UI_MARGIN))
         .show(egui.ctx(), |ui| {
             ui.set_width(300.0);
-            let (abilities, health) = hero_query.single().unwrap();
             ui.add(HealthBar::new(health.current, health.max));
             ui.horizontal(|ui| {
                 for (slot, ability) in abilities.iter().enumerate() {
