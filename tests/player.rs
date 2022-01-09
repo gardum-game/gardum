@@ -20,11 +20,37 @@
 
 use bevy::prelude::*;
 
-use gardum::core::{
-    cli::{HostSubcommand, Opts, SubCommand},
-    player::PlayerPlugin,
-    AppState, Authority,
+use gardum::{
+    characters::heroes::PlayerOwner,
+    core::{
+        cli::{HostSubcommand, Opts, SubCommand},
+        player::{PlayerBundle, PlayerHero, PlayerPlugin},
+        AppState, Authority,
+    },
 };
+
+#[test]
+fn player_hero_updates() {
+    let mut app = setup_app();
+    let player = app
+        .world
+        .spawn()
+        .insert_bundle(PlayerBundle::default())
+        .id();
+    let hero = app.world.spawn().insert(PlayerOwner(player)).id();
+
+    app.update();
+
+    let mut query = app.world.query::<&PlayerHero>();
+    let player_hero = query
+        .iter(&mut app.world)
+        .next()
+        .expect("Player component should be spawned"); // TODO 0.6: Use single and remove mutability
+    assert_eq!(
+        player_hero.0, hero,
+        "Player's hero should reference to the spawned hero"
+    );
+}
 
 #[test]
 fn server_player_spawns_in_lobby() {
@@ -50,6 +76,15 @@ fn server_player_spawns_with_host_command() {
         .expect("Player component should be spawned"); // TODO 0.6: Use single and remove mutability
 }
 
+fn setup_app() -> App {
+    let mut app_builder = App::build();
+    app_builder
+        .init_resource::<Opts>()
+        .add_state(AppState::InGame)
+        .add_plugin(PlayerPlugin);
+    app_builder.app
+}
+
 fn setup_app_in_lobby() -> App {
     let mut app_builder = App::build();
     app_builder
@@ -65,7 +100,7 @@ fn setup_app_with_host_command() -> App {
         .insert_resource(Opts {
             subcommand: Some(SubCommand::Host(HostSubcommand {})),
         })
-        .add_state(AppState::LobbyMenu)
+        .add_state(AppState::MainMenu)
         .add_plugin(PlayerPlugin);
     app_builder.app
 }

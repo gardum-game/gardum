@@ -21,6 +21,7 @@
 use bevy::prelude::*;
 
 use super::{cli::Opts, AppState, Authority};
+use crate::characters::heroes::PlayerOwner;
 
 pub struct PlayerPlugin;
 
@@ -29,6 +30,10 @@ impl Plugin for PlayerPlugin {
         app.add_startup_system(create_server_player_from_opts.system())
             .add_system_set(
                 SystemSet::on_enter(AppState::LobbyMenu).with_system(create_server_player.system()),
+            )
+            .add_system_set(
+                SystemSet::on_in_stack_update(AppState::InGame)
+                    .with_system(update_player_hero.system()),
             );
     }
 }
@@ -46,6 +51,20 @@ fn create_server_player(mut commands: Commands) {
             ..Default::default()
         })
         .insert(Authority);
+}
+
+fn update_player_hero(
+    mut commands: Commands,
+    hero_query: Query<(Entity, &PlayerOwner), Added<PlayerOwner>>,
+    mut player_query: Query<&mut PlayerHero>,
+) {
+    for (hero, player) in hero_query.iter() {
+        if let Ok(mut player_hero) = player_query.get_mut(player.0) {
+            player_hero.0 = hero;
+        } else {
+            commands.entity(player.0).insert(PlayerHero(hero));
+        }
+    }
 }
 
 #[derive(Default, Bundle)]
@@ -76,3 +95,6 @@ pub struct Damage(pub u32);
 /// Used to keep statistics of the healing done
 #[derive(Default, Debug, PartialEq)]
 pub struct Healing(pub u32);
+
+/// Used to store player's hero entity
+pub struct PlayerHero(pub Entity);
