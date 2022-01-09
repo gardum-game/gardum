@@ -7,7 +7,7 @@ edition = "2021"
 bevy = { version = "0.6", default-features = false, features = ["render", "x11"] }
 bevy_egui = { version = "0.10", optional = true }
 heron = { version = "1.0.1-rc.1", features = ["3d"] }
-clap = "3.0.0-beta.2"
+clap = { version = "3.0.5", features = ["derive"] }
 derive_more  = { version = "0.99.17", default-features = false, features = ["deref", "deref_mut", "from"] }
 strum = { version = "0.23", features = ["derive"] }
 
