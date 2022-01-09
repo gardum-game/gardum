@@ -24,7 +24,7 @@ use gardum::{
     characters::{
         ability::ActivationEvent,
         health::{DamageEvent, HealEvent},
-        heroes::{HeroKind, HeroSelectEvent, HeroesPlugin, PlayerOwner},
+        heroes::{HeroKind, HeroSelectEvent, HeroesPlugin, OwnerPlayer},
         projectile::ProjectileHitEvent,
     },
     core::{AppState, Authority},
@@ -52,7 +52,7 @@ fn hero_spawns_with_authority() {
 
     let mut query = app
         .world
-        .query_filtered::<&PlayerOwner, (With<Authority>, With<HeroKind>)>();
+        .query_filtered::<&OwnerPlayer, (With<Authority>, With<HeroKind>)>();
     let assigned_player = query
         .iter(&app.world)
         .next()
@@ -83,7 +83,7 @@ fn hero_spawns_without_authority() {
 
     let mut query = app
         .world
-        .query_filtered::<&PlayerOwner, (Without<Authority>, With<HeroKind>)>();
+        .query_filtered::<&OwnerPlayer, (Without<Authority>, With<HeroKind>)>();
     let assigned_player = query
         .iter(&app.world)
         .next()

@@ -50,7 +50,7 @@ fn hero_selection_system(
     for event in spawn_events.iter() {
         let hero_bundle = match event.kind {
             HeroKind::North => HeroBundle::north(
-                PlayerOwner(event.player),
+                OwnerPlayer(event.player),
                 event.transform,
                 &mut commands,
                 #[cfg(feature = "client")]
@@ -69,7 +69,7 @@ fn hero_selection_system(
 
 #[derive(Bundle)]
 struct HeroBundle {
-    player: PlayerOwner,
+    player: OwnerPlayer,
     kind: HeroKind,
     abilities: Abilities,
 
@@ -83,7 +83,7 @@ pub enum HeroKind {
 }
 
 /// Used to store hero's player entity
-pub struct PlayerOwner(pub Entity);
+pub struct OwnerPlayer(pub Entity);
 
 pub struct HeroSelectEvent {
     pub player: Entity,

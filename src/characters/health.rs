@@ -20,7 +20,7 @@
 
 use bevy::prelude::*;
 
-use super::heroes::PlayerOwner;
+use super::heroes::OwnerPlayer;
 use crate::core::{
     player::{Damage, Deaths, Healing, Kills},
     AppState,
@@ -43,7 +43,7 @@ impl Plugin for HealthPlugin {
 fn heal_system(
     mut events: EventReader<HealEvent>,
     mut target_query: Query<&mut Health>,
-    instigator_query: Query<&PlayerOwner>,
+    instigator_query: Query<&OwnerPlayer>,
     mut instigator_player_query: Query<&mut Healing>,
 ) {
     for event in events.iter() {
@@ -63,9 +63,9 @@ fn heal_system(
 
 fn damage_system(
     mut events: EventReader<DamageEvent>,
-    mut target_query: Query<(&PlayerOwner, &mut Health)>,
+    mut target_query: Query<(&OwnerPlayer, &mut Health)>,
     mut target_player_query: Query<&mut Deaths>,
-    instigator_query: Query<&PlayerOwner>,
+    instigator_query: Query<&OwnerPlayer>,
     mut instigator_player_query: Query<(&mut Damage, &mut Kills)>,
 ) {
     for event in events.iter() {

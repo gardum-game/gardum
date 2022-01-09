@@ -21,7 +21,7 @@
 use bevy::prelude::*;
 
 use super::{cli::Opts, AppState, Authority};
-use crate::characters::heroes::PlayerOwner;
+use crate::characters::heroes::OwnerPlayer;
 
 pub struct PlayerPlugin;
 
@@ -55,7 +55,7 @@ fn create_server_player(mut commands: Commands) {
 
 fn update_player_hero(
     mut commands: Commands,
-    hero_query: Query<(Entity, &PlayerOwner), Added<PlayerOwner>>,
+    hero_query: Query<(Entity, &OwnerPlayer), Added<OwnerPlayer>>,
     mut player_query: Query<&mut PlayerHero>,
 ) {
     for (hero, player) in hero_query.iter() {

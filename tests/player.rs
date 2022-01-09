@@ -21,7 +21,7 @@
 use bevy::prelude::*;
 
 use gardum::{
-    characters::heroes::PlayerOwner,
+    characters::heroes::OwnerPlayer,
     core::{
         cli::{HostSubcommand, Opts, SubCommand},
         player::{PlayerBundle, PlayerHero, PlayerPlugin},
@@ -37,7 +37,7 @@ fn player_hero_updates() {
         .spawn()
         .insert_bundle(PlayerBundle::default())
         .id();
-    let hero = app.world.spawn().insert(PlayerOwner(player)).id();
+    let hero = app.world.spawn().insert(OwnerPlayer(player)).id();
 
     app.update();
 

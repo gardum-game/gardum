@@ -23,7 +23,7 @@ use bevy::{app::Events, prelude::*};
 use gardum::{
     characters::{
         health::{DamageEvent, HealEvent, Health, HealthPlugin},
-        heroes::PlayerOwner,
+        heroes::OwnerPlayer,
     },
     core::{
         player::{Damage, Deaths, Healing, Kills, PlayerBundle},
@@ -43,7 +43,7 @@ fn healing() {
         .world
         .spawn()
         .insert(Health::default())
-        .insert(PlayerOwner(target_player))
+        .insert(OwnerPlayer(target_player))
         .id();
 
     let instigator_player = app
@@ -54,7 +54,7 @@ fn healing() {
     let instigator = app
         .world
         .spawn()
-        .insert(PlayerOwner(instigator_player))
+        .insert(OwnerPlayer(instigator_player))
         .id();
 
     for (initial_health, heal, expected_healing, expected_health) in [
@@ -103,7 +103,7 @@ fn damaging() {
         .world
         .spawn()
         .insert(Health::default())
-        .insert(PlayerOwner(target_player))
+        .insert(OwnerPlayer(target_player))
         .id();
 
     let instigator_player = app
@@ -114,7 +114,7 @@ fn damaging() {
     let instigator = app
         .world
         .spawn()
-        .insert(PlayerOwner(instigator_player))
+        .insert(OwnerPlayer(instigator_player))
         .id();
 
     for (initial_health, damage, expected_damage, expected_health) in [
@@ -183,7 +183,7 @@ fn self_damaging() {
         .world
         .spawn()
         .insert(Health::default())
-        .insert(PlayerOwner(target_player))
+        .insert(OwnerPlayer(target_player))
         .id();
 
     let mut events = app.world.get_resource_mut::<Events<DamageEvent>>().unwrap();

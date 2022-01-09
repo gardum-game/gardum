@@ -21,7 +21,7 @@
 use bevy::{prelude::*, render::camera::Camera};
 use heron::{CollisionShape, Velocity};
 
-use super::{HeroBundle, HeroKind, PlayerOwner};
+use super::{HeroBundle, HeroKind, OwnerPlayer};
 use crate::{
     characters::{
         ability::{Abilities, AbilitySlot, ActivationEvent},
@@ -119,7 +119,7 @@ pub struct FrostBoltProjectile;
 
 impl HeroBundle {
     pub fn north(
-        player: PlayerOwner,
+        player: OwnerPlayer,
         transform: Transform,
         commands: &mut Commands,
         #[cfg(feature = "client")] meshes: &mut Assets<Mesh>,
