@@ -40,11 +40,11 @@ pub const FROST_BOLT_DAMAGE: u32 = 20;
 pub struct NorthPlugin;
 
 impl Plugin for NorthPlugin {
-    fn build(&self, app: &mut AppBuilder) {
+    fn build(&self, app: &mut App) {
         app.add_system_set(
             SystemSet::on_in_stack_update(AppState::InGame)
-                .with_system(frost_bolt_system.system())
-                .with_system(frost_bolt_hit_system.system()),
+                .with_system(frost_bolt_system)
+                .with_system(frost_bolt_hit_system),
         );
     }
 }
@@ -62,7 +62,7 @@ fn frost_bolt_system(
         .iter()
         .filter(|event| frost_bolt_query.get(event.ability).is_ok())
     {
-        let camera_transform = camera_query.single().unwrap();
+        let camera_transform = camera_query.single();
         let caster_transform = caster_query.get(event.caster).unwrap();
 
         commands
@@ -114,7 +114,10 @@ impl Default for FrostBoltBundle {
     }
 }
 
+#[derive(Component)]
 pub struct FrostBoltAbility;
+
+#[derive(Component)]
 pub struct FrostBoltProjectile;
 
 impl HeroBundle {

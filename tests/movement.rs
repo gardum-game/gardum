@@ -21,14 +21,15 @@
 use approx::assert_relative_eq;
 use bevy::{
     app::Events,
+    ecs::system::SystemState,
     input::{keyboard::KeyboardInput, ElementState, InputPlugin},
     prelude::*,
     render::camera::Camera,
 };
-use heron::{CollisionShape, PhysicsPlugin, RigidBody, Velocity};
+use heron::{rapier_plugin::PhysicsWorld, CollisionShape, PhysicsPlugin, RigidBody, Velocity};
 
 use gardum::{
-    characters::movement::{MovementInput, MovementPlugin},
+    characters::movement::{is_on_floor, MovementInput, MovementPlugin},
     core::{AppState, Authority},
 };
 
@@ -115,10 +116,18 @@ fn player_falls() {
     app.update();
     app.update();
 
-    // TODO 0.6: Add check for floor using SystemState
+    // Clone collision and transform because PhysicsWorld is a mutable SystemParam
+    let collision_shape = app.world.get::<CollisionShape>(player).unwrap().clone();
+    let transform = app.world.get::<Transform>(player).unwrap().clone();
+    let mut system_state: SystemState<PhysicsWorld> = SystemState::new(&mut app.world);
+    let physics_world = system_state.get_mut(&mut app.world);
+
     assert!(
-        DummyPlayerBundle::default().transform.translation.y
-            > app.world.get::<Transform>(player).unwrap().translation.y,
+        !is_on_floor(&physics_world, player, &collision_shape, &transform,),
+        "Player shouldn't be on floor"
+    );
+    assert!(
+        DummyPlayerBundle::default().transform.translation.y > transform.translation.y,
         "Player should be affected by gravity"
     );
 
@@ -162,10 +171,18 @@ fn player_standing_on_platform() {
 
     app.update();
 
-    // TODO 0.6: Add check for floor using SystemState
+    // Clone collision and transform because PhysicsWorld is a mutable SystemParam
+    let collision_shape = app.world.get::<CollisionShape>(player).unwrap().clone();
+    let transform = app.world.get::<Transform>(player).unwrap().clone();
+    let mut system_state: SystemState<PhysicsWorld> = SystemState::new(&mut app.world);
+    let physics_world = system_state.get_mut(&mut app.world);
+
+    assert!(
+        is_on_floor(&physics_world, player, &collision_shape, &transform,),
+        "Player should be on floor"
+    );
     assert_eq!(
-        previous_translation.y,
-        app.world.get::<Transform>(player).unwrap().translation.y,
+        previous_translation.y, transform.translation.y,
         "Player shouldn't be affected by gravity"
     );
 
@@ -254,14 +271,13 @@ fn player_moves() {
 }
 
 fn setup_app() -> App {
-    let mut app_builder = App::build();
-    app_builder
-        .add_state(AppState::InGame)
+    let mut app = App::new();
+    app.add_state(AppState::InGame)
         .add_plugins(MinimalPlugins)
         .add_plugin(InputPlugin)
         .add_plugin(PhysicsPlugin::default())
         .add_plugin(MovementPlugin);
-    app_builder.app
+    app
 }
 
 #[derive(Bundle)]

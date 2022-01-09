@@ -27,9 +27,9 @@ use crate::core::AppState;
 pub struct CooldownPlugin;
 
 impl Plugin for CooldownPlugin {
-    fn build(&self, app: &mut AppBuilder) {
+    fn build(&self, app: &mut App) {
         app.add_system_set(
-            SystemSet::on_in_stack_update(AppState::InGame).with_system(cooldown_system.system()),
+            SystemSet::on_in_stack_update(AppState::InGame).with_system(cooldown_system),
         );
     }
 }
@@ -40,7 +40,7 @@ fn cooldown_system(time: Res<Time>, mut query: Query<&mut Cooldown>) {
     }
 }
 
-#[derive(Deref, DerefMut)]
+#[derive(Deref, DerefMut, Component)]
 pub struct Cooldown(Timer);
 
 impl Cooldown {

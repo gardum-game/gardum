@@ -25,19 +25,11 @@ use crate::core::AppState;
 pub struct CursorPlugin;
 
 impl Plugin for CursorPlugin {
-    fn build(&self, app: &mut AppBuilder) {
-        app.add_system_set(
-            SystemSet::on_enter(AppState::InGame).with_system(hide_cursor_system.system()),
-        )
-        .add_system_set(
-            SystemSet::on_resume(AppState::InGame).with_system(hide_cursor_system.system()),
-        )
-        .add_system_set(
-            SystemSet::on_pause(AppState::InGame).with_system(show_cursor_system.system()),
-        )
-        .add_system_set(
-            SystemSet::on_exit(AppState::InGame).with_system(show_cursor_system.system()),
-        );
+    fn build(&self, app: &mut App) {
+        app.add_system_set(SystemSet::on_enter(AppState::InGame).with_system(hide_cursor_system))
+            .add_system_set(SystemSet::on_resume(AppState::InGame).with_system(hide_cursor_system))
+            .add_system_set(SystemSet::on_pause(AppState::InGame).with_system(show_cursor_system))
+            .add_system_set(SystemSet::on_exit(AppState::InGame).with_system(show_cursor_system));
     }
 }
 

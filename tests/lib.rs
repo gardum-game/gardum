@@ -29,8 +29,8 @@ fn update() {
 }
 
 fn setup_app() -> App {
-    let mut app_builder = App::build();
-    app_builder.add_plugin(GardumPlugin);
+    let mut app = App::new();
+    app.add_plugin(GardumPlugin);
 
-    app_builder.app
+    app
 }

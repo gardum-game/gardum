@@ -30,21 +30,17 @@ const CAMERA_SENSETIVITY: f32 = 0.2;
 pub struct CameraPlugin;
 
 impl Plugin for CameraPlugin {
-    fn build(&self, app: &mut AppBuilder) {
-        app.add_system_set(
-            SystemSet::on_enter(AppState::InGame).with_system(spawn_camera_system.system()),
-        )
-        .add_system_set(
-            SystemSet::on_in_stack_update(AppState::InGame)
-                .with_system(camera_input_system.system()),
-        )
-        .add_system_to_stage(
-            CoreStage::PostUpdate,
-            camera_position_system
-                .system()
-                .after(PhysicsSystem::TransformUpdate)
-                .before(TransformSystem::TransformPropagate),
-        );
+    fn build(&self, app: &mut App) {
+        app.add_system_set(SystemSet::on_enter(AppState::InGame).with_system(spawn_camera_system))
+            .add_system_set(
+                SystemSet::on_in_stack_update(AppState::InGame).with_system(camera_input_system),
+            )
+            .add_system_to_stage(
+                CoreStage::PostUpdate,
+                camera_position_system
+                    .after(PhysicsSystem::TransformUpdate)
+                    .before(TransformSystem::TransformPropagate),
+            );
     }
 }
 
@@ -59,7 +55,7 @@ fn camera_input_system(
     mut motion_reader: EventReader<MouseMotion>,
     mut query: Query<&mut OrbitRotation, With<Authority>>,
 ) {
-    let mut orbit_rotation = query.single_mut().unwrap();
+    let mut orbit_rotation = query.single_mut();
     for event in motion_reader.iter() {
         orbit_rotation.0 -= event.delta * CAMERA_SENSETIVITY * time.delta_seconds();
     }
@@ -71,21 +67,19 @@ fn camera_input_system(
 
 fn camera_position_system(
     app_state: Res<State<AppState>>,
-    mut query: QuerySet<(
-        Query<&Transform, (With<Authority>, Without<OrbitRotation>)>,
-        Query<(&mut Transform, &OrbitRotation), With<Authority>>,
-    )>,
+    player_query: Query<&Transform, (With<Authority>, Without<OrbitRotation>)>,
+    mut camera_query: Query<(&mut Transform, &OrbitRotation), With<Authority>>,
 ) {
     if *app_state.current() != AppState::InGame {
         return;
     }
 
-    let player_translation = match query.q0().single() {
+    let player_translation = match player_query.get_single() {
         Ok(transform) => transform.translation,
         Err(_) => return,
     };
 
-    let (mut camera_transform, orbit_rotation) = query.q1_mut().single_mut().unwrap();
+    let (mut camera_transform, orbit_rotation) = camera_query.single_mut();
     camera_transform.translation =
         orbit_rotation.to_quat() * Vec3::Y * CAMERA_DISTANCE + player_translation;
     camera_transform.look_at(player_translation, Vec3::Y);
@@ -99,7 +93,7 @@ pub struct OrbitCameraBundle {
     camera: PerspectiveCameraBundle,
 }
 
-#[derive(Deref, DerefMut, Debug, PartialEq)]
+#[derive(Component, Deref, DerefMut, Debug, PartialEq)]
 pub struct OrbitRotation(pub Vec2);
 
 impl OrbitRotation {

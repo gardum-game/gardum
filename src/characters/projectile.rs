@@ -27,9 +27,9 @@ use crate::core::{AppState, CollisionLayer};
 pub struct ProjectilePlugin;
 
 impl Plugin for ProjectilePlugin {
-    fn build(&self, app: &mut AppBuilder) {
+    fn build(&self, app: &mut App) {
         app.add_event::<ProjectileHitEvent>().add_system_set(
-            SystemSet::on_in_stack_update(AppState::InGame).with_system(collision_system.system()),
+            SystemSet::on_in_stack_update(AppState::InGame).with_system(collision_system),
         );
     }
 }
@@ -89,6 +89,7 @@ impl Default for ProjectileBundle {
     }
 }
 
+#[derive(Component)]
 pub struct Projectile;
 
 #[allow(dead_code)]

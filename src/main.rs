@@ -24,5 +24,5 @@ use gardum::GardumPlugin;
 
 #[cfg(not(tarpaulin_include))]
 fn main() {
-    App::build().add_plugin(GardumPlugin).run();
+    App::new().add_plugin(GardumPlugin).run();
 }

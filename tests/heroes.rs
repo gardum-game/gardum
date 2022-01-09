@@ -18,7 +18,7 @@
  *
  */
 
-use bevy::{app::Events, ecs::system::CommandQueue, prelude::*};
+use bevy::{app::Events, prelude::*};
 
 use gardum::{
     characters::{
@@ -56,7 +56,7 @@ fn hero_spawns_with_authority() {
     let assigned_player = query
         .iter(&app.world)
         .next()
-        .expect("Hero should be spawned with authority and assigned player"); // TODO 0.6: Use single
+        .expect("Hero should be spawned with authority and assigned player"); // TODO 0.7: Use single
     assert_eq!(
         assigned_player.0, player,
         "Assigned player should be equal to specified"
@@ -87,7 +87,7 @@ fn hero_spawns_without_authority() {
     let assigned_player = query
         .iter(&app.world)
         .next()
-        .expect("Hero should be spawned with authority and assigned player"); // TODO 0.6: Use single
+        .expect("Hero should be spawned with authority and assigned player"); // TODO 0.7: Use single
     assert_eq!(
         assigned_player.0, player,
         "Assigned player should be equal to specified"
@@ -113,23 +113,17 @@ fn hero_spawns_at_position() {
 
         app.update();
 
-        let mut query = app
-            .world
-            .query_filtered::<(Entity, &Transform), With<HeroKind>>();
-        let (kind, transform) = query
+        let mut query = app.world.query_filtered::<&Transform, With<HeroKind>>();
+        let transform = query
             .iter(&app.world)
             .next()
-            .expect("Hero should be spawned");
+            .expect("Hero should be spawned"); // TODO 0.7: Use single
         assert_eq!(
             transform.translation, expected_translation,
             "Hero should be spawned with the specified translation"
         );
 
-        // TODO 0.6: Use world.clear_entities()
-        let mut queue = CommandQueue::default();
-        let mut commands = Commands::new(&mut queue, &app.world);
-        commands.entity(kind).despawn_recursive();
-        queue.apply(&mut app.world);
+        app.world.clear_entities();
     }
 }
 
@@ -152,26 +146,21 @@ fn hero_spawns_with_kind() {
 
         app.update();
 
-        let mut query = app.world.query::<(Entity, &HeroKind)>();
+        let mut query = app.world.query::<&HeroKind>();
 
-        let (hero, kind) = query
+        let kind = query
             .iter(&app.world)
             .next()
-            .expect("Hero should be spawned");
+            .expect("Hero should be spawned"); // TODO 0.7: Use single
         assert_eq!(*kind, expected_kind, "The specified hero should be spawned");
 
-        // TODO 0.6: Use world.clear_entities()
-        let mut queue = CommandQueue::default();
-        let mut commands = Commands::new(&mut queue, &app.world);
-        commands.entity(hero).despawn_recursive();
-        queue.apply(&mut app.world);
+        app.world.clear_entities();
     }
 }
 
 fn setup_app() -> App {
-    let mut app_builder = App::build();
-    app_builder
-        .add_event::<ActivationEvent>()
+    let mut app = App::new();
+    app.add_event::<ActivationEvent>()
         .add_event::<ProjectileHitEvent>()
         .add_event::<DamageEvent>()
         .add_event::<HealEvent>()
@@ -179,5 +168,5 @@ fn setup_app() -> App {
         .add_plugins(MinimalPlugins)
         .add_plugin(HeroesPlugin);
 
-    app_builder.app
+    app
 }

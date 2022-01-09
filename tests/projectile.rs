@@ -193,13 +193,12 @@ fn object_collides_with_projectile() {
 }
 
 fn setup_app() -> App {
-    let mut app_builder = App::build();
-    app_builder
-        .add_state(AppState::InGame)
+    let mut app = App::new();
+    app.add_state(AppState::InGame)
         .add_plugins(MinimalPlugins)
         .add_plugin(PhysicsPlugin::default())
         .add_plugin(ProjectilePlugin);
-    app_builder.app
+    app
 }
 
 #[derive(Bundle)]

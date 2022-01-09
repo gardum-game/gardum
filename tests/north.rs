@@ -67,8 +67,8 @@ fn frost_bolt() {
     let mut projectile_query = app.world.query_filtered::<&Transform, With<Projectile>>();
     let mut camera_query = app.world.query_filtered::<&Transform, With<Camera>>();
 
-    let caster_transform = caster_query.iter(&app.world).next().unwrap(); // TODO 0.6: Use single
-    let projectile_transform = projectile_query.iter(&app.world).next().unwrap(); // TODO 0.6: Use single
+    let caster_transform = caster_query.iter(&app.world).next().unwrap(); // TODO 0.7: Use single
+    let projectile_transform = projectile_query.iter(&app.world).next().unwrap(); // TODO 0.7: Use single
 
     assert_relative_eq!(
         caster_transform.translation.x,
@@ -87,7 +87,7 @@ fn frost_bolt() {
         "Spawned projectile must be of the same scale as the caster"
     );
 
-    let camera_trasnform = camera_query.iter(&app.world).next().unwrap(); // TODO 0.6: Use single
+    let camera_trasnform = camera_query.iter(&app.world).next().unwrap(); // TODO 0.7: Use single
     assert_eq!(
         projectile_transform.rotation,
         camera_trasnform.rotation * Quat::from_rotation_x(90.0_f32.to_radians()),
@@ -132,16 +132,15 @@ fn frost_bolt_hit() {
 }
 
 fn setup_app() -> App {
-    let mut app_builder = App::build();
-    app_builder
-        .add_event::<ActivationEvent>()
+    let mut app = App::new();
+    app.add_event::<ActivationEvent>()
         .add_event::<ProjectileHitEvent>()
         .add_event::<DamageEvent>()
         .add_state(AppState::InGame)
         .add_plugins(MinimalPlugins)
         .add_plugin(NorthPlugin);
 
-    app_builder.app
+    app
 }
 
 #[derive(Bundle)]

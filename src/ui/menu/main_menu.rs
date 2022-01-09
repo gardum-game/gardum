@@ -29,10 +29,8 @@ use crate::{core::AppState, ui::UI_MARGIN};
 pub struct MainMenuPlugin;
 
 impl Plugin for MainMenuPlugin {
-    fn build(&self, app: &mut AppBuilder) {
-        app.add_system_set(
-            SystemSet::on_update(AppState::MainMenu).with_system(main_menu_system.system()),
-        );
+    fn build(&self, app: &mut App) {
+        app.add_system_set(SystemSet::on_update(AppState::MainMenu).with_system(main_menu_system));
     }
 }
 

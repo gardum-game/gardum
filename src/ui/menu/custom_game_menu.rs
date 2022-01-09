@@ -30,22 +30,20 @@ use crate::core::{gamemodes::GameMode, player::Nickname, AppState, GameSettings}
 pub struct CustomGameMenuPlugin;
 
 impl Plugin for CustomGameMenuPlugin {
-    fn build(&self, app: &mut AppBuilder) {
+    fn build(&self, app: &mut App) {
         app.init_resource::<SearchText>()
             .add_system_set(
-                SystemSet::on_update(AppState::CustomGameMenu)
-                    .with_system(custom_game_menu_system.system()),
+                SystemSet::on_update(AppState::CustomGameMenu).with_system(custom_game_menu_system),
             )
             .add_system_set(
                 SystemSet::on_update(AppState::DirectConnectMenu)
-                    .with_system(direct_connect_menu_system.system()),
+                    .with_system(direct_connect_menu_system),
             )
             .add_system_set(
-                SystemSet::on_update(AppState::CreateGameMenu)
-                    .with_system(create_game_menu_system.system()),
+                SystemSet::on_update(AppState::CreateGameMenu).with_system(create_game_menu_system),
             )
             .add_system_set(
-                SystemSet::on_update(AppState::LobbyMenu).with_system(lobby_menu_system.system()),
+                SystemSet::on_update(AppState::LobbyMenu).with_system(lobby_menu_system),
             );
     }
 }

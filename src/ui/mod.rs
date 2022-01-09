@@ -33,7 +33,7 @@ pub const UI_MARGIN: f32 = 20.0;
 pub struct UiPlugin;
 
 impl Plugin for UiPlugin {
-    fn build(&self, app: &mut AppBuilder) {
+    fn build(&self, app: &mut App) {
         app.add_plugin(CursorPlugin)
             .add_plugin(MenuPlugin)
             .add_plugin(HudPlugin);

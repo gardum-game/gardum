@@ -29,16 +29,13 @@ use crate::core::AppState;
 pub struct InGameMenuPlugin;
 
 impl Plugin for InGameMenuPlugin {
-    fn build(&self, app: &mut AppBuilder) {
+    fn build(&self, app: &mut App) {
         app.add_system_set(
-            SystemSet::on_update(AppState::InGameMenu).with_system(ingame_menu_system.system()),
+            SystemSet::on_update(AppState::InGameMenu).with_system(ingame_menu_system),
         )
+        .add_system_set(SystemSet::on_update(AppState::InGame).with_system(show_ingame_menu_system))
         .add_system_set(
-            SystemSet::on_update(AppState::InGame).with_system(show_ingame_menu_system.system()),
-        )
-        .add_system_set(
-            SystemSet::on_update(AppState::InGameMenu)
-                .with_system(hide_ingame_menu_system.system()),
+            SystemSet::on_update(AppState::InGameMenu).with_system(hide_ingame_menu_system),
         );
     }
 }

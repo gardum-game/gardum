@@ -4,16 +4,15 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-bevy = { version = "0.5", default-features = false, features = ["bevy_wgpu", "render", "x11"] }
-bevy_egui = { version = "0.9.0", optional = true }
-bevy_atmosphere = { version = "0.1.3", optional = true }
-heron = { version = "0.13.0", features = ["3d"] }
+bevy = { version = "0.6", default-features = false, features = ["render", "x11"] }
+bevy_egui = { version = "0.10", optional = true }
+heron = { version = "1.0.1-rc.1", features = ["3d"] }
 clap = "3.0.0-beta.2"
 derive_more  = { version = "0.99.17", default-features = false, features = ["deref", "deref_mut", "from"] }
 strum = { version = "0.23", features = ["derive"] }
 
 [dev-dependencies]
-approx = "0.5.0"
+approx = "0.5"
 
 [features]
-client = ["bevy/png", "bevy_egui", "bevy_atmosphere"]
+client = ["bevy/png", "bevy_egui"]

@@ -43,9 +43,9 @@ fn player_hero_updates() {
 
     let mut query = app.world.query::<&PlayerHero>();
     let player_hero = query
-        .iter(&mut app.world)
+        .iter(&app.world)
         .next()
-        .expect("Player component should be spawned"); // TODO 0.6: Use single and remove mutability
+        .expect("Player component should be spawned"); // TODO 0.7: Use single
     assert_eq!(
         player_hero.0, hero,
         "Player's hero should reference to the spawned hero"
@@ -59,9 +59,9 @@ fn server_player_spawns_in_lobby() {
 
     let mut query = app.world.query_filtered::<(), With<Authority>>();
     query
-        .iter(&mut app.world)
+        .iter(&app.world)
         .next()
-        .expect("Player component should be spawned"); // TODO 0.6: Use single and remove mutability
+        .expect("Player component should be spawned"); // TODO 0.7: Use single
 }
 
 #[test]
@@ -71,36 +71,33 @@ fn server_player_spawns_with_host_command() {
 
     let mut query = app.world.query_filtered::<(), With<Authority>>();
     query
-        .iter(&mut app.world)
+        .iter(&app.world)
         .next()
-        .expect("Player component should be spawned"); // TODO 0.6: Use single and remove mutability
+        .expect("Player component should be spawned"); // TODO 0.7: Use single
 }
 
 fn setup_app() -> App {
-    let mut app_builder = App::build();
-    app_builder
-        .init_resource::<Opts>()
+    let mut app = App::new();
+    app.init_resource::<Opts>()
         .add_state(AppState::InGame)
         .add_plugin(PlayerPlugin);
-    app_builder.app
+    app
 }
 
 fn setup_app_in_lobby() -> App {
-    let mut app_builder = App::build();
-    app_builder
-        .init_resource::<Opts>()
+    let mut app = App::new();
+    app.init_resource::<Opts>()
         .add_state(AppState::LobbyMenu)
         .add_plugin(PlayerPlugin);
-    app_builder.app
+    app
 }
 
 fn setup_app_with_host_command() -> App {
-    let mut app_builder = App::build();
-    app_builder
-        .insert_resource(Opts {
-            subcommand: Some(SubCommand::Host(HostSubcommand {})),
-        })
-        .add_state(AppState::MainMenu)
-        .add_plugin(PlayerPlugin);
-    app_builder.app
+    let mut app = App::new();
+    app.insert_resource(Opts {
+        subcommand: Some(SubCommand::Host(HostSubcommand {})),
+    })
+    .add_state(AppState::MainMenu)
+    .add_plugin(PlayerPlugin);
+    app
 }

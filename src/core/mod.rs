@@ -35,7 +35,7 @@ use setup::SetupPlugin;
 pub struct CorePlugin;
 
 impl Plugin for CorePlugin {
-    fn build(&self, app: &mut AppBuilder) {
+    fn build(&self, app: &mut App) {
         app.add_state(AppState::MainMenu)
             .init_resource::<GameSettings>()
             .add_plugin(CliPlugin)
@@ -45,7 +45,7 @@ impl Plugin for CorePlugin {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Component)]
 pub struct Authority;
 
 pub struct GameSettings {
@@ -82,5 +82,5 @@ pub enum CollisionLayer {
 }
 
 /// Path to icon resource.
-#[derive(From)]
+#[derive(Component, From)]
 pub struct IconPath(pub &'static str);

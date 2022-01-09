@@ -24,7 +24,7 @@ use strum::EnumIter;
 pub struct GamemodesPlugin;
 
 impl Plugin for GamemodesPlugin {
-    fn build(&self, app: &mut AppBuilder) {
+    fn build(&self, app: &mut App) {
         app.add_state(GameMode::Disabled);
     }
 }

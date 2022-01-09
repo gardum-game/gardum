@@ -27,18 +27,18 @@ use crate::core::{AppState, Authority};
 pub struct AbilityPlugin;
 
 impl Plugin for AbilityPlugin {
-    fn build(&self, app: &mut AppBuilder) {
+    fn build(&self, app: &mut App) {
         app.init_resource::<Option<AbilitySlot>>()
             .add_event::<ActivationEvent>()
             .add_system_set(
                 SystemSet::on_in_stack_update(AppState::InGame)
                     .label(AbilitySystems::InputSet)
-                    .with_system(input_system.system()),
+                    .with_system(input_system),
             )
             .add_system_set(
                 SystemSet::on_in_stack_update(AppState::InGame)
                     .after(AbilitySystems::InputSet)
-                    .with_system(activation_system.system()),
+                    .with_system(activation_system),
             );
     }
 }
@@ -116,7 +116,7 @@ pub struct ActivationEvent {
     pub ability: Entity,
 }
 
-#[derive(Copy, Clone, PartialEq, Debug)]
+#[derive(Copy, Clone, Component, PartialEq, Debug)]
 pub enum AbilitySlot {
     BaseAttack,
     Ability1,
@@ -125,7 +125,7 @@ pub enum AbilitySlot {
     Ultimate,
 }
 
-#[derive(Deref, DerefMut)]
+#[derive(Deref, DerefMut, Component)]
 pub struct Abilities(pub Vec<Entity>);
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, SystemLabel)]

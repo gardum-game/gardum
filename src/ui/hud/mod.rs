@@ -38,14 +38,12 @@ use health_bar::HealthBar;
 pub struct HudPlugin;
 
 impl Plugin for HudPlugin {
-    fn build(&self, app: &mut AppBuilder) {
+    fn build(&self, app: &mut App) {
         app.add_system_set(
-            SystemSet::on_update(AppState::InGame)
-                .with_system(ability_icons_texture_system.system()),
+            SystemSet::on_update(AppState::InGame).with_system(ability_icons_texture_system),
         )
         .add_system_set(
-            SystemSet::on_update(AppState::InGame)
-                .with_system(health_and_abilities_system.system()),
+            SystemSet::on_update(AppState::InGame).with_system(health_and_abilities_system),
         );
     }
 }
@@ -55,7 +53,7 @@ fn health_and_abilities_system(
     ability_query: Query<&Cooldown>,
     egui: ResMut<EguiContext>,
 ) {
-    let (abilities, health) = match hero_query.single() {
+    let (abilities, health) = match hero_query.get_single() {
         Ok(result) => result,
         Err(_) => return,
     };
@@ -81,7 +79,7 @@ fn ability_icons_texture_system(
     assets: Res<AssetServer>,
     mut egui: ResMut<EguiContext>,
 ) {
-    let abilities = match player_query.single() {
+    let abilities = match player_query.get_single() {
         Ok(abilities) => abilities,
         Err(_) => return,
     };

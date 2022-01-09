@@ -44,7 +44,7 @@ fn camera_input() {
     app.update();
 
     let mut query = app.world.query::<&OrbitRotation>();
-    let orbit_rotation = query.iter(&mut app.world).next().unwrap(); // TODO 0.6: Use single
+    let orbit_rotation = query.iter(&app.world).next().unwrap(); // TODO 0.7: Use single
     assert_ne!(
         *orbit_rotation,
         OrbitRotation::default(),
@@ -70,7 +70,7 @@ fn camera_moves_around_player() {
         (Vec3::ONE, Vec2::ONE * 2.0 * PI),
     ] {
         let mut query = app.world.query_filtered::<Entity, With<OrbitRotation>>();
-        let camera = query.iter(&app.world).next().unwrap(); // TODO 0.6: Use single
+        let camera = query.iter(&app.world).next().unwrap(); // TODO 0.7: Use single
 
         app.world.get_mut::<Transform>(player).unwrap().translation = player_translation;
         app.world.get_mut::<OrbitRotation>(camera).unwrap().0 = camera_rotation;
@@ -96,14 +96,13 @@ fn camera_moves_around_player() {
 }
 
 fn setup_app() -> App {
-    let mut app_builder = App::build();
-    app_builder
-        .add_state(AppState::InGame)
+    let mut app = App::new();
+    app.add_state(AppState::InGame)
         .add_plugins(MinimalPlugins)
         .add_plugin(InputPlugin)
         .add_plugin(PhysicsPlugin::default())
         .add_plugin(CameraPlugin);
-    app_builder.app
+    app
 }
 
 #[derive(Bundle, Default)]

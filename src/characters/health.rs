@@ -29,13 +29,13 @@ use crate::core::{
 pub struct HealthPlugin;
 
 impl Plugin for HealthPlugin {
-    fn build(&self, app: &mut AppBuilder) {
+    fn build(&self, app: &mut App) {
         app.add_event::<DamageEvent>()
             .add_event::<HealEvent>()
             .add_system_set(
                 SystemSet::on_in_stack_update(AppState::InGame)
-                    .with_system(heal_system.system())
-                    .with_system(damage_system.system()),
+                    .with_system(heal_system)
+                    .with_system(damage_system),
             );
     }
 }
@@ -91,7 +91,7 @@ fn damage_system(
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Component, Debug, PartialEq)]
 pub struct Health {
     pub current: u32,
     pub max: u32,

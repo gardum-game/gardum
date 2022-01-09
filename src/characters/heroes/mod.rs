@@ -30,12 +30,11 @@ use north::NorthPlugin;
 pub struct HeroesPlugin;
 
 impl Plugin for HeroesPlugin {
-    fn build(&self, app: &mut AppBuilder) {
+    fn build(&self, app: &mut App) {
         app.add_event::<HeroSelectEvent>()
             .add_plugin(NorthPlugin)
             .add_system_set(
-                SystemSet::on_in_stack_update(AppState::InGame)
-                    .with_system(hero_selection_system.system()),
+                SystemSet::on_in_stack_update(AppState::InGame).with_system(hero_selection_system),
             );
     }
 }
@@ -77,12 +76,13 @@ struct HeroBundle {
     character: CharacterBundle,
 }
 
-#[derive(Clone, Copy, PartialEq, EnumIter, Debug)]
+#[derive(Clone, Copy, PartialEq, EnumIter, Debug, Component)]
 pub enum HeroKind {
     North,
 }
 
 /// Used to store hero's player entity
+#[derive(Component)]
 pub struct OwnerPlayer(pub Entity);
 
 pub struct HeroSelectEvent {

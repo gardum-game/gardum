@@ -30,11 +30,9 @@ use crate::{
 pub struct SetupPlugin;
 
 impl Plugin for SetupPlugin {
-    fn build(&self, app: &mut AppBuilder) {
-        app.add_startup_system(start_session_system.system())
-            .add_system_set(
-                SystemSet::on_enter(AppState::InGame).with_system(create_world_system.system()),
-            );
+    fn build(&self, app: &mut App) {
+        app.add_startup_system(start_session_system)
+            .add_system_set(SystemSet::on_enter(AppState::InGame).with_system(create_world_system));
     }
 }
 
@@ -68,13 +66,13 @@ fn create_world_system(
         });
 
     // Light
-    commands.spawn_bundle(LightBundle {
+    commands.spawn_bundle(PointLightBundle {
         transform: Transform::from_translation(Vec3::new(4.0, 8.0, 4.0)),
         ..Default::default()
     });
 
     hero_spawn_events.send(HeroSelectEvent {
-        player: player_query.single().unwrap(),
+        player: player_query.single(),
         kind: HeroKind::North,
         transform: Transform::from_translation(Vec3::new(5.0, 15.0, 5.0)),
     })

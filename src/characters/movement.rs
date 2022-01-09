@@ -32,17 +32,17 @@ const FLOOR_THRESHOLD: f32 = 0.01;
 pub struct MovementPlugin;
 
 impl Plugin for MovementPlugin {
-    fn build(&self, app: &mut AppBuilder) {
+    fn build(&self, app: &mut App) {
         app.init_resource::<MovementInput>()
             .add_system_set(
                 SystemSet::on_in_stack_update(AppState::InGame)
                     .label(MovementSystems::InputSet)
-                    .with_system(input_system.system()),
+                    .with_system(input_system),
             )
             .add_system_set(
                 SystemSet::on_in_stack_update(AppState::InGame)
                     .after(MovementSystems::InputSet)
-                    .with_system(movement_system.system()),
+                    .with_system(movement_system),
             );
     }
 }
@@ -63,8 +63,8 @@ fn movement_system(
     camera_query: Query<&Transform, (With<Camera>, With<Authority>)>,
     mut player_query: Query<(Entity, &Transform, &CollisionShape, &mut Velocity), With<Authority>>,
 ) {
-    if let Ok((entity, transform, shape, mut velocity)) = player_query.single_mut() {
-        let motion = input.movement_direction(camera_query.single().unwrap().rotation) * MOVE_SPEED;
+    if let Ok((entity, transform, shape, mut velocity)) = player_query.get_single_mut() {
+        let motion = input.movement_direction(camera_query.single().rotation) * MOVE_SPEED;
         velocity.linear = velocity
             .linear
             .lerp(motion, VELOCITY_INTERPOLATE_SPEED * time.delta_seconds());
@@ -81,7 +81,7 @@ fn movement_system(
     }
 }
 
-fn is_on_floor(
+pub fn is_on_floor(
     physics_world: &PhysicsWorld,
     entity: Entity,
     shape: &CollisionShape,

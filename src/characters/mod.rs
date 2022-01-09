@@ -45,7 +45,7 @@ use self::health::Health;
 pub struct CharactersPlugin;
 
 impl Plugin for CharactersPlugin {
-    fn build(&self, app: &mut AppBuilder) {
+    fn build(&self, app: &mut App) {
         app.add_plugin(MovementPlugin)
             .add_plugin(CameraPlugin)
             .add_plugin(CooldownPlugin)
@@ -84,4 +84,5 @@ impl Default for CharacterBundle {
 }
 
 /// Used to store reference to the character
+#[derive(Component)]
 pub struct CharacterOwner(pub Entity);

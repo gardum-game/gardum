@@ -29,14 +29,12 @@ use crate::{core::AppState, ui::UI_MARGIN};
 pub struct BackButtonPlugin;
 
 impl Plugin for BackButtonPlugin {
-    fn build(&self, app: &mut AppBuilder) {
+    fn build(&self, app: &mut App) {
         app.add_system_set(
-            SystemSet::on_inactive_update(AppState::InGame)
-                .with_system(back_button_system.system()),
+            SystemSet::on_inactive_update(AppState::InGame).with_system(back_button_system),
         )
         .add_system_set(
-            SystemSet::on_inactive_update(AppState::MainMenu)
-                .with_system(back_button_system.system()),
+            SystemSet::on_inactive_update(AppState::MainMenu).with_system(back_button_system),
         );
     }
 }

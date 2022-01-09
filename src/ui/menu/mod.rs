@@ -33,7 +33,7 @@ use main_menu::MainMenuPlugin;
 pub struct MenuPlugin;
 
 impl Plugin for MenuPlugin {
-    fn build(&self, app: &mut AppBuilder) {
+    fn build(&self, app: &mut App) {
         app.add_plugin(MainMenuPlugin)
             .add_plugin(CustomGameMenuPlugin)
             .add_plugin(BackButtonPlugin)

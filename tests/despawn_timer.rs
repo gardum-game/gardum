@@ -57,12 +57,11 @@ fn despawn_timer_destroys() {
 }
 
 fn setup_app() -> App {
-    let mut app_builder = App::build();
-    app_builder
-        .add_state(AppState::InGame)
+    let mut app = App::new();
+    app.add_state(AppState::InGame)
         .add_plugins(MinimalPlugins)
         .add_plugin(DespawnTimerPlugin);
-    app_builder.app
+    app
 }
 
 #[cfg(test)]

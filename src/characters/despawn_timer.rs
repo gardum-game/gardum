@@ -27,10 +27,9 @@ use crate::core::AppState;
 pub struct DespawnTimerPlugin;
 
 impl Plugin for DespawnTimerPlugin {
-    fn build(&self, app: &mut AppBuilder) {
+    fn build(&self, app: &mut App) {
         app.add_system_set(
-            SystemSet::on_in_stack_update(AppState::InGame)
-                .with_system(despawn_timer_system.system()),
+            SystemSet::on_in_stack_update(AppState::InGame).with_system(despawn_timer_system),
         );
     }
 }
@@ -48,7 +47,7 @@ fn despawn_timer_system(
     }
 }
 
-#[derive(Deref, DerefMut, Default)]
+#[derive(Component, Deref, DerefMut, Default)]
 pub struct DespawnTimer(Timer);
 
 impl DespawnTimer {

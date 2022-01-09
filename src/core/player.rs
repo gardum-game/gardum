@@ -26,14 +26,13 @@ use crate::characters::heroes::OwnerPlayer;
 pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
-    fn build(&self, app: &mut AppBuilder) {
-        app.add_startup_system(create_server_player_from_opts.system())
+    fn build(&self, app: &mut App) {
+        app.add_startup_system(create_server_player_from_opts)
             .add_system_set(
-                SystemSet::on_enter(AppState::LobbyMenu).with_system(create_server_player.system()),
+                SystemSet::on_enter(AppState::LobbyMenu).with_system(create_server_player),
             )
             .add_system_set(
-                SystemSet::on_in_stack_update(AppState::InGame)
-                    .with_system(update_player_hero.system()),
+                SystemSet::on_in_stack_update(AppState::InGame).with_system(update_player_hero),
             );
     }
 }
@@ -77,24 +76,25 @@ pub struct PlayerBundle {
 }
 
 /// Stores player name
-#[derive(Default)]
+#[derive(Component, Default)]
 pub struct Nickname(pub String);
 
 /// Used to keep statistics of the number of kills
-#[derive(Default, Debug, PartialEq)]
+#[derive(Component, Default, Debug, PartialEq)]
 pub struct Kills(pub u32);
 
 /// Used to keep statistics of the number of deaths
-#[derive(Default, Debug, PartialEq)]
+#[derive(Component, Default, Debug, PartialEq)]
 pub struct Deaths(pub u32);
 
 /// Used to keep statistics of the damage done
-#[derive(Default, Debug, PartialEq)]
+#[derive(Component, Default, Debug, PartialEq)]
 pub struct Damage(pub u32);
 
 /// Used to keep statistics of the healing done
-#[derive(Default, Debug, PartialEq)]
+#[derive(Component, Default, Debug, PartialEq)]
 pub struct Healing(pub u32);
 
 /// Used to store player's hero entity
+#[derive(Component)]
 pub struct PlayerHero(pub Entity);

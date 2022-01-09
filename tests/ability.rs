@@ -218,14 +218,13 @@ fn ability_affected_by_cooldown() {
 }
 
 fn setup_app() -> App {
-    let mut app_builder = App::build();
-    app_builder
-        .add_state(AppState::InGame)
+    let mut app = App::new();
+    app.add_state(AppState::InGame)
         .add_plugins(MinimalPlugins)
         .add_plugin(InputPlugin)
         .add_plugin(CooldownPlugin)
         .add_plugin(AbilityPlugin);
-    app_builder.app
+    app
 }
 
 #[derive(Bundle)]

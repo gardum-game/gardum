@@ -24,7 +24,7 @@ use clap::Clap;
 pub struct CliPlugin;
 
 impl Plugin for CliPlugin {
-    fn build(&self, app: &mut AppBuilder) {
+    fn build(&self, app: &mut App) {
         if cfg!(tarpaulin) {
             // Dont parse command line when tarpaulin is used
             app.init_resource::<Opts>();

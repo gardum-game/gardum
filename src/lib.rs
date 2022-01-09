@@ -27,8 +27,6 @@ pub mod ui;
 
 use bevy::prelude::*;
 #[cfg(feature = "client")]
-use bevy_atmosphere::AtmospherePlugin;
-#[cfg(feature = "client")]
 use bevy_egui::EguiPlugin;
 use heron::PhysicsPlugin;
 
@@ -40,7 +38,7 @@ use crate::ui::UiPlugin;
 pub struct GardumPlugin;
 
 impl Plugin for GardumPlugin {
-    fn build(&self, app: &mut AppBuilder) {
+    fn build(&self, app: &mut App) {
         if cfg!(feature = "client") {
             app.add_plugins(DefaultPlugins);
         } else {
@@ -52,8 +50,6 @@ impl Plugin for GardumPlugin {
             .add_plugin(CharactersPlugin);
 
         #[cfg(feature = "client")]
-        app.add_plugin(AtmospherePlugin { dynamic: false })
-            .add_plugin(EguiPlugin)
-            .add_plugin(UiPlugin);
+        app.add_plugin(EguiPlugin).add_plugin(UiPlugin);
     }
 }
