@@ -23,7 +23,7 @@ use bevy::prelude::*;
 use gardum::{
     characters::heroes::OwnerPlayer,
     core::{
-        cli::{HostSubcommand, Opts, SubCommand},
+        cli::{Opts, SubCommand},
         player::{PlayerBundle, PlayerHero, PlayerPlugin},
         AppState, Authority,
     },
@@ -95,7 +95,7 @@ fn setup_app_in_lobby() -> App {
 fn setup_app_with_host_command() -> App {
     let mut app = App::new();
     app.insert_resource(Opts {
-        subcommand: Some(SubCommand::Host(HostSubcommand {})),
+        subcommand: Some(SubCommand::Host),
     })
     .add_state(AppState::MainMenu)
     .add_plugin(PlayerPlugin);

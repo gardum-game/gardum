@@ -19,7 +19,7 @@
  */
 
 use bevy::prelude::*;
-use clap::Clap;
+use clap::{Parser, Subcommand};
 
 pub struct CliPlugin;
 
@@ -34,20 +34,15 @@ impl Plugin for CliPlugin {
     }
 }
 
-#[derive(Clap, Default)]
+#[derive(Default, Parser)]
+#[clap(author, version, about)]
 pub struct Opts {
     #[clap(subcommand)]
     pub subcommand: Option<SubCommand>,
 }
 
-#[derive(Clap)]
+#[derive(Subcommand)]
 pub enum SubCommand {
-    Connect(ConnectSubcommand),
-    Host(HostSubcommand),
+    Connect,
+    Host,
 }
-
-#[derive(Clap)]
-pub struct ConnectSubcommand {}
-
-#[derive(Clap)]
-pub struct HostSubcommand {}
