@@ -76,6 +76,3 @@ pub struct Damage(pub u32);
 /// Used to keep statistics of the healing done
 #[derive(Default, Debug, PartialEq)]
 pub struct Healing(pub u32);
-
-/// Used to store reference to the player
-pub struct PlayerOwner(pub Entity);

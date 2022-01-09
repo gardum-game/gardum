@@ -20,8 +20,9 @@
 
 use bevy::prelude::*;
 
+use super::heroes::PlayerOwner;
 use crate::core::{
-    player::{Damage, Deaths, Healing, Kills, PlayerOwner},
+    player::{Damage, Deaths, Healing, Kills},
     AppState,
 };
 

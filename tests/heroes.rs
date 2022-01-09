@@ -24,10 +24,10 @@ use gardum::{
     characters::{
         ability::ActivationEvent,
         health::{DamageEvent, HealEvent},
-        heroes::{HeroKind, HeroSelectEvent, HeroesPlugin},
+        heroes::{HeroKind, HeroSelectEvent, HeroesPlugin, PlayerOwner},
         projectile::ProjectileHitEvent,
     },
-    core::{player::PlayerOwner, AppState, Authority},
+    core::{AppState, Authority},
 };
 
 use strum::IntoEnumIterator;

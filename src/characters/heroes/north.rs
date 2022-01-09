@@ -21,7 +21,7 @@
 use bevy::{prelude::*, render::camera::Camera};
 use heron::{CollisionShape, Velocity};
 
-use super::{HeroBundle, HeroKind};
+use super::{HeroBundle, HeroKind, PlayerOwner};
 use crate::{
     characters::{
         ability::{Abilities, AbilitySlot, ActivationEvent},
@@ -30,7 +30,7 @@ use crate::{
         projectile::{ProjectileBundle, ProjectileHitEvent},
         CharacterBundle, CharacterOwner,
     },
-    core::{player::PlayerOwner, AppState, IconPath},
+    core::{AppState, IconPath},
 };
 
 const PROJECTILE_SPEED: f32 = 20.0;

@@ -21,9 +21,12 @@
 use bevy::{app::Events, prelude::*};
 
 use gardum::{
-    characters::health::{DamageEvent, HealEvent, Health, HealthPlugin},
+    characters::{
+        health::{DamageEvent, HealEvent, Health, HealthPlugin},
+        heroes::PlayerOwner,
+    },
     core::{
-        player::{Damage, Deaths, Healing, Kills, PlayerBundle, PlayerOwner},
+        player::{Damage, Deaths, Healing, Kills, PlayerBundle},
         AppState,
     },
 };

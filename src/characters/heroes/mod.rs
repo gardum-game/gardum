@@ -24,7 +24,7 @@ use bevy::prelude::*;
 use strum::EnumIter;
 
 use super::{ability::Abilities, CharacterBundle};
-use crate::core::{player::PlayerOwner, AppState, Authority};
+use crate::core::{AppState, Authority};
 use north::NorthPlugin;
 
 pub struct HeroesPlugin;
@@ -81,6 +81,9 @@ struct HeroBundle {
 pub enum HeroKind {
     North,
 }
+
+/// Used to store hero's player entity
+pub struct PlayerOwner(pub Entity);
 
 pub struct HeroSelectEvent {
     pub player: Entity,
