@@ -18,9 +18,12 @@
  *
  */
 
+mod common;
+
 use bevy::prelude::*;
 
-use gardum::GardumPlugin;
+use common::HeadlessRenderPlugin;
+use gardum::{characters::CharactersPlugin, core::CorePlugin};
 
 #[test]
 fn update() {
@@ -30,7 +33,9 @@ fn update() {
 
 fn setup_app() -> App {
     let mut app = App::new();
-    app.add_plugin(GardumPlugin);
+    app.add_plugin(HeadlessRenderPlugin)
+        .add_plugin(CorePlugin)
+        .add_plugin(CharactersPlugin);
 
     app
 }

@@ -18,9 +18,28 @@
  *
  */
 
-#![allow(clippy::type_complexity)] // Do not warn about long QuerySet
+use bevy::{
+    asset::AssetPlugin,
+    core::CorePlugin,
+    pbr::PbrPlugin,
+    prelude::*,
+    render::{options::WgpuOptions, RenderPlugin},
+    window::WindowPlugin,
+};
 
-pub mod characters;
-pub mod core;
-#[cfg(feature = "client")]
-pub mod ui;
+// Allows to run tests for systems containing rendering related things without GPU
+pub struct HeadlessRenderPlugin;
+
+impl Plugin for HeadlessRenderPlugin {
+    fn build(&self, app: &mut App) {
+        app.insert_resource(WgpuOptions {
+            backends: None,
+            ..Default::default()
+        })
+        .add_plugin(CorePlugin::default())
+        .add_plugin(WindowPlugin::default())
+        .add_plugin(AssetPlugin::default())
+        .add_plugin(RenderPlugin::default())
+        .add_plugin(PbrPlugin::default());
+    }
+}

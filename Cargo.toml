@@ -15,4 +15,5 @@ strum = { version = "0.23", features = ["derive"] }
 approx = "0.5"
 
 [features]
+default = ["client"]
 client = ["bevy/png", "bevy_egui"]

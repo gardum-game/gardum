@@ -18,8 +18,12 @@
  *
  */
 
-use bevy::{app::Events, prelude::*};
+mod common;
 
+use bevy::{app::Events, prelude::*};
+use strum::IntoEnumIterator;
+
+use common::HeadlessRenderPlugin;
 use gardum::{
     characters::{
         ability::ActivationEvent,
@@ -29,8 +33,6 @@ use gardum::{
     },
     core::{AppState, Authority},
 };
-
-use strum::IntoEnumIterator;
 
 #[test]
 fn hero_spawns_with_authority() {
@@ -165,7 +167,7 @@ fn setup_app() -> App {
         .add_event::<DamageEvent>()
         .add_event::<HealEvent>()
         .add_state(AppState::InGame)
-        .add_plugins(MinimalPlugins)
+        .add_plugin(HeadlessRenderPlugin)
         .add_plugin(HeroesPlugin);
 
     app

@@ -18,9 +18,12 @@
  *
  */
 
+mod common;
+
 use approx::assert_relative_eq;
 use bevy::{app::Events, prelude::*, render::camera::Camera};
 
+use common::HeadlessRenderPlugin;
 use gardum::{
     characters::{
         ability::ActivationEvent,
@@ -137,7 +140,7 @@ fn setup_app() -> App {
         .add_event::<ProjectileHitEvent>()
         .add_event::<DamageEvent>()
         .add_state(AppState::InGame)
-        .add_plugins(MinimalPlugins)
+        .add_plugin(HeadlessRenderPlugin)
         .add_plugin(NorthPlugin);
 
     app

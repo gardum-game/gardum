@@ -18,11 +18,30 @@
  *
  */
 
-use bevy::prelude::*;
+use bevy::{prelude::*, winit::WinitPlugin};
+#[cfg(feature = "client")]
+use bevy_egui::EguiPlugin;
+use heron::PhysicsPlugin;
 
-use gardum::GardumPlugin;
+#[cfg(feature = "client")]
+use gardum::ui::UiPlugin;
+use gardum::{characters::CharactersPlugin, core::CorePlugin};
 
 #[cfg(not(tarpaulin_include))]
 fn main() {
-    App::new().add_plugin(GardumPlugin).run();
+    let mut app = App::new();
+    if cfg!(feature = "client") {
+        app.add_plugins(DefaultPlugins);
+    } else {
+        app.add_plugins_with(DefaultPlugins, |group| group.disable::<WinitPlugin>());
+    }
+
+    app.add_plugin(PhysicsPlugin::default())
+        .add_plugin(CorePlugin)
+        .add_plugin(CharactersPlugin);
+
+    #[cfg(feature = "client")]
+    app.add_plugin(EguiPlugin).add_plugin(UiPlugin);
+
+    app.run();
 }
