@@ -18,7 +18,7 @@
  *
  */
 
-use bevy::prelude::*;
+use bevy::{ecs::system::CommandQueue, prelude::*};
 
 use gardum::{
     characters::heroes::OwnerPlayer,
@@ -41,14 +41,29 @@ fn player_hero_updates() {
 
     app.update();
 
-    let mut query = app.world.query::<&PlayerHero>();
+    let query = app.world.query::<&PlayerHero>();
     let player_hero = query
-        .iter(&app.world)
-        .next()
-        .expect("Player component should be spawned"); // TODO 0.7: Use single
+        .get_manual(&app.world, player)
+        .expect("Hero component should be added to the player");
     assert_eq!(
         player_hero.0, hero,
-        "Player's hero should reference to the spawned hero"
+        "Hero component should reference the spawned hero"
+    );
+
+    // Respawn
+    let mut queue = CommandQueue::default();
+    let mut commands = Commands::new(&mut queue, &app.world);
+    commands.entity(hero).despawn();
+    let hero = app.world.spawn().insert(OwnerPlayer(player)).id();
+
+    app.update();
+
+    let player_hero = query
+        .get_manual(&app.world, player)
+        .expect("Hero component should be on the player from the previous spawn");
+    assert_eq!(
+        player_hero.0, hero,
+        "Hero component should update reference to the new spawned hero"
     );
 }
 
@@ -61,7 +76,7 @@ fn server_player_spawns_in_lobby() {
     query
         .iter(&app.world)
         .next()
-        .expect("Player component should be spawned"); // TODO 0.7: Use single
+        .expect("Player should be spawned"); // TODO 0.7: Use single
 }
 
 #[test]
@@ -73,7 +88,7 @@ fn server_player_spawns_with_host_command() {
     query
         .iter(&app.world)
         .next()
-        .expect("Player component should be spawned"); // TODO 0.7: Use single
+        .expect("Player should be spawned"); // TODO 0.7: Use single
 }
 
 fn setup_app() -> App {
