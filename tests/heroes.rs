@@ -20,7 +20,7 @@
 
 mod common;
 
-use bevy::{app::Events, ecs::system::CommandQueue, prelude::*};
+use bevy::{app::Events, prelude::*};
 use strum::IntoEnumIterator;
 
 use common::HeadlessRenderPlugin;
@@ -158,10 +158,7 @@ fn hero_spawns_at_position() {
             "Hero should be spawned with the specified translation"
         );
 
-        let mut queue = CommandQueue::default();
-        let mut commands = Commands::new(&mut queue, &app.world);
-        commands.entity(hero).despawn();
-        queue.apply(&mut app.world);
+        app.world.entity_mut(hero).despawn();
     }
 }
 
@@ -192,10 +189,7 @@ fn hero_spawns_with_kind() {
             .expect("Hero should be spawned"); // TODO 0.7: Use single
         assert_eq!(*kind, expected_kind, "The specified hero should be spawned");
 
-        let mut queue = CommandQueue::default();
-        let mut commands = Commands::new(&mut queue, &app.world);
-        commands.entity(hero).despawn();
-        queue.apply(&mut app.world);
+        app.world.entity_mut(hero).despawn();
     }
 }
 
