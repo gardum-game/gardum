@@ -18,7 +18,7 @@
  *
  */
 
-use bevy::{ecs::system::CommandQueue, prelude::*};
+use bevy::prelude::*;
 
 use gardum::{
     characters::heroes::OwnerPlayer,
@@ -50,10 +50,7 @@ fn player_hero_updates() {
         "Hero component should reference the spawned hero"
     );
 
-    // Respawn
-    let mut queue = CommandQueue::default();
-    let mut commands = Commands::new(&mut queue, &app.world);
-    commands.entity(hero).despawn();
+    // Spawn another hero
     let hero = app.world.spawn().insert(OwnerPlayer(player)).id();
 
     app.update();
