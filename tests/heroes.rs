@@ -66,38 +66,7 @@ fn old_hero_despawns() {
 }
 
 #[test]
-fn hero_spawns_with_authority() {
-    let mut app = setup_app();
-    let player = app.world.spawn().insert(Authority).id();
-
-    let mut events = app
-        .world
-        .get_resource_mut::<Events<HeroSelectEvent>>()
-        .unwrap();
-
-    events.send(HeroSelectEvent {
-        player,
-        kind: HeroKind::iter().next().unwrap(),
-        transform: Transform::default(),
-    });
-
-    app.update();
-
-    let mut query = app
-        .world
-        .query_filtered::<&OwnerPlayer, (With<Authority>, With<HeroKind>)>();
-    let assigned_player = query
-        .iter(&app.world)
-        .next()
-        .expect("Hero should be spawned with authority and assigned player"); // TODO 0.7: Use single
-    assert_eq!(
-        assigned_player.0, player,
-        "Assigned player should be equal to specified"
-    )
-}
-
-#[test]
-fn hero_spawns_without_authority() {
+fn hero_spawns_with_owner() {
     let mut app = setup_app();
     let player = app.world.spawn().id();
 
@@ -116,15 +85,37 @@ fn hero_spawns_without_authority() {
 
     let mut query = app
         .world
-        .query_filtered::<&OwnerPlayer, (Without<Authority>, With<HeroKind>)>();
-    let assigned_player = query
+        .query_filtered::<(Entity, &OwnerPlayer), (Without<Authority>, With<HeroKind>)>();
+    let (hero, owner) = query
         .iter(&app.world)
         .next()
-        .expect("Hero should be spawned with authority and assigned player"); // TODO 0.7: Use single
-    assert_eq!(
-        assigned_player.0, player,
-        "Assigned player should be equal to specified"
-    )
+        .expect("Hero should be spawned without authority"); // TODO 0.7: Use single
+    assert_eq!(owner.0, player, "Player from the event be the owner");
+
+    app.world.entity_mut(hero).despawn();
+    app.world.entity_mut(player).insert(Authority);
+
+    let mut events = app
+        .world
+        .get_resource_mut::<Events<HeroSelectEvent>>()
+        .unwrap();
+
+    events.send(HeroSelectEvent {
+        player,
+        kind: HeroKind::iter().next().unwrap(),
+        transform: Transform::default(),
+    });
+
+    app.update();
+
+    let mut query = app
+        .world
+        .query_filtered::<&OwnerPlayer, (With<Authority>, With<HeroKind>)>();
+    let owner = query
+        .iter(&app.world)
+        .next()
+        .expect("Hero should be spawned with authority"); // TODO 0.7: Use single
+    assert_eq!(owner.0, player, "Player from the event be the owner");
 }
 
 #[test]
