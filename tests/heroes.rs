@@ -20,7 +20,7 @@
 
 mod common;
 
-use bevy::{app::Events, prelude::*};
+use bevy::{app::Events, ecs::system::CommandQueue, prelude::*};
 use strum::IntoEnumIterator;
 
 use common::HeadlessRenderPlugin;
@@ -115,8 +115,10 @@ fn hero_spawns_at_position() {
 
         app.update();
 
-        let mut query = app.world.query_filtered::<&Transform, With<HeroKind>>();
-        let transform = query
+        let mut query = app
+            .world
+            .query_filtered::<(Entity, &Transform), With<HeroKind>>();
+        let (hero, transform) = query
             .iter(&app.world)
             .next()
             .expect("Hero should be spawned"); // TODO 0.7: Use single
@@ -125,7 +127,10 @@ fn hero_spawns_at_position() {
             "Hero should be spawned with the specified translation"
         );
 
-        app.world.clear_entities();
+        let mut queue = CommandQueue::default();
+        let mut commands = Commands::new(&mut queue, &app.world);
+        commands.entity(hero).despawn();
+        queue.apply(&mut app.world);
     }
 }
 
@@ -148,15 +153,18 @@ fn hero_spawns_with_kind() {
 
         app.update();
 
-        let mut query = app.world.query::<&HeroKind>();
+        let mut query = app.world.query::<(Entity, &HeroKind)>();
 
-        let kind = query
+        let (hero, kind) = query
             .iter(&app.world)
             .next()
             .expect("Hero should be spawned"); // TODO 0.7: Use single
         assert_eq!(*kind, expected_kind, "The specified hero should be spawned");
 
-        app.world.clear_entities();
+        let mut queue = CommandQueue::default();
+        let mut commands = Commands::new(&mut queue, &app.world);
+        commands.entity(hero).despawn();
+        queue.apply(&mut app.world);
     }
 }
 
