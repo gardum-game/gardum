@@ -31,8 +31,39 @@ use gardum::{
         heroes::{HeroKind, HeroSelectEvent, HeroesPlugin, OwnerPlayer},
         projectile::ProjectileHitEvent,
     },
-    core::{AppState, Authority},
+    core::{player::PlayerHero, AppState, Authority},
 };
+
+#[test]
+fn old_hero_despawns() {
+    let mut app = setup_app();
+    let old_hero = app
+        .world
+        .spawn()
+        .insert(HeroKind::iter().next().unwrap())
+        .id();
+    let player = app.world.spawn().insert(PlayerHero(old_hero)).id();
+
+    let mut events = app
+        .world
+        .get_resource_mut::<Events<HeroSelectEvent>>()
+        .unwrap();
+
+    events.send(HeroSelectEvent {
+        player,
+        kind: HeroKind::iter().next().unwrap(),
+        transform: Transform::default(),
+    });
+
+    app.update();
+
+    let mut query = app.world.query_filtered::<Entity, With<HeroKind>>();
+    let hero = query
+        .iter(&app.world)
+        .next()
+        .expect("Should be a single hero"); // TODO 0.7: Use single
+    assert_ne!(old_hero, hero, "New hero should replace the old one")
+}
 
 #[test]
 fn hero_spawns_with_authority() {

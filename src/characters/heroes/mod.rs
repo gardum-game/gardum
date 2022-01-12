@@ -24,7 +24,7 @@ use bevy::prelude::*;
 use strum::EnumIter;
 
 use super::{ability::Abilities, CharacterBundle};
-use crate::core::{AppState, Authority};
+use crate::core::{player::PlayerHero, AppState, Authority};
 use north::NorthPlugin;
 
 pub struct HeroesPlugin;
@@ -41,12 +41,12 @@ impl Plugin for HeroesPlugin {
 
 fn hero_selection_system(
     mut commands: Commands,
-    mut spawn_events: EventReader<HeroSelectEvent>,
-    authority_query: Query<(), With<Authority>>,
+    mut selection_events: EventReader<HeroSelectEvent>,
+    player_query: Query<(Option<&PlayerHero>, Option<&Authority>)>,
     #[cfg(feature = "client")] mut meshes: ResMut<Assets<Mesh>>,
     #[cfg(feature = "client")] mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    for event in spawn_events.iter() {
+    for event in selection_events.iter() {
         let hero_bundle = match event.kind {
             HeroKind::North => HeroBundle::north(
                 OwnerPlayer(event.player),
@@ -59,8 +59,13 @@ fn hero_selection_system(
             ),
         };
 
+        let (hero, authority) = player_query.get(event.player).unwrap();
+        if let Some(hero) = hero {
+            commands.entity(hero.0).despawn();
+        }
+
         let mut entity_commands = commands.spawn_bundle(hero_bundle);
-        if authority_query.get(event.player).is_ok() {
+        if authority.is_some() {
             entity_commands.insert(Authority);
         }
     }
