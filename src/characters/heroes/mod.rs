@@ -104,6 +104,10 @@ pub enum HeroKind {
 #[derive(Component)]
 pub struct OwnerPlayer(pub Entity);
 
+/// Used to store reference to the hero
+#[derive(Component)]
+pub struct OwnerHero(pub Entity);
+
 pub struct HeroSelectEvent {
     pub player: Entity,
     pub kind: HeroKind,

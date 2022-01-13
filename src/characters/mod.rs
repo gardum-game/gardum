@@ -82,7 +82,3 @@ impl Default for CharacterBundle {
         }
     }
 }
-
-/// Used to store reference to the character
-#[derive(Component)]
-pub struct CharacterOwner(pub Entity);

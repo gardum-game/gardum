@@ -21,14 +21,14 @@
 use bevy::{prelude::*, render::camera::Camera};
 use heron::{CollisionShape, Velocity};
 
-use super::{HeroBundle, HeroKind, OwnerPlayer};
+use super::{HeroBundle, HeroKind, OwnerHero, OwnerPlayer};
 use crate::{
     characters::{
         ability::{Abilities, AbilitySlot, ActivationEvent},
         cooldown::Cooldown,
         health::DamageEvent,
         projectile::{ProjectileBundle, ProjectileHitEvent},
-        CharacterBundle, CharacterOwner,
+        CharacterBundle,
     },
     core::{AppState, IconPath},
 };
@@ -73,14 +73,14 @@ fn frost_bolt_system(
                 &mut materials,
             ))
             .insert(FrostBoltProjectile)
-            .insert(CharacterOwner(event.caster));
+            .insert(OwnerHero(event.caster));
     }
 }
 
 fn frost_bolt_hit_system(
     mut hit_events: EventReader<ProjectileHitEvent>,
     mut damage_events: EventWriter<DamageEvent>,
-    query: Query<&CharacterOwner, With<FrostBoltProjectile>>,
+    query: Query<&OwnerHero, With<FrostBoltProjectile>>,
 ) {
     for event in hit_events.iter() {
         if let Ok(character) = query.get(event.projectile) {

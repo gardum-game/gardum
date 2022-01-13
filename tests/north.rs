@@ -28,12 +28,14 @@ use gardum::{
     characters::{
         ability::ActivationEvent,
         health::DamageEvent,
-        heroes::north::{
-            FrostBoltBundle, FrostBoltProjectile, NorthPlugin, FROST_BOLT_DAMAGE,
-            FROST_BOLT_SPAWN_OFFSET,
+        heroes::{
+            north::{
+                FrostBoltBundle, FrostBoltProjectile, NorthPlugin, FROST_BOLT_DAMAGE,
+                FROST_BOLT_SPAWN_OFFSET,
+            },
+            OwnerHero,
         },
         projectile::{Projectile, ProjectileHitEvent},
-        CharacterOwner,
     },
     core::AppState,
 };
@@ -106,7 +108,7 @@ fn frost_bolt_hit() {
         .world
         .spawn()
         .insert(FrostBoltProjectile)
-        .insert(CharacterOwner(instigator))
+        .insert(OwnerHero(instigator))
         .id();
     let target = app.world.spawn().id();
 
