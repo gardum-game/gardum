@@ -47,17 +47,16 @@ fn hero_selection_system(
     #[cfg(feature = "client")] mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     for event in selection_events.iter() {
-        let hero_bundle = match event.kind {
-            HeroKind::North => HeroBundle::north(
-                OwnerPlayer(event.player),
-                event.transform,
-                &mut commands,
-                #[cfg(feature = "client")]
-                &mut meshes,
-                #[cfg(feature = "client")]
-                &mut materials,
-            ),
-        };
+        let hero_bundle = HeroBundle::hero(
+            event.kind,
+            OwnerPlayer(event.player),
+            event.transform,
+            &mut commands,
+            #[cfg(feature = "client")]
+            &mut meshes,
+            #[cfg(feature = "client")]
+            &mut materials,
+        );
 
         let (hero, authority) = player_query.get(event.player).unwrap();
         if let Some(hero) = hero {
@@ -79,6 +78,31 @@ struct HeroBundle {
 
     #[bundle]
     character: CharacterBundle,
+}
+
+impl HeroBundle {
+    /// Create hero bundle from the specified kind
+    fn hero(
+        kind: HeroKind,
+        player: OwnerPlayer,
+        transform: Transform,
+        commands: &mut Commands,
+        #[cfg(feature = "client")] meshes: &mut Assets<Mesh>,
+        #[cfg(feature = "client")] materials: &mut Assets<StandardMaterial>,
+    ) -> Self {
+        let create_fn = match kind {
+            HeroKind::North => HeroBundle::north,
+        };
+        create_fn(
+            player,
+            transform,
+            commands,
+            #[cfg(feature = "client")]
+            meshes,
+            #[cfg(feature = "client")]
+            materials,
+        )
+    }
 }
 
 #[derive(Clone, Copy, PartialEq, EnumIter, Debug, Component)]
