@@ -43,8 +43,8 @@ fn hero_selection_system(
     mut commands: Commands,
     mut selection_events: EventReader<HeroSelectEvent>,
     player_query: Query<(Option<&PlayerHero>, Option<&Authority>)>,
-    #[cfg(feature = "client")] mut meshes: ResMut<Assets<Mesh>>,
-    #[cfg(feature = "client")] mut materials: ResMut<Assets<StandardMaterial>>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     for event in selection_events.iter() {
         let hero_bundle = HeroBundle::hero(
@@ -52,9 +52,7 @@ fn hero_selection_system(
             OwnerPlayer(event.player),
             event.transform,
             &mut commands,
-            #[cfg(feature = "client")]
             &mut meshes,
-            #[cfg(feature = "client")]
             &mut materials,
         );
 
@@ -87,21 +85,13 @@ impl HeroBundle {
         player: OwnerPlayer,
         transform: Transform,
         commands: &mut Commands,
-        #[cfg(feature = "client")] meshes: &mut Assets<Mesh>,
-        #[cfg(feature = "client")] materials: &mut Assets<StandardMaterial>,
+        meshes: &mut Assets<Mesh>,
+        materials: &mut Assets<StandardMaterial>,
     ) -> Self {
         let create_fn = match kind {
             HeroKind::North => HeroBundle::north,
         };
-        create_fn(
-            player,
-            transform,
-            commands,
-            #[cfg(feature = "client")]
-            meshes,
-            #[cfg(feature = "client")]
-            materials,
-        )
+        create_fn(player, transform, commands, meshes, materials)
     }
 }
 

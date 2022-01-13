@@ -52,8 +52,8 @@ impl Plugin for NorthPlugin {
 fn frost_bolt_system(
     mut commands: Commands,
     mut events: EventReader<ActivationEvent>,
-    #[cfg(feature = "client")] mut meshes: ResMut<Assets<Mesh>>,
-    #[cfg(feature = "client")] mut materials: ResMut<Assets<StandardMaterial>>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
     frost_bolt_query: Query<(), With<FrostBoltAbility>>,
     caster_query: Query<&Transform>,
     camera_query: Query<&Transform, With<Camera>>,
@@ -69,9 +69,7 @@ fn frost_bolt_system(
             .spawn_bundle(ProjectileBundle::frost_bolt(
                 camera_transform,
                 caster_transform,
-                #[cfg(feature = "client")]
                 &mut meshes,
-                #[cfg(feature = "client")]
                 &mut materials,
             ))
             .insert(FrostBoltProjectile)
@@ -125,8 +123,8 @@ impl HeroBundle {
         player: OwnerPlayer,
         transform: Transform,
         commands: &mut Commands,
-        #[cfg(feature = "client")] meshes: &mut Assets<Mesh>,
-        #[cfg(feature = "client")] materials: &mut Assets<StandardMaterial>,
+        meshes: &mut Assets<Mesh>,
+        materials: &mut Assets<StandardMaterial>,
     ) -> Self {
         Self {
             player,
@@ -134,9 +132,7 @@ impl HeroBundle {
             abilities: Abilities(vec![commands.spawn_bundle(FrostBoltBundle::default()).id()]),
             character: CharacterBundle {
                 pbr: PbrBundle {
-                    #[cfg(feature = "client")]
                     mesh: meshes.add(Mesh::from(shape::Capsule::default())),
-                    #[cfg(feature = "client")]
                     material: materials.add(Color::rgb(0.3, 0.3, 0.3).into()),
                     transform,
                     ..Default::default()
@@ -155,8 +151,8 @@ impl ProjectileBundle {
     fn frost_bolt(
         camera_transform: &Transform,
         caster_transform: &Transform,
-        #[cfg(feature = "client")] meshes: &mut Assets<Mesh>,
-        #[cfg(feature = "client")] materials: &mut Assets<StandardMaterial>,
+        meshes: &mut Assets<Mesh>,
+        materials: &mut Assets<StandardMaterial>,
     ) -> Self {
         Self {
             shape: CollisionShape::Capsule {
@@ -167,9 +163,7 @@ impl ProjectileBundle {
                 camera_transform.rotation * -Vec3::Z * PROJECTILE_SPEED,
             ),
             pbr: PbrBundle {
-                #[cfg(feature = "client")]
                 mesh: meshes.add(Mesh::from(shape::Capsule::default())),
-                #[cfg(feature = "client")]
                 material: materials.add(Color::rgb(0.3, 0.3, 0.3).into()),
                 transform: Transform {
                     translation: caster_transform.translation
