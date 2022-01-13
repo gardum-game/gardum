@@ -20,7 +20,7 @@
 
 mod common;
 
-use bevy::{app::Events, prelude::*};
+use bevy::{app::Events, ecs::system::SystemState, prelude::*};
 use strum::IntoEnumIterator;
 
 use common::HeadlessRenderPlugin;
@@ -28,7 +28,7 @@ use gardum::{
     characters::{
         ability::ActivationEvent,
         health::{DamageEvent, HealEvent},
-        heroes::{HeroKind, HeroSelectEvent, HeroesPlugin, OwnerPlayer},
+        heroes::{HeroBundle, HeroKind, HeroSelectEvent, HeroesPlugin, OwnerPlayer},
         projectile::ProjectileHitEvent,
     },
     core::{player::PlayerHero, AppState, Authority},
@@ -119,68 +119,29 @@ fn hero_spawns_with_owner() {
 }
 
 #[test]
-fn hero_spawns_at_position() {
+fn hero_bundle() {
     let mut app = setup_app();
     let player = app.world.spawn().id();
+    let mut system_state: SystemState<(
+        Commands,
+        ResMut<Assets<Mesh>>,
+        ResMut<Assets<StandardMaterial>>,
+    )> = SystemState::new(&mut app.world);
+    let (mut commands, mut meshes, mut materials) = system_state.get_mut(&mut app.world);
 
-    for expected_translation in [Vec3::ZERO, Vec3::ONE] {
-        let mut events = app
-            .world
-            .get_resource_mut::<Events<HeroSelectEvent>>()
-            .unwrap();
-
-        events.send(HeroSelectEvent {
-            player,
-            kind: HeroKind::iter().next().unwrap(),
-            transform: Transform::from_translation(expected_translation),
-        });
-
-        app.update();
-
-        let mut query = app
-            .world
-            .query_filtered::<(Entity, &Transform), With<HeroKind>>();
-        let (hero, transform) = query
-            .iter(&app.world)
-            .next()
-            .expect("Hero should be spawned"); // TODO 0.7: Use single
-        assert_eq!(
-            transform.translation, expected_translation,
-            "Hero should be spawned with the specified translation"
+    for kind in HeroKind::iter() {
+        let hero_bundle = HeroBundle::hero(
+            kind,
+            OwnerPlayer(player),
+            Transform::default(),
+            &mut commands,
+            &mut meshes,
+            &mut materials,
         );
-
-        app.world.entity_mut(hero).despawn();
-    }
-}
-
-#[test]
-fn hero_spawns_with_kind() {
-    let mut app = setup_app();
-    let player = app.world.spawn().id();
-
-    for expected_kind in HeroKind::iter() {
-        let mut events = app
-            .world
-            .get_resource_mut::<Events<HeroSelectEvent>>()
-            .unwrap();
-
-        events.send(HeroSelectEvent {
-            player,
-            kind: expected_kind,
-            transform: Transform::default(),
-        });
-
-        app.update();
-
-        let mut query = app.world.query::<(Entity, &HeroKind)>();
-
-        let (hero, kind) = query
-            .iter(&app.world)
-            .next()
-            .expect("Hero should be spawned"); // TODO 0.7: Use single
-        assert_eq!(*kind, expected_kind, "The specified hero should be spawned");
-
-        app.world.entity_mut(hero).despawn();
+        assert_eq!(
+            hero_bundle.kind, kind,
+            "Hero kind in bundle should be equal to specified"
+        )
     }
 }
 

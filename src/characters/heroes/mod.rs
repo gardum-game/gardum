@@ -69,18 +69,18 @@ fn hero_selection_system(
 }
 
 #[derive(Bundle)]
-struct HeroBundle {
-    player: OwnerPlayer,
-    kind: HeroKind,
-    abilities: Abilities,
+pub struct HeroBundle {
+    pub player: OwnerPlayer,
+    pub kind: HeroKind,
+    pub abilities: Abilities,
 
     #[bundle]
-    character: CharacterBundle,
+    pub character: CharacterBundle,
 }
 
 impl HeroBundle {
     /// Create hero bundle from the specified kind
-    fn hero(
+    pub fn hero(
         kind: HeroKind,
         player: OwnerPlayer,
         transform: Transform,
