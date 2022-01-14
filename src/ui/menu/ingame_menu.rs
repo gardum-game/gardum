@@ -26,7 +26,7 @@ use bevy_egui::{
 
 use crate::core::AppState;
 
-pub struct InGameMenuPlugin;
+pub(super) struct InGameMenuPlugin;
 
 impl Plugin for InGameMenuPlugin {
     fn build(&self, app: &mut App) {

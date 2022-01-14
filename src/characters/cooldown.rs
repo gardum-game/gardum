@@ -24,7 +24,7 @@ use std::time::Duration;
 
 use crate::core::AppState;
 
-pub struct CooldownPlugin;
+pub(super) struct CooldownPlugin;
 
 impl Plugin for CooldownPlugin {
     fn build(&self, app: &mut App) {
@@ -41,10 +41,10 @@ fn cooldown_system(time: Res<Time>, mut query: Query<&mut Cooldown>) {
 }
 
 #[derive(Deref, DerefMut, Component)]
-pub struct Cooldown(Timer);
+pub(crate) struct Cooldown(Timer);
 
 impl Cooldown {
-    pub fn from_secs(secs: u64) -> Self {
+    pub(super) fn from_secs(secs: u64) -> Self {
         // Setup timer in finished state
         let duration = Duration::from_secs(secs);
         let mut timer = Timer::new(duration, false);
@@ -68,5 +68,30 @@ mod tests {
             cooldown.finished(),
             "Cooldown shouldn't tick after creation"
         );
+    }
+
+    #[test]
+    fn cooldown_ticks() {
+        let mut app = setup_app();
+
+        let mut cooldown = Cooldown::from_secs(1);
+        cooldown.reset(); // Activate cooldown
+        let cooldown_entity = app.world.spawn().insert(cooldown).id();
+
+        app.update();
+        app.update();
+        let cooldown = app.world.get::<Cooldown>(cooldown_entity).unwrap();
+        assert!(
+            cooldown.elapsed() > Duration::default(),
+            "Cooldown should tick"
+        );
+    }
+
+    fn setup_app() -> App {
+        let mut app = App::new();
+        app.add_state(AppState::InGame)
+            .add_plugins(MinimalPlugins)
+            .add_plugin(CooldownPlugin);
+        app
     }
 }

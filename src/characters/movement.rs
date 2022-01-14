@@ -29,7 +29,7 @@ const VELOCITY_INTERPOLATE_SPEED: f32 = 6.0;
 const JUMP_IMPULSE: f32 = 25.0;
 const FLOOR_THRESHOLD: f32 = 0.01;
 
-pub struct MovementPlugin;
+pub(super) struct MovementPlugin;
 
 impl Plugin for MovementPlugin {
     fn build(&self, app: &mut App) {
@@ -81,7 +81,7 @@ fn movement_system(
     }
 }
 
-pub fn is_on_floor(
+fn is_on_floor(
     physics_world: &PhysicsWorld,
     entity: Entity,
     shape: &CollisionShape,
@@ -100,12 +100,12 @@ pub fn is_on_floor(
 }
 
 #[derive(Default, Debug, PartialEq)]
-pub struct MovementInput {
-    pub forward: bool,
-    pub backward: bool,
-    pub left: bool,
-    pub right: bool,
-    pub jumping: bool,
+struct MovementInput {
+    forward: bool,
+    backward: bool,
+    left: bool,
+    right: bool,
+    jumping: bool,
 }
 
 impl MovementInput {
@@ -138,6 +138,14 @@ enum MovementSystems {
 
 #[cfg(test)]
 mod tests {
+    use approx::assert_relative_eq;
+    use bevy::{
+        app::Events,
+        ecs::system::SystemState,
+        input::{keyboard::KeyboardInput, ElementState, InputPlugin},
+    };
+    use heron::{PhysicsPlugin, RigidBody};
+
     use super::*;
 
     #[test]
@@ -192,5 +200,307 @@ mod tests {
             Vec3::ZERO,
             "Should be zero when no buttons are pressed"
         );
+    }
+
+    #[test]
+    fn movement_input() {
+        let mut app = setup_app();
+        app.update();
+
+        let test_data = [
+            (
+                KeyCode::W,
+                MovementInput {
+                    forward: true,
+                    ..Default::default()
+                },
+            ),
+            (
+                KeyCode::S,
+                MovementInput {
+                    backward: true,
+                    ..Default::default()
+                },
+            ),
+            (
+                KeyCode::A,
+                MovementInput {
+                    left: true,
+                    ..Default::default()
+                },
+            ),
+            (
+                KeyCode::D,
+                MovementInput {
+                    right: true,
+                    ..Default::default()
+                },
+            ),
+        ];
+
+        for (i, (key, expected_input)) in test_data.iter().enumerate() {
+            let mut events = app
+                .world
+                .get_resource_mut::<Events<KeyboardInput>>()
+                .unwrap();
+
+            if i != 0 {
+                // Previous key should be released manually
+                events.send(KeyboardInput {
+                    scan_code: 0,
+                    key_code: Some(test_data[i - 1].0),
+                    state: ElementState::Released,
+                });
+            }
+
+            events.send(KeyboardInput {
+                scan_code: 0,
+                key_code: Some(*key),
+                state: ElementState::Pressed,
+            });
+
+            app.update();
+
+            assert_eq!(
+                app.world.get_resource::<MovementInput>().unwrap(),
+                expected_input,
+                "Movement input should correspond to the pressed key: {:?}",
+                key
+            );
+        }
+    }
+
+    #[test]
+    fn player_falls() {
+        let mut app = setup_app();
+        app.world
+            .spawn()
+            .insert_bundle(DummyCameraBundle::default());
+        let player = app
+            .world
+            .spawn()
+            .insert_bundle(DummyPlayerBundle::default())
+            .id();
+
+        app.update();
+        app.update();
+
+        // Clone collision and transform because PhysicsWorld is a mutable SystemParam
+        let collision_shape = app.world.get::<CollisionShape>(player).unwrap().clone();
+        let transform = app.world.get::<Transform>(player).unwrap().clone();
+        let mut system_state: SystemState<PhysicsWorld> = SystemState::new(&mut app.world);
+        let physics_world = system_state.get_mut(&mut app.world);
+
+        assert!(
+            !is_on_floor(&physics_world, player, &collision_shape, &transform,),
+            "Player shouldn't be on floor"
+        );
+        assert!(
+            DummyPlayerBundle::default().transform.translation.y > transform.translation.y,
+            "Player should be affected by gravity"
+        );
+
+        let mut events = app
+            .world
+            .get_resource_mut::<Events<KeyboardInput>>()
+            .unwrap();
+
+        events.send(KeyboardInput {
+            scan_code: 0,
+            key_code: Some(KeyCode::Space),
+            state: ElementState::Pressed,
+        });
+
+        let previous_translation = app.world.get::<Transform>(player).unwrap().translation;
+
+        app.update();
+
+        assert!(
+            previous_translation.y > app.world.get::<Transform>(player).unwrap().translation.y,
+            "Player should't be able to jump"
+        );
+    }
+
+    #[test]
+    fn player_standing_on_platform() {
+        let mut app = setup_app();
+        app.world
+            .spawn()
+            .insert_bundle(DummyCameraBundle::default());
+        app.world.spawn().insert_bundle(DummyPlainBundle::default());
+        let player = app
+            .world
+            .spawn()
+            .insert_bundle(DummyPlayerBundle::default())
+            .id();
+
+        app.update();
+
+        let previous_translation = app.world.get::<Transform>(player).unwrap().translation;
+
+        app.update();
+
+        // Clone collision and transform because PhysicsWorld is a mutable SystemParam
+        let collision_shape = app.world.get::<CollisionShape>(player).unwrap().clone();
+        let transform = app.world.get::<Transform>(player).unwrap().clone();
+        let mut system_state: SystemState<PhysicsWorld> = SystemState::new(&mut app.world);
+        let physics_world = system_state.get_mut(&mut app.world);
+
+        assert!(
+            is_on_floor(&physics_world, player, &collision_shape, &transform,),
+            "Player should be on floor"
+        );
+        assert_eq!(
+            previous_translation.y, transform.translation.y,
+            "Player shouldn't be affected by gravity"
+        );
+
+        let mut events = app
+            .world
+            .get_resource_mut::<Events<KeyboardInput>>()
+            .unwrap();
+
+        events.send(KeyboardInput {
+            scan_code: 0,
+            key_code: Some(KeyCode::Space),
+            state: ElementState::Pressed,
+        });
+
+        app.update();
+
+        assert!(
+            DummyPlayerBundle::default().transform.translation.y
+                < app.world.get::<Transform>(player).unwrap().translation.y,
+            "Player should be able to jump"
+        );
+    }
+
+    #[test]
+    fn player_moves() {
+        let mut app = setup_app();
+        app.world
+            .spawn()
+            .insert_bundle(DummyCameraBundle::default());
+        let player = app
+            .world
+            .spawn()
+            .insert_bundle(DummyPlayerBundle::default())
+            .id();
+
+        app.update();
+
+        let test_data = [
+            (KeyCode::W, -Vec3::Z),
+            (KeyCode::S, Vec3::Z),
+            (KeyCode::A, -Vec3::X),
+            (KeyCode::D, Vec3::X),
+        ];
+
+        for (i, (key, expected_direction)) in test_data.iter().enumerate() {
+            let mut events = app
+                .world
+                .get_resource_mut::<Events<KeyboardInput>>()
+                .unwrap();
+
+            if i != 0 {
+                // Previous key should be released manually
+                events.send(KeyboardInput {
+                    scan_code: 0,
+                    key_code: Some(test_data[i - 1].0),
+                    state: ElementState::Released,
+                });
+            }
+
+            events.send(KeyboardInput {
+                scan_code: 0,
+                key_code: Some(*key),
+                state: ElementState::Pressed,
+            });
+
+            let previous_translation = app
+                .world
+                .get::<Transform>(player)
+                .unwrap()
+                .translation
+                .clone();
+
+            // Clean previous velocity to avoid interpolation
+            app.world.get_mut::<Velocity>(player).unwrap().linear = Vec3::ZERO;
+
+            app.update();
+
+            let mut direction =
+                app.world.get::<Transform>(player).unwrap().translation - previous_translation;
+            direction.y = 0.0; // Remove gravity
+            direction = direction.normalize();
+
+            assert_relative_eq!(direction.x, expected_direction.x);
+            assert_relative_eq!(direction.y, expected_direction.y);
+        }
+    }
+
+    fn setup_app() -> App {
+        let mut app = App::new();
+        app.add_state(AppState::InGame)
+            .add_plugins(MinimalPlugins)
+            .add_plugin(InputPlugin)
+            .add_plugin(PhysicsPlugin::default())
+            .add_plugin(MovementPlugin);
+        app
+    }
+
+    #[derive(Bundle)]
+    struct DummyPlainBundle {
+        rigid_body: RigidBody,
+        shape: CollisionShape,
+        transform: Transform,
+        global_transform: GlobalTransform,
+    }
+
+    impl Default for DummyPlainBundle {
+        fn default() -> Self {
+            Self {
+                rigid_body: RigidBody::Static,
+                shape: CollisionShape::Cuboid {
+                    half_extends: Vec3::new(10.0, 0.1, 10.0),
+                    border_radius: None,
+                },
+                transform: Transform::default(),
+                global_transform: GlobalTransform::default(),
+            }
+        }
+    }
+
+    #[derive(Bundle)]
+    struct DummyPlayerBundle {
+        rigid_body: RigidBody,
+        shape: CollisionShape,
+        transform: Transform,
+        global_transform: GlobalTransform,
+        velocity: Velocity,
+        authority: Authority,
+    }
+
+    impl Default for DummyPlayerBundle {
+        fn default() -> Self {
+            Self {
+                rigid_body: RigidBody::KinematicVelocityBased,
+                shape: CollisionShape::Capsule {
+                    half_segment: 0.5,
+                    radius: 0.5,
+                },
+                transform: Transform::default(),
+                global_transform: GlobalTransform::default(),
+                velocity: Velocity::default(),
+                authority: Authority,
+            }
+        }
+    }
+
+    #[derive(Bundle, Default)]
+    struct DummyCameraBundle {
+        camera: Camera,
+        transform: Transform,
+        authority: Authority,
     }
 }

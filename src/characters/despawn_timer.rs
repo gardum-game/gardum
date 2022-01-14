@@ -24,7 +24,7 @@ use std::time::Duration;
 
 use crate::core::AppState;
 
-pub struct DespawnTimerPlugin;
+pub(super) struct DespawnTimerPlugin;
 
 impl Plugin for DespawnTimerPlugin {
     fn build(&self, app: &mut App) {
@@ -48,11 +48,65 @@ fn despawn_timer_system(
 }
 
 #[derive(Component, Deref, DerefMut, Default)]
-pub struct DespawnTimer(Timer);
+pub(super) struct DespawnTimer(Timer);
 
 impl DespawnTimer {
-    pub fn from_secs(secs: u64) -> Self {
+    pub(super) fn from_secs(secs: u64) -> Self {
         let duration = Duration::from_secs(secs);
         Self(Timer::new(duration, false))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn despawn_timer_from_secs() {
+        const SECONDS: u64 = 4;
+
+        let cooldown = DespawnTimer::from_secs(SECONDS);
+        assert_eq!(cooldown.duration(), Duration::from_secs(SECONDS));
+        assert!(
+            !cooldown.finished(),
+            "Despawn timer should tick after creation"
+        );
+    }
+
+    #[test]
+    fn despawn_timer_ticks() {
+        let mut app = setup_app();
+        let dummy = app.world.spawn().insert(DespawnTimer::from_secs(1)).id();
+
+        app.update();
+        app.update();
+
+        let despawn_timer = app.world.get::<DespawnTimer>(dummy).unwrap();
+        assert!(
+            despawn_timer.elapsed() > Duration::default(),
+            "Despawn timer should tick"
+        );
+    }
+
+    #[test]
+    fn despawn_timer_destroys() {
+        let mut app = setup_app();
+        app.world.spawn().insert(DespawnTimer::default()).id();
+
+        app.update();
+
+        assert_eq!(
+            app.world.entities().len(),
+            0,
+            "Despawn timer should destroy its entity after the time expires"
+        );
+    }
+
+    fn setup_app() -> App {
+        let mut app = App::new();
+        app.add_state(AppState::InGame)
+            .add_plugins(MinimalPlugins)
+            .add_plugin(DespawnTimerPlugin);
+        app
     }
 }

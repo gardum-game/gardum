@@ -18,14 +18,14 @@
  *
  */
 
-pub mod ability;
-pub mod camera;
-pub mod cooldown;
-pub mod despawn_timer;
-pub mod health;
-pub mod heroes;
-pub mod movement;
-pub mod projectile;
+pub(super) mod ability;
+mod camera;
+pub(super) mod cooldown;
+mod despawn_timer;
+pub(super) mod health;
+pub(super) mod heroes;
+mod movement;
+mod projectile;
 
 use bevy::prelude::*;
 use heron::{CollisionLayers, CollisionShape, RigidBody, Velocity};
@@ -42,7 +42,7 @@ use projectile::ProjectilePlugin;
 
 use self::health::Health;
 
-pub struct CharactersPlugin;
+pub(super) struct CharactersPlugin;
 
 impl Plugin for CharactersPlugin {
     fn build(&self, app: &mut App) {
@@ -58,7 +58,7 @@ impl Plugin for CharactersPlugin {
 }
 
 #[derive(Bundle)]
-pub struct CharacterBundle {
+pub(super) struct CharacterBundle {
     health: Health,
     rigid_body: RigidBody,
     shape: CollisionShape,

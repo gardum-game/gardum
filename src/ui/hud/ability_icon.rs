@@ -23,14 +23,14 @@ use bevy_egui::egui::*;
 use crate::characters::cooldown::Cooldown;
 
 /// Displays ability icon and its cooldown.
-pub struct AbilityIcon<'a> {
+pub(super) struct AbilityIcon<'a> {
     image: Image,
     cooldown: Option<&'a Cooldown>,
 }
 
 impl<'a> AbilityIcon<'a> {
     /// `current` shouldn't be bigger then `max`
-    pub fn new(image: Image, cooldown: Option<&'a Cooldown>) -> Self {
+    pub(super) fn new(image: Image, cooldown: Option<&'a Cooldown>) -> Self {
         Self { cooldown, image }
     }
 }

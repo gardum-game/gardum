@@ -21,7 +21,7 @@
 use bevy::prelude::*;
 use strum::EnumIter;
 
-pub struct GameModesPlugin;
+pub(super) struct GameModesPlugin;
 
 impl Plugin for GameModesPlugin {
     fn build(&self, app: &mut App) {
@@ -31,13 +31,13 @@ impl Plugin for GameModesPlugin {
 }
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash, EnumIter)]
-pub enum GameMode {
+pub(crate) enum GameMode {
     Disabled,
     Deathmatch,
 }
 
 impl GameMode {
-    pub const fn slots_count(self) -> u8 {
+    pub(crate) const fn slots_count(self) -> u8 {
         match self {
             GameMode::Disabled | GameMode::Deathmatch => 10,
         }

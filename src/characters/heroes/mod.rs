@@ -18,7 +18,7 @@
  *
  */
 
-pub mod north;
+mod north;
 
 use bevy::prelude::*;
 use strum::EnumIter;
@@ -27,7 +27,7 @@ use super::{ability::Abilities, CharacterBundle};
 use crate::core::{player::PlayerHero, AppState, Authority};
 use north::NorthPlugin;
 
-pub struct HeroesPlugin;
+pub(super) struct HeroesPlugin;
 
 impl Plugin for HeroesPlugin {
     fn build(&self, app: &mut App) {
@@ -69,18 +69,18 @@ fn hero_selection_system(
 }
 
 #[derive(Bundle)]
-pub struct HeroBundle {
-    pub player: OwnerPlayer,
-    pub kind: HeroKind,
-    pub abilities: Abilities,
+struct HeroBundle {
+    player: OwnerPlayer,
+    kind: HeroKind,
+    abilities: Abilities,
 
     #[bundle]
-    pub character: CharacterBundle,
+    character: CharacterBundle,
 }
 
 impl HeroBundle {
     /// Create hero bundle from the specified kind
-    pub fn hero(
+    fn hero(
         kind: HeroKind,
         player: OwnerPlayer,
         transform: Transform,
@@ -96,20 +96,20 @@ impl HeroBundle {
 }
 
 #[derive(Clone, Copy, PartialEq, EnumIter, Debug, Component)]
-pub enum HeroKind {
+pub(crate) enum HeroKind {
     North,
 }
 
 /// Used to store hero's player entity
 #[derive(Component)]
-pub struct OwnerPlayer(pub Entity);
+pub(crate) struct OwnerPlayer(pub(crate) Entity);
 
 /// Used to store reference to the hero
 #[derive(Component)]
-pub struct OwnerHero(pub Entity);
+pub(super) struct OwnerHero(pub(crate) Entity);
 
-pub struct HeroSelectEvent {
-    pub player: Entity,
-    pub kind: HeroKind,
-    pub transform: Transform,
+pub(crate) struct HeroSelectEvent {
+    pub(crate) player: Entity,
+    pub(crate) kind: HeroKind,
+    pub(crate) transform: Transform,
 }

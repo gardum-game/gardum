@@ -21,14 +21,14 @@
 use bevy_egui::egui::*;
 
 /// A simple health bar.
-pub struct HealthBar {
+pub(super) struct HealthBar {
     current: u32,
     max: u32,
 }
 
 impl HealthBar {
     /// `current` shouldn't be bigger then `max`.
-    pub fn new(current: u32, max: u32) -> Self {
+    pub(super) fn new(current: u32, max: u32) -> Self {
         Self { current, max }
     }
 }

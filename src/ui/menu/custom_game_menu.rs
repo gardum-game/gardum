@@ -30,7 +30,7 @@ use crate::{
     maps::Map,
 };
 
-pub struct CustomGameMenuPlugin;
+pub(super) struct CustomGameMenuPlugin;
 
 impl Plugin for CustomGameMenuPlugin {
     fn build(&self, app: &mut App) {

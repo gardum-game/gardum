@@ -26,7 +26,7 @@ use bevy_egui::{
 
 use crate::{core::AppState, ui::UI_MARGIN};
 
-pub struct MainMenuPlugin;
+pub(super) struct MainMenuPlugin;
 
 impl Plugin for MainMenuPlugin {
     fn build(&self, app: &mut App) {

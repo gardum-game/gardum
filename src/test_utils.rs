@@ -28,7 +28,7 @@ use bevy::{
 };
 
 // Allows to run tests for systems containing rendering related things without GPU
-pub struct HeadlessRenderPlugin;
+pub(super) struct HeadlessRenderPlugin;
 
 impl Plugin for HeadlessRenderPlugin {
     fn build(&self, app: &mut App) {

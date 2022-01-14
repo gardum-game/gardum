@@ -18,9 +18,9 @@
  *
  */
 
-pub mod cli;
-pub mod game_modes;
-pub mod player;
+mod cli;
+pub(super) mod game_modes;
+pub(super) mod player;
 mod setup;
 
 use bevy::prelude::*;
@@ -32,7 +32,7 @@ use game_modes::GameModesPlugin;
 use player::PlayerPlugin;
 use setup::SetupPlugin;
 
-pub struct CorePlugin;
+pub(super) struct CorePlugin;
 
 impl Plugin for CorePlugin {
     fn build(&self, app: &mut App) {
@@ -46,11 +46,11 @@ impl Plugin for CorePlugin {
 }
 
 #[derive(Default, Component)]
-pub struct Authority;
+pub(super) struct Authority;
 
-pub struct ServerSettings {
-    pub game_name: String,
-    pub port: u16,
+pub(super) struct ServerSettings {
+    pub(super) game_name: String,
+    pub(super) port: u16,
 }
 
 impl Default for ServerSettings {
@@ -63,7 +63,7 @@ impl Default for ServerSettings {
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
-pub enum AppState {
+pub(super) enum AppState {
     MainMenu,
     CustomGameMenu,
     DirectConnectMenu,
@@ -74,11 +74,11 @@ pub enum AppState {
 }
 
 #[derive(PhysicsLayer)]
-pub enum CollisionLayer {
+pub(super) enum CollisionLayer {
     Character,
     Projectile,
 }
 
 /// Path to icon resource.
 #[derive(Component, From)]
-pub struct IconPath(pub &'static str);
+pub(super) struct IconPath(pub(super) &'static str);

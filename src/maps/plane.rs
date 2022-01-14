@@ -24,7 +24,7 @@ use heron::{CollisionShape, RigidBody};
 use super::Map;
 
 impl Map {
-    pub fn plane(
+    pub(super) fn plane(
         commands: &mut Commands,
         meshes: &mut Assets<Mesh>,
         materials: &mut Assets<StandardMaterial>,

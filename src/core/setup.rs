@@ -26,7 +26,7 @@ use crate::{
     core::{cli::Opts, AppState},
 };
 
-pub struct SetupPlugin;
+pub(super) struct SetupPlugin;
 
 impl Plugin for SetupPlugin {
     fn build(&self, app: &mut App) {

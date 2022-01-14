@@ -30,7 +30,7 @@ use custom_game_menu::CustomGameMenuPlugin;
 use ingame_menu::InGameMenuPlugin;
 use main_menu::MainMenuPlugin;
 
-pub struct MenuPlugin;
+pub(super) struct MenuPlugin;
 
 impl Plugin for MenuPlugin {
     fn build(&self, app: &mut App) {

@@ -35,7 +35,7 @@ use crate::{
 use ability_icon::AbilityIcon;
 use health_bar::HealthBar;
 
-pub struct HudPlugin;
+pub(super) struct HudPlugin;
 
 impl Plugin for HudPlugin {
     fn build(&self, app: &mut App) {

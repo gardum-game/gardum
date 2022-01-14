@@ -24,7 +24,7 @@ use derive_more::{Deref, DerefMut};
 use super::cooldown::Cooldown;
 use crate::core::{AppState, Authority};
 
-pub struct AbilityPlugin;
+pub(super) struct AbilityPlugin;
 
 impl Plugin for AbilityPlugin {
     fn build(&self, app: &mut App) {
@@ -111,13 +111,13 @@ fn activation_system(
     }
 }
 
-pub struct ActivationEvent {
-    pub caster: Entity,
-    pub ability: Entity,
+pub(super) struct ActivationEvent {
+    pub(super) caster: Entity,
+    pub(super) ability: Entity,
 }
 
 #[derive(Copy, Clone, Component, PartialEq, Debug)]
-pub enum AbilitySlot {
+pub(super) enum AbilitySlot {
     BaseAttack,
     Ability1,
     Ability2,
@@ -126,9 +126,245 @@ pub enum AbilitySlot {
 }
 
 #[derive(Deref, DerefMut, Component)]
-pub struct Abilities(pub Vec<Entity>);
+pub(crate) struct Abilities(pub(crate) Vec<Entity>);
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, SystemLabel)]
 enum AbilitySystems {
     InputSet,
+}
+
+#[cfg(test)]
+mod tests {
+    use bevy::{
+        app::Events,
+        input::{keyboard::KeyboardInput, mouse::MouseButtonInput, ElementState, InputPlugin},
+    };
+
+    use super::*;
+    use crate::characters::cooldown::CooldownPlugin;
+
+    #[test]
+    fn ability_input() {
+        let mut app = setup_app();
+
+        // No Inputs
+        assert_eq!(
+            *app.world.get_resource::<Option<AbilitySlot>>().unwrap(),
+            None
+        );
+
+        let inputs = [
+            (KeyCode::Q, AbilitySlot::Ability1),
+            (KeyCode::E, AbilitySlot::Ability2),
+            (KeyCode::LShift, AbilitySlot::Ability3),
+            (KeyCode::R, AbilitySlot::Ultimate),
+        ];
+        for (key, ability_slot) in inputs {
+            let mut events = app
+                .world
+                .get_resource_mut::<Events<KeyboardInput>>()
+                .unwrap();
+
+            events.send(KeyboardInput {
+                scan_code: 0,
+                key_code: Some(key),
+                state: ElementState::Pressed,
+            });
+
+            app.update();
+
+            assert_eq!(
+                *app.world.get_resource::<Option<AbilitySlot>>().unwrap(),
+                Some(ability_slot),
+                "Ability slot shoud correspond to the pressed key"
+            );
+        }
+
+        let mut events = app
+            .world
+            .get_resource_mut::<Events<MouseButtonInput>>()
+            .unwrap();
+
+        events.send(MouseButtonInput {
+            button: MouseButton::Left,
+            state: ElementState::Pressed,
+        });
+
+        app.update();
+
+        assert_eq!(
+            *app.world.get_resource::<Option<AbilitySlot>>().unwrap(),
+            Some(AbilitySlot::BaseAttack)
+        );
+
+        // Check if input was cleared
+        app.update();
+
+        assert_eq!(
+            *app.world.get_resource::<Option<AbilitySlot>>().unwrap(),
+            None
+        );
+    }
+
+    #[test]
+    fn ability_ignores_unrelated_action() {
+        let mut app = setup_app();
+        let ability = app
+            .world
+            .spawn()
+            .insert_bundle(DummyAbilityBundle::default())
+            .id();
+        app.world
+            .spawn()
+            .insert_bundle(DummyCasterBundle::new(ability))
+            .id();
+
+        let mut events = app
+            .world
+            .get_resource_mut::<Events<KeyboardInput>>()
+            .unwrap();
+
+        events.send(KeyboardInput {
+            scan_code: 0,
+            key_code: Some(KeyCode::E),
+            state: ElementState::Pressed,
+        });
+
+        app.update();
+
+        let events = app.world.get_resource::<Events<ActivationEvent>>().unwrap();
+        let mut reader = events.get_reader();
+
+        assert_eq!(
+            reader.iter(&events).count(),
+            0,
+            "Activation event shouldn't be triggered for unrelated key"
+        );
+    }
+
+    #[test]
+    fn ability_activates() {
+        let mut app = setup_app();
+        let ability = app
+            .world
+            .spawn()
+            .insert_bundle(DummyAbilityBundle::default())
+            .id();
+        let caster = app
+            .world
+            .spawn()
+            .insert_bundle(DummyCasterBundle::new(ability))
+            .id();
+
+        let mut events = app
+            .world
+            .get_resource_mut::<Events<KeyboardInput>>()
+            .unwrap();
+
+        events.send(KeyboardInput {
+            scan_code: 0,
+            key_code: Some(KeyCode::Q),
+            state: ElementState::Pressed,
+        });
+
+        app.update();
+
+        let events = app.world.get_resource::<Events<ActivationEvent>>().unwrap();
+        let mut reader = events.get_reader();
+        let event = reader
+            .iter(&events)
+            .next()
+            .expect("Activation event should be triggered");
+
+        assert_eq!(
+            event.caster, caster,
+            "Activation event should have the same caster"
+        );
+        assert_eq!(
+            event.ability, ability,
+            "Activation event should have the same ability"
+        );
+
+        let cooldown = app.world.get::<Cooldown>(ability).unwrap();
+        assert!(!cooldown.finished(), "Cooldown should be triggered");
+    }
+
+    #[test]
+    fn ability_affected_by_cooldown() {
+        let mut app = setup_app();
+        let ability = app
+            .world
+            .spawn()
+            .insert_bundle(DummyAbilityBundle::default())
+            .id();
+        app.world
+            .spawn()
+            .insert_bundle(DummyCasterBundle::new(ability))
+            .id();
+
+        let mut cooldown = app.world.get_mut::<Cooldown>(ability).unwrap();
+        cooldown.reset();
+
+        let mut events = app
+            .world
+            .get_resource_mut::<Events<KeyboardInput>>()
+            .unwrap();
+
+        events.send(KeyboardInput {
+            scan_code: 0,
+            key_code: Some(KeyCode::Q),
+            state: ElementState::Pressed,
+        });
+
+        app.update();
+
+        let events = app.world.get_resource::<Events<ActivationEvent>>().unwrap();
+        let mut reader = events.get_reader();
+
+        assert_eq!(
+            reader.iter(&events).count(),
+            0,
+            "Activation event shouldn't be triggered because of cooldown"
+        );
+    }
+
+    fn setup_app() -> App {
+        let mut app = App::new();
+        app.add_state(AppState::InGame)
+            .add_plugins(MinimalPlugins)
+            .add_plugin(InputPlugin)
+            .add_plugin(CooldownPlugin)
+            .add_plugin(AbilityPlugin);
+        app
+    }
+
+    #[derive(Bundle)]
+    struct DummyCasterBundle {
+        authority: Authority,
+        abilities: Abilities,
+    }
+
+    impl DummyCasterBundle {
+        fn new(dummy_ability: Entity) -> Self {
+            Self {
+                authority: Authority,
+                abilities: Abilities(vec![dummy_ability]),
+            }
+        }
+    }
+
+    #[derive(Bundle)]
+    struct DummyAbilityBundle {
+        slot: AbilitySlot,
+        cooldown: Cooldown,
+    }
+
+    impl Default for DummyAbilityBundle {
+        fn default() -> Self {
+            Self {
+                slot: AbilitySlot::Ability1,
+                cooldown: Cooldown::from_secs(1),
+            }
+        }
+    }
 }

@@ -28,9 +28,9 @@ use cursor::CursorPlugin;
 use hud::HudPlugin;
 use menu::MenuPlugin;
 
-pub const UI_MARGIN: f32 = 20.0;
+const UI_MARGIN: f32 = 20.0;
 
-pub struct UiPlugin;
+pub(super) struct UiPlugin;
 
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {

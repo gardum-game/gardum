@@ -18,14 +18,26 @@
  *
  */
 
+#![allow(clippy::type_complexity)] // Do not warn about long QuerySet
+
+mod characters;
+mod core;
+mod maps;
+#[cfg(test)]
+mod test_utils;
+#[cfg(feature = "client")]
+mod ui;
+
 use bevy::{prelude::*, winit::WinitPlugin};
 #[cfg(feature = "client")]
 use bevy_egui::EguiPlugin;
 use heron::PhysicsPlugin;
 
+use crate::core::CorePlugin;
+use characters::CharactersPlugin;
+use maps::MapsPlugin;
 #[cfg(feature = "client")]
-use gardum::ui::UiPlugin;
-use gardum::{characters::CharactersPlugin, core::CorePlugin, maps::MapsPlugin};
+use ui::UiPlugin;
 
 #[cfg(not(tarpaulin_include))]
 fn main() {
@@ -45,4 +57,27 @@ fn main() {
     app.add_plugin(EguiPlugin).add_plugin(UiPlugin);
 
     app.run();
+}
+
+#[cfg(test)]
+mod tests {
+    use test_utils::HeadlessRenderPlugin;
+
+    use super::*;
+
+    #[test]
+    fn update() {
+        let mut app = setup_app();
+        app.update();
+    }
+
+    fn setup_app() -> App {
+        let mut app = App::new();
+        app.add_plugin(HeadlessRenderPlugin)
+            .add_plugin(CorePlugin)
+            .add_plugin(MapsPlugin)
+            .add_plugin(CharactersPlugin);
+
+        app
+    }
 }

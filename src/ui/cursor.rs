@@ -22,7 +22,7 @@ use bevy::prelude::*;
 
 use crate::core::AppState;
 
-pub struct CursorPlugin;
+pub(super) struct CursorPlugin;
 
 impl Plugin for CursorPlugin {
     fn build(&self, app: &mut App) {

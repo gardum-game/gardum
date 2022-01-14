@@ -23,7 +23,7 @@ use bevy::prelude::*;
 use super::{cli::Opts, AppState, Authority};
 use crate::characters::heroes::OwnerPlayer;
 
-pub struct PlayerPlugin;
+pub(super) struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
@@ -67,7 +67,7 @@ fn update_player_hero(
 }
 
 #[derive(Default, Bundle)]
-pub struct PlayerBundle {
+pub(crate) struct PlayerBundle {
     nickname: Nickname,
     kills: Kills,
     deaths: Deaths,
@@ -77,24 +77,115 @@ pub struct PlayerBundle {
 
 /// Stores player name
 #[derive(Component, Default)]
-pub struct Nickname(pub String);
+pub(crate) struct Nickname(pub(crate) String);
 
 /// Used to keep statistics of the number of kills
 #[derive(Component, Default, Debug, PartialEq)]
-pub struct Kills(pub u32);
+pub(crate) struct Kills(pub(crate) u32);
 
 /// Used to keep statistics of the number of deaths
 #[derive(Component, Default, Debug, PartialEq)]
-pub struct Deaths(pub u32);
+pub(crate) struct Deaths(pub(crate) u32);
 
 /// Used to keep statistics of the damage done
 #[derive(Component, Default, Debug, PartialEq)]
-pub struct Damage(pub u32);
+pub(crate) struct Damage(pub(crate) u32);
 
 /// Used to keep statistics of the healing done
 #[derive(Component, Default, Debug, PartialEq)]
-pub struct Healing(pub u32);
+pub(crate) struct Healing(pub(crate) u32);
 
 /// Used to store player's hero entity
 #[derive(Component)]
-pub struct PlayerHero(pub Entity);
+pub(crate) struct PlayerHero(pub(crate) Entity);
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::core::cli::SubCommand;
+
+    #[test]
+    fn player_hero_updates() {
+        let mut app = setup_app();
+        let player = app
+            .world
+            .spawn()
+            .insert_bundle(PlayerBundle::default())
+            .id();
+        let hero = app.world.spawn().insert(OwnerPlayer(player)).id();
+
+        app.update();
+
+        let query = app.world.query::<&PlayerHero>();
+        let player_hero = query
+            .get_manual(&app.world, player)
+            .expect("Hero component should be added to the player");
+        assert_eq!(
+            player_hero.0, hero,
+            "Hero component should reference the spawned hero"
+        );
+
+        // Spawn another hero
+        let hero = app.world.spawn().insert(OwnerPlayer(player)).id();
+
+        app.update();
+
+        let player_hero = query
+            .get_manual(&app.world, player)
+            .expect("Hero component should be on the player from the previous spawn");
+        assert_eq!(
+            player_hero.0, hero,
+            "Hero component should update reference to the new spawned hero"
+        );
+    }
+
+    #[test]
+    fn server_player_spawns_in_lobby() {
+        let mut app = setup_app_in_lobby();
+        app.update();
+
+        let mut query = app.world.query_filtered::<(), With<Authority>>();
+        query
+            .iter(&app.world)
+            .next()
+            .expect("Player should be spawned"); // TODO 0.7: Use single
+    }
+
+    #[test]
+    fn server_player_spawns_with_host_command() {
+        let mut app = setup_app_with_host_command();
+        app.update();
+
+        let mut query = app.world.query_filtered::<(), With<Authority>>();
+        query
+            .iter(&app.world)
+            .next()
+            .expect("Player should be spawned"); // TODO 0.7: Use single
+    }
+
+    fn setup_app() -> App {
+        let mut app = App::new();
+        app.init_resource::<Opts>()
+            .add_state(AppState::InGame)
+            .add_plugin(PlayerPlugin);
+        app
+    }
+
+    fn setup_app_in_lobby() -> App {
+        let mut app = App::new();
+        app.init_resource::<Opts>()
+            .add_state(AppState::LobbyMenu)
+            .add_plugin(PlayerPlugin);
+        app
+    }
+
+    fn setup_app_with_host_command() -> App {
+        let mut app = App::new();
+        app.insert_resource(Opts {
+            subcommand: Some(SubCommand::Host),
+        })
+        .add_state(AppState::MainMenu)
+        .add_plugin(PlayerPlugin);
+        app
+    }
+}

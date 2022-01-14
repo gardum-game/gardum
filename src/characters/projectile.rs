@@ -24,7 +24,7 @@ use heron::{CollisionEvent, CollisionLayers, CollisionShape, RigidBody, Velocity
 use super::despawn_timer::DespawnTimer;
 use crate::core::{AppState, CollisionLayer};
 
-pub struct ProjectilePlugin;
+pub(super) struct ProjectilePlugin;
 
 impl Plugin for ProjectilePlugin {
     fn build(&self, app: &mut App) {
@@ -60,16 +60,16 @@ fn collision_system(
 }
 
 #[derive(Bundle)]
-pub struct ProjectileBundle {
-    pub rigid_body: RigidBody,
-    pub shape: CollisionShape,
-    pub collision_layers: CollisionLayers,
-    pub velocity: Velocity,
-    pub projectile: Projectile,
-    pub despawn_timer: DespawnTimer,
+pub(super) struct ProjectileBundle {
+    pub(super) rigid_body: RigidBody,
+    pub(super) shape: CollisionShape,
+    pub(super) collision_layers: CollisionLayers,
+    pub(super) velocity: Velocity,
+    pub(super) projectile: Projectile,
+    pub(super) despawn_timer: DespawnTimer,
 
     #[bundle]
-    pub pbr: PbrBundle,
+    pub(super) pbr: PbrBundle,
 }
 
 impl Default for ProjectileBundle {
@@ -90,10 +90,212 @@ impl Default for ProjectileBundle {
 }
 
 #[derive(Component)]
-pub struct Projectile;
+pub(super) struct Projectile;
 
 #[allow(dead_code)]
-pub struct ProjectileHitEvent {
-    pub projectile: Entity,
-    pub target: Entity,
+pub(super) struct ProjectileHitEvent {
+    pub(super) projectile: Entity,
+    pub(super) target: Entity,
+}
+
+#[cfg(test)]
+mod tests {
+    use bevy::app::Events;
+    use heron::PhysicsPlugin;
+
+    use super::*;
+
+    #[test]
+    fn projectile_moves() {
+        let mut app = setup_app();
+        let projectile_entity = app
+            .world
+            .spawn()
+            .insert_bundle(ProjectileBundle {
+                velocity: Velocity::from_linear(Vec3::ONE),
+                ..Default::default()
+            })
+            .id();
+
+        app.update();
+        app.update();
+
+        let transform = app.world.get::<Transform>(projectile_entity).unwrap();
+        assert!(
+            transform.translation.length() > 0.0,
+            "Projectile should be moved by velocity"
+        );
+    }
+
+    #[test]
+    fn projectiles_do_not_collide() {
+        let mut app = setup_app();
+        app.world.spawn().insert_bundle(ProjectileBundle::default());
+        app.world.spawn().insert_bundle(ProjectileBundle::default());
+
+        app.update();
+        app.update();
+
+        assert_eq!(
+            app.world.entities().len(),
+            2,
+            "Projectiles shouldn't be destroyed when colliding with each other"
+        );
+
+        let events = app
+            .world
+            .get_resource::<Events<ProjectileHitEvent>>()
+            .unwrap();
+        let mut reader = events.get_reader();
+
+        assert_eq!(
+            reader.iter(&events).count(),
+            0,
+            "Hit event shouldn't be triggered for collision between two projectiles"
+        );
+    }
+
+    #[test]
+    fn objects_do_not_collide() {
+        let mut app = setup_app();
+        // Spawn in different order
+        app.world.spawn().insert_bundle(DummyBundle::default());
+        app.world.spawn().insert_bundle(DummyBundle::default());
+
+        app.update();
+        app.update();
+
+        assert_eq!(
+            app.world.entities().len(),
+            2,
+            "Objects shouldn't be destroyed when colliding with each other"
+        );
+
+        let events = app
+            .world
+            .get_resource::<Events<ProjectileHitEvent>>()
+            .unwrap();
+        let mut reader = events.get_reader();
+
+        assert_eq!(
+            reader.iter(&events).count(),
+            0,
+            "Hit event shouldn't be triggered for collision between two objects"
+        );
+    }
+
+    #[test]
+    fn projectile_collides_with_object() {
+        let mut app = setup_app();
+        let projectile = app
+            .world
+            .spawn()
+            .insert_bundle(ProjectileBundle::default())
+            .id();
+        let object = app.world.spawn().insert_bundle(DummyBundle::default()).id();
+
+        app.update();
+        app.update();
+
+        assert_eq!(
+            app.world.entities().len(),
+            1,
+            "Projectiles are destroyed when colliding with other objects"
+        );
+
+        let events = app
+            .world
+            .get_resource::<Events<ProjectileHitEvent>>()
+            .unwrap();
+        let mut reader = events.get_reader();
+        let event = reader
+            .iter(&events)
+            .next()
+            .expect("Hit event should be triggered");
+
+        assert_eq!(
+            event.projectile, projectile,
+            "Hit event should have the same projectile"
+        );
+        assert_eq!(
+            event.target, object,
+            "Hit event should have the same target"
+        );
+        assert!(
+            reader.iter(&events).next().is_none(),
+            "There should be no more collision events"
+        );
+    }
+
+    #[test]
+    fn object_collides_with_projectile() {
+        let mut app = setup_app();
+        // Spawn in different order
+        let object = app.world.spawn().insert_bundle(DummyBundle::default()).id();
+        let projectile = app
+            .world
+            .spawn()
+            .insert_bundle(ProjectileBundle::default())
+            .id();
+
+        app.update();
+        app.update();
+
+        assert_eq!(
+            app.world.entities().len(),
+            1,
+            "Projectiles are destroyed when colliding with other objects"
+        );
+
+        let events = app
+            .world
+            .get_resource::<Events<ProjectileHitEvent>>()
+            .unwrap();
+        let mut reader = events.get_reader();
+        let event = reader
+            .iter(&events)
+            .next()
+            .expect("Hit event should be triggered");
+
+        assert_eq!(
+            event.projectile, projectile,
+            "Hit event should have the same projectile"
+        );
+        assert_eq!(
+            event.target, object,
+            "Hit event should have the same target"
+        );
+        assert!(
+            reader.iter(&events).next().is_none(),
+            "There should be no more collision events"
+        );
+    }
+
+    fn setup_app() -> App {
+        let mut app = App::new();
+        app.add_state(AppState::InGame)
+            .add_plugins(MinimalPlugins)
+            .add_plugin(PhysicsPlugin::default())
+            .add_plugin(ProjectilePlugin);
+        app
+    }
+
+    #[derive(Bundle)]
+    struct DummyBundle {
+        rigid_body: RigidBody,
+        shape: CollisionShape,
+        transform: Transform,
+        global_transform: GlobalTransform,
+    }
+
+    impl Default for DummyBundle {
+        fn default() -> Self {
+            Self {
+                rigid_body: RigidBody::Static,
+                shape: CollisionShape::default(),
+                transform: Transform::default(),
+                global_transform: GlobalTransform::default(),
+            }
+        }
+    }
 }

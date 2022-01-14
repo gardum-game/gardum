@@ -26,7 +26,7 @@ use bevy_egui::{
 
 use crate::{core::AppState, ui::UI_MARGIN};
 
-pub struct BackButtonPlugin;
+pub(super) struct BackButtonPlugin;
 
 impl Plugin for BackButtonPlugin {
     fn build(&self, app: &mut App) {

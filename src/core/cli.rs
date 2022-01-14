@@ -21,7 +21,7 @@
 use bevy::prelude::*;
 use clap::{Parser, Subcommand};
 
-pub struct CliPlugin;
+pub(super) struct CliPlugin;
 
 impl Plugin for CliPlugin {
     fn build(&self, app: &mut App) {
@@ -36,13 +36,13 @@ impl Plugin for CliPlugin {
 
 #[derive(Default, Parser)]
 #[clap(author, version, about)]
-pub struct Opts {
+pub(super) struct Opts {
     #[clap(subcommand)]
-    pub subcommand: Option<SubCommand>,
+    pub(super) subcommand: Option<SubCommand>,
 }
 
 #[derive(Subcommand)]
-pub enum SubCommand {
+pub(super) enum SubCommand {
     Connect,
     Host,
 }

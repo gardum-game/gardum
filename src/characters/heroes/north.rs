@@ -34,10 +34,10 @@ use crate::{
 };
 
 const PROJECTILE_SPEED: f32 = 20.0;
-pub const FROST_BOLT_SPAWN_OFFSET: f32 = 4.0;
-pub const FROST_BOLT_DAMAGE: u32 = 20;
+const FROST_BOLT_SPAWN_OFFSET: f32 = 4.0;
+const FROST_BOLT_DAMAGE: u32 = 20;
 
-pub struct NorthPlugin;
+pub(super) struct NorthPlugin;
 
 impl Plugin for NorthPlugin {
     fn build(&self, app: &mut App) {
@@ -94,11 +94,11 @@ fn frost_bolt_hit_system(
 }
 
 #[derive(Bundle)]
-pub struct FrostBoltBundle {
-    pub kind: FrostBoltAbility,
-    pub icon: IconPath,
-    pub slot: AbilitySlot,
-    pub cooldown: Cooldown,
+struct FrostBoltBundle {
+    kind: FrostBoltAbility,
+    icon: IconPath,
+    slot: AbilitySlot,
+    cooldown: Cooldown,
 }
 
 impl Default for FrostBoltBundle {
@@ -113,13 +113,13 @@ impl Default for FrostBoltBundle {
 }
 
 #[derive(Component)]
-pub struct FrostBoltAbility;
+struct FrostBoltAbility;
 
 #[derive(Component)]
-pub struct FrostBoltProjectile;
+struct FrostBoltProjectile;
 
 impl HeroBundle {
-    pub fn north(
+    pub(super) fn north(
         player: OwnerPlayer,
         transform: Transform,
         commands: &mut Commands,
@@ -175,6 +175,138 @@ impl ProjectileBundle {
                 ..Default::default()
             },
             ..Default::default()
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use approx::assert_relative_eq;
+    use bevy::app::Events;
+
+    use super::*;
+    use crate::{characters::projectile::Projectile, test_utils::HeadlessRenderPlugin};
+
+    #[test]
+    fn frost_bolt() {
+        let mut app = setup_app();
+        let ability = app
+            .world
+            .spawn()
+            .insert_bundle(FrostBoltBundle::default())
+            .id();
+        let caster = app
+            .world
+            .spawn()
+            .insert(Transform::from_translation(Vec3::ONE))
+            .id();
+        app.world
+            .spawn()
+            .insert_bundle(DummyCameraBundle::default())
+            .id();
+
+        let mut events = app
+            .world
+            .get_resource_mut::<Events<ActivationEvent>>()
+            .unwrap();
+
+        events.send(ActivationEvent { caster, ability });
+
+        app.update();
+        app.update();
+
+        let mut caster_query = app.world.query_filtered::<&Transform, Without<Camera>>();
+        let mut projectile_query = app.world.query_filtered::<&Transform, With<Projectile>>();
+        let mut camera_query = app.world.query_filtered::<&Transform, With<Camera>>();
+
+        let caster_transform = caster_query.iter(&app.world).next().unwrap(); // TODO 0.7: Use single
+        let projectile_transform = projectile_query.iter(&app.world).next().unwrap(); // TODO 0.7: Use single
+
+        assert_relative_eq!(
+            caster_transform.translation.x,
+            projectile_transform.translation.x
+        );
+        assert_relative_eq!(
+            caster_transform.translation.y + FROST_BOLT_SPAWN_OFFSET,
+            projectile_transform.translation.y
+        );
+        assert_relative_eq!(
+            caster_transform.translation.z,
+            projectile_transform.translation.z
+        );
+        assert_eq!(
+            caster_transform.scale, projectile_transform.scale,
+            "Spawned projectile must be of the same scale as the caster"
+        );
+
+        let camera_trasnform = camera_query.iter(&app.world).next().unwrap(); // TODO 0.7: Use single
+        assert_eq!(
+            projectile_transform.rotation,
+            camera_trasnform.rotation * Quat::from_rotation_x(90.0_f32.to_radians()),
+            "Spawned projectile must be turned towards the camera."
+        );
+    }
+
+    #[test]
+    fn frost_bolt_hit() {
+        let mut app = setup_app();
+        let instigator = app.world.spawn().id();
+        let projectile = app
+            .world
+            .spawn()
+            .insert(FrostBoltProjectile)
+            .insert(OwnerHero(instigator))
+            .id();
+        let target = app.world.spawn().id();
+
+        let mut events = app
+            .world
+            .get_resource_mut::<Events<ProjectileHitEvent>>()
+            .unwrap();
+
+        events.send(ProjectileHitEvent { projectile, target });
+
+        app.update();
+
+        let events = app.world.get_resource::<Events<DamageEvent>>().unwrap();
+        let mut reader = events.get_reader();
+        let event = reader.iter(&events).next().unwrap();
+
+        assert_eq!(
+            event.instigator, instigator,
+            "Instigator should be equal to specified"
+        );
+        assert_eq!(event.target, target, "Target should be equal to specified");
+        assert_eq!(
+            event.damage, FROST_BOLT_DAMAGE,
+            "Damage should be equal to frost bolt damage"
+        );
+    }
+
+    fn setup_app() -> App {
+        let mut app = App::new();
+        app.add_event::<ActivationEvent>()
+            .add_event::<ProjectileHitEvent>()
+            .add_event::<DamageEvent>()
+            .add_state(AppState::InGame)
+            .add_plugin(HeadlessRenderPlugin)
+            .add_plugin(NorthPlugin);
+
+        app
+    }
+
+    #[derive(Bundle)]
+    struct DummyCameraBundle {
+        transform: Transform,
+        camera: Camera,
+    }
+
+    impl Default for DummyCameraBundle {
+        fn default() -> Self {
+            Self {
+                transform: Transform::from_rotation(Quat::from_rotation_x(90_f32.to_radians())),
+                camera: Camera::default(),
+            }
         }
     }
 }
