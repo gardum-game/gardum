@@ -25,7 +25,8 @@ pub struct GamemodesPlugin;
 
 impl Plugin for GamemodesPlugin {
     fn build(&self, app: &mut App) {
-        app.add_state(GameMode::Disabled);
+        app.insert_resource(GameMode::Deathmatch)
+            .add_state(GameMode::Disabled);
     }
 }
 

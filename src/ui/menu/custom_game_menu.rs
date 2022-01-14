@@ -25,7 +25,7 @@ use bevy_egui::{
 };
 use strum::IntoEnumIterator;
 
-use crate::core::{gamemodes::GameMode, player::Nickname, AppState, GameSettings};
+use crate::core::{gamemodes::GameMode, player::Nickname, AppState, ServerSettings};
 
 pub struct CustomGameMenuPlugin;
 
@@ -79,7 +79,8 @@ fn custom_game_menu_system(
 
 fn create_game_menu_system(
     egui: ResMut<EguiContext>,
-    mut game_settings: ResMut<GameSettings>,
+    mut server_settings: ResMut<ServerSettings>,
+    mut game_mode: ResMut<GameMode>,
     mut app_state: ResMut<State<AppState>>,
 ) {
     Window::new("Custom game")
@@ -88,7 +89,7 @@ fn create_game_menu_system(
         .resizable(false)
         .show(egui.ctx(), |ui| {
             ui.vertical(|ui| {
-                show_server_settings(ui, &mut game_settings);
+                show_game_settings(ui, &mut game_mode, &mut server_settings);
                 if ui.button("Create").clicked() {
                     app_state.push(AppState::LobbyMenu).unwrap();
                 }
@@ -99,7 +100,8 @@ fn create_game_menu_system(
 fn lobby_menu_system(
     egui: ResMut<EguiContext>,
     nicknames_query: Query<&Nickname>,
-    mut game_settings: ResMut<GameSettings>,
+    mut server_settings: ResMut<ServerSettings>,
+    mut game_mode: ResMut<GameMode>,
     mut app_state: ResMut<State<AppState>>,
 ) {
     Window::new("Lobby")
@@ -109,13 +111,9 @@ fn lobby_menu_system(
         .show(egui.ctx(), |ui| {
             ui.vertical_centered(|ui| {
                 ui.horizontal(|ui| {
-                    show_teams(
-                        ui,
-                        game_settings.game_mode,
-                        nicknames_query.iter().collect(),
-                    );
+                    show_teams(ui, *game_mode, nicknames_query.iter().collect());
                     SidePanel::right("Server settings").show_inside(ui, |ui| {
-                        show_server_settings(ui, &mut game_settings);
+                        show_game_settings(ui, &mut game_mode, &mut server_settings);
                     })
                 });
                 if ui.button("Start").clicked() {
@@ -125,26 +123,22 @@ fn lobby_menu_system(
         });
 }
 
-fn show_server_settings(ui: &mut Ui, game_settings: &mut GameSettings) {
+fn show_game_settings(ui: &mut Ui, game_mode: &mut GameMode, server_settings: &mut ServerSettings) {
     Grid::new("Server settings grid").show(ui, |ui| {
         ui.heading("Settings");
         ui.end_row();
         ui.label("Game name:");
-        ui.text_edit_singleline(&mut game_settings.game_name);
+        ui.text_edit_singleline(&mut server_settings.game_name);
         ui.end_row();
         ui.label("Port:");
-        ui.add(DragValue::new(&mut game_settings.port));
+        ui.add(DragValue::new(&mut server_settings.port));
         ui.end_row();
         ui.label("GameMode:");
         ComboBox::from_id_source("Game mode")
-            .selected_text(format!("{:?}", game_settings.game_mode))
+            .selected_text(format!("{:?}", game_mode))
             .show_ui(ui, |ui| {
-                for game_mode in GameMode::iter() {
-                    ui.selectable_value(
-                        &mut game_settings.game_mode,
-                        game_mode,
-                        format!("{:?}", game_mode),
-                    );
+                for mode in GameMode::iter() {
+                    ui.selectable_value(game_mode, mode, format!("{:?}", mode));
                 }
             });
     });

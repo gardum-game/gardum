@@ -28,7 +28,7 @@ use derive_more::From;
 use heron::PhysicsLayer;
 
 use cli::CliPlugin;
-use gamemodes::{GameMode, GamemodesPlugin};
+use gamemodes::GamemodesPlugin;
 use player::PlayerPlugin;
 use setup::SetupPlugin;
 
@@ -37,7 +37,7 @@ pub struct CorePlugin;
 impl Plugin for CorePlugin {
     fn build(&self, app: &mut App) {
         app.add_state(AppState::MainMenu)
-            .init_resource::<GameSettings>()
+            .init_resource::<ServerSettings>()
             .add_plugin(CliPlugin)
             .add_plugin(PlayerPlugin)
             .add_plugin(GamemodesPlugin)
@@ -48,18 +48,16 @@ impl Plugin for CorePlugin {
 #[derive(Default, Component)]
 pub struct Authority;
 
-pub struct GameSettings {
+pub struct ServerSettings {
     pub game_name: String,
     pub port: u16,
-    pub game_mode: GameMode,
 }
 
-impl Default for GameSettings {
+impl Default for ServerSettings {
     fn default() -> Self {
         Self {
             game_name: "My game".to_string(),
             port: 4761,
-            game_mode: GameMode::Deathmatch,
         }
     }
 }
