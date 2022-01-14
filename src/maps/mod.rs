@@ -43,7 +43,7 @@ fn load_map_system(
     map.setup(&mut commands, &mut meshes, &mut materials);
 }
 
-#[derive(Clone, Copy, EnumIter)]
+#[derive(Clone, Copy, Debug, EnumIter, PartialEq)]
 pub enum Map {
     Plane,
 }

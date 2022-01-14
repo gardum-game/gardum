@@ -25,7 +25,10 @@ use bevy_egui::{
 };
 use strum::IntoEnumIterator;
 
-use crate::core::{game_modes::GameMode, player::Nickname, AppState, ServerSettings};
+use crate::{
+    core::{game_modes::GameMode, player::Nickname, AppState, ServerSettings},
+    maps::Map,
+};
 
 pub struct CustomGameMenuPlugin;
 
@@ -81,6 +84,7 @@ fn create_game_menu_system(
     egui: ResMut<EguiContext>,
     mut server_settings: ResMut<ServerSettings>,
     mut game_mode: ResMut<GameMode>,
+    mut map: ResMut<Map>,
     mut app_state: ResMut<State<AppState>>,
 ) {
     Window::new("Custom game")
@@ -89,7 +93,7 @@ fn create_game_menu_system(
         .resizable(false)
         .show(egui.ctx(), |ui| {
             ui.vertical(|ui| {
-                show_game_settings(ui, &mut game_mode, &mut server_settings);
+                show_game_settings(ui, &mut server_settings, &mut game_mode, &mut map);
                 if ui.button("Create").clicked() {
                     app_state.push(AppState::LobbyMenu).unwrap();
                 }
@@ -102,6 +106,7 @@ fn lobby_menu_system(
     nicknames_query: Query<&Nickname>,
     mut server_settings: ResMut<ServerSettings>,
     mut game_mode: ResMut<GameMode>,
+    mut map: ResMut<Map>,
     mut app_state: ResMut<State<AppState>>,
 ) {
     Window::new("Lobby")
@@ -113,7 +118,7 @@ fn lobby_menu_system(
                 ui.horizontal(|ui| {
                     show_teams(ui, *game_mode, nicknames_query.iter().collect());
                     SidePanel::right("Server settings").show_inside(ui, |ui| {
-                        show_game_settings(ui, &mut game_mode, &mut server_settings);
+                        show_game_settings(ui, &mut server_settings, &mut game_mode, &mut map);
                     })
                 });
                 if ui.button("Start").clicked() {
@@ -123,7 +128,12 @@ fn lobby_menu_system(
         });
 }
 
-fn show_game_settings(ui: &mut Ui, game_mode: &mut GameMode, server_settings: &mut ServerSettings) {
+fn show_game_settings(
+    ui: &mut Ui,
+    server_settings: &mut ServerSettings,
+    current_game_mode: &mut GameMode,
+    current_map: &mut Map,
+) {
     Grid::new("Server settings grid").show(ui, |ui| {
         ui.heading("Settings");
         ui.end_row();
@@ -135,19 +145,28 @@ fn show_game_settings(ui: &mut Ui, game_mode: &mut GameMode, server_settings: &m
         ui.end_row();
         ui.label("Game mode:");
         ComboBox::from_id_source("Game mode")
-            .selected_text(format!("{:?}", game_mode))
+            .selected_text(format!("{:?}", current_game_mode))
             .show_ui(ui, |ui| {
                 for mode in GameMode::iter() {
-                    ui.selectable_value(game_mode, mode, format!("{:?}", mode));
+                    ui.selectable_value(current_game_mode, mode, format!("{:?}", mode));
+                }
+            });
+        ui.end_row();
+        ui.label("Map:");
+        ComboBox::from_id_source("Map")
+            .selected_text(format!("{:?}", current_map))
+            .show_ui(ui, |ui| {
+                for map in Map::iter() {
+                    ui.selectable_value(current_map, map, format!("{:?}", map));
                 }
             });
     });
 }
 
-fn show_teams(ui: &mut Ui, game_mode: GameMode, nicknames: Vec<&Nickname>) {
+fn show_teams(ui: &mut Ui, current_game_mode: GameMode, nicknames: Vec<&Nickname>) {
     ui.vertical(|ui| {
         ui.heading("Players");
-        for i in 0..game_mode.slots_count() {
+        for i in 0..current_game_mode.slots_count() {
             if let Some(nickname) = nicknames.get(i as usize) {
                 ui.label(nickname.0.clone());
             } else {
