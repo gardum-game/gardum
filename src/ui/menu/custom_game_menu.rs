@@ -25,7 +25,7 @@ use bevy_egui::{
 };
 use strum::IntoEnumIterator;
 
-use crate::core::{gamemodes::GameMode, player::Nickname, AppState, ServerSettings};
+use crate::core::{game_modes::GameMode, player::Nickname, AppState, ServerSettings};
 
 pub struct CustomGameMenuPlugin;
 
@@ -133,7 +133,7 @@ fn show_game_settings(ui: &mut Ui, game_mode: &mut GameMode, server_settings: &m
         ui.label("Port:");
         ui.add(DragValue::new(&mut server_settings.port));
         ui.end_row();
-        ui.label("GameMode:");
+        ui.label("Game mode:");
         ComboBox::from_id_source("Game mode")
             .selected_text(format!("{:?}", game_mode))
             .show_ui(ui, |ui| {

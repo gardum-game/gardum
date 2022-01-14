@@ -21,9 +21,9 @@
 use bevy::prelude::*;
 use strum::EnumIter;
 
-pub struct GamemodesPlugin;
+pub struct GameModesPlugin;
 
-impl Plugin for GamemodesPlugin {
+impl Plugin for GameModesPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(GameMode::Deathmatch)
             .add_state(GameMode::Disabled);

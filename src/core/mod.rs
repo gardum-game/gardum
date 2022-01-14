@@ -19,7 +19,7 @@
  */
 
 pub mod cli;
-pub mod gamemodes;
+pub mod game_modes;
 pub mod player;
 mod setup;
 
@@ -28,7 +28,7 @@ use derive_more::From;
 use heron::PhysicsLayer;
 
 use cli::CliPlugin;
-use gamemodes::GamemodesPlugin;
+use game_modes::GameModesPlugin;
 use player::PlayerPlugin;
 use setup::SetupPlugin;
 
@@ -40,7 +40,7 @@ impl Plugin for CorePlugin {
             .init_resource::<ServerSettings>()
             .add_plugin(CliPlugin)
             .add_plugin(PlayerPlugin)
-            .add_plugin(GamemodesPlugin)
+            .add_plugin(GameModesPlugin)
             .add_plugin(SetupPlugin);
     }
 }
