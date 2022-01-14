@@ -20,23 +20,49 @@
 
 mod common;
 
-use bevy::prelude::*;
+use bevy::{ecs::system::SystemState, prelude::*};
+use strum::IntoEnumIterator;
 
 use common::HeadlessRenderPlugin;
-use gardum::{characters::CharactersPlugin, core::CorePlugin, maps::MapsPlugin};
+use gardum::{
+    core::AppState,
+    maps::{Map, MapsPlugin},
+};
 
 #[test]
-fn update() {
+fn initialization_on_start() {
     let mut app = setup_app();
+    app.add_state(AppState::InGame);
+
+    assert_eq!(
+        app.world.entities().len(),
+        0,
+        "Should be zero entities before update"
+    );
     app.update();
+    assert!(
+        app.world.entities().len() > 0,
+        "Map should be initialized after first update"
+    );
+}
+
+#[test]
+fn setup() {
+    let mut app = setup_app();
+    let mut system_state: SystemState<(
+        Commands,
+        ResMut<Assets<Mesh>>,
+        ResMut<Assets<StandardMaterial>>,
+    )> = SystemState::new(&mut app.world);
+    let (mut commands, mut meshes, mut materials) = system_state.get_mut(&mut app.world);
+
+    for map in Map::iter() {
+        map.setup(&mut commands, &mut meshes, &mut materials);
+    }
 }
 
 fn setup_app() -> App {
     let mut app = App::new();
-    app.add_plugin(HeadlessRenderPlugin)
-        .add_plugin(CorePlugin)
-        .add_plugin(MapsPlugin)
-        .add_plugin(CharactersPlugin);
-
+    app.add_plugin(HeadlessRenderPlugin).add_plugin(MapsPlugin);
     app
 }

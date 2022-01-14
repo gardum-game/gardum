@@ -18,36 +18,47 @@
  *
  */
 
+mod plane;
+
 use bevy::prelude::*;
+use strum::EnumIter;
 
-use super::Authority;
-use crate::{
-    characters::heroes::{HeroKind, HeroSelectEvent},
-    core::{cli::Opts, AppState},
-};
+use crate::core::AppState;
 
-pub struct SetupPlugin;
+pub struct MapsPlugin;
 
-impl Plugin for SetupPlugin {
+impl Plugin for MapsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(start_session_system)
-            .add_system_set(SystemSet::on_enter(AppState::InGame).with_system(create_world_system));
+        app.insert_resource(Map::Plane)
+            .add_system_set(SystemSet::on_enter(AppState::InGame).with_system(load_map_system));
     }
 }
 
-fn start_session_system(opts: Res<Opts>, mut app_state: ResMut<State<AppState>>) {
-    if opts.subcommand.is_some() {
-        app_state.set(AppState::InGame).unwrap();
-    }
-}
-
-fn create_world_system(
-    player_query: Query<Entity, With<Authority>>,
-    mut hero_spawn_events: EventWriter<HeroSelectEvent>,
+fn load_map_system(
+    map: Res<Map>,
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    hero_spawn_events.send(HeroSelectEvent {
-        player: player_query.single(),
-        kind: HeroKind::North,
-        transform: Transform::from_translation(Vec3::new(5.0, 15.0, 5.0)),
-    })
+    map.setup(&mut commands, &mut meshes, &mut materials);
+}
+
+#[derive(Clone, Copy, EnumIter)]
+pub enum Map {
+    Plane,
+}
+
+impl Map {
+    pub fn setup(
+        self,
+        commands: &mut Commands,
+        meshes: &mut Assets<Mesh>,
+        materials: &mut Assets<StandardMaterial>,
+    ) {
+        let setup_fn = match self {
+            Map::Plane => Self::plane,
+        };
+
+        setup_fn(commands, meshes, materials);
+    }
 }

@@ -25,7 +25,7 @@ use heron::PhysicsPlugin;
 
 #[cfg(feature = "client")]
 use gardum::ui::UiPlugin;
-use gardum::{characters::CharactersPlugin, core::CorePlugin};
+use gardum::{characters::CharactersPlugin, core::CorePlugin, maps::MapsPlugin};
 
 #[cfg(not(tarpaulin_include))]
 fn main() {
@@ -38,6 +38,7 @@ fn main() {
 
     app.add_plugin(PhysicsPlugin::default())
         .add_plugin(CorePlugin)
+        .add_plugin(MapsPlugin)
         .add_plugin(CharactersPlugin);
 
     #[cfg(feature = "client")]
