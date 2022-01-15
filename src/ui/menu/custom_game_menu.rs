@@ -26,7 +26,8 @@ use bevy_egui::{
 use strum::IntoEnumIterator;
 
 use crate::{
-    core::{game_modes::GameMode, player::Nickname, AppState, ServerSettings},
+    core::{player::Nickname, AppState, ServerSettings},
+    game_modes::GameMode,
     maps::Map,
 };
 

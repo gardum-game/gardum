@@ -19,7 +19,6 @@
  */
 
 mod cli;
-pub(super) mod game_modes;
 pub(super) mod player;
 mod setup;
 
@@ -30,7 +29,6 @@ use heron::PhysicsLayer;
 use strum::EnumIter;
 
 use cli::CliPlugin;
-use game_modes::GameModesPlugin;
 use player::PlayerPlugin;
 use setup::SetupPlugin;
 
@@ -42,7 +40,6 @@ impl Plugin for CorePlugin {
             .init_resource::<ServerSettings>()
             .add_plugin(CliPlugin)
             .add_plugin(PlayerPlugin)
-            .add_plugin(GameModesPlugin)
             .add_plugin(SetupPlugin);
     }
 }

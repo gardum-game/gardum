@@ -20,6 +20,7 @@
 
 mod characters;
 mod core;
+mod game_modes;
 mod maps;
 #[cfg(test)]
 mod test_utils;
@@ -33,6 +34,7 @@ use heron::PhysicsPlugin;
 
 use crate::core::CorePlugin;
 use characters::CharactersPlugin;
+use game_modes::GameModesPlugin;
 use maps::MapsPlugin;
 #[cfg(feature = "client")]
 use ui::UiPlugin;
@@ -49,7 +51,8 @@ fn main() {
     app.add_plugin(PhysicsPlugin::default())
         .add_plugin(CorePlugin)
         .add_plugin(MapsPlugin)
-        .add_plugin(CharactersPlugin);
+        .add_plugin(CharactersPlugin)
+        .add_plugin(GameModesPlugin);
 
     #[cfg(feature = "client")]
     app.add_plugin(EguiPlugin).add_plugin(UiPlugin);
@@ -85,7 +88,8 @@ mod tests {
             .add_plugin(PhysicsPlugin::default())
             .add_plugin(CorePlugin)
             .add_plugin(MapsPlugin)
-            .add_plugin(CharactersPlugin);
+            .add_plugin(CharactersPlugin)
+            .add_plugin(GameModesPlugin);
 
         app
     }
