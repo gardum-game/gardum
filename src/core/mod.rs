@@ -26,6 +26,8 @@ mod setup;
 use bevy::prelude::*;
 use derive_more::From;
 use heron::PhysicsLayer;
+#[cfg(test)]
+use strum::EnumIter;
 
 use cli::CliPlugin;
 use game_modes::GameModesPlugin;
@@ -63,6 +65,7 @@ impl Default for ServerSettings {
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
+#[cfg_attr(test, derive(EnumIter))]
 pub(super) enum AppState {
     MainMenu,
     CustomGameMenu,
