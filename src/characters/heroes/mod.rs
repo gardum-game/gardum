@@ -113,3 +113,143 @@ pub(crate) struct HeroSelectEvent {
     pub(crate) kind: HeroKind,
     pub(crate) transform: Transform,
 }
+
+#[cfg(test)]
+mod tests {
+    use bevy::{app::Events, ecs::system::SystemState};
+    use strum::IntoEnumIterator;
+
+    use super::*;
+    use crate::{
+        characters::{
+            ability::ActivationEvent,
+            health::{DamageEvent, HealEvent},
+            projectile::ProjectileHitEvent,
+        },
+        test_utils::HeadlessRenderPlugin,
+    };
+
+    #[test]
+    fn old_hero_despawns() {
+        let mut app = setup_app();
+        let old_hero = app
+            .world
+            .spawn()
+            .insert(HeroKind::iter().next().unwrap())
+            .id();
+        let player = app.world.spawn().insert(PlayerHero(old_hero)).id();
+
+        let mut events = app
+            .world
+            .get_resource_mut::<Events<HeroSelectEvent>>()
+            .unwrap();
+
+        events.send(HeroSelectEvent {
+            player,
+            kind: HeroKind::iter().next().unwrap(),
+            transform: Transform::default(),
+        });
+
+        app.update();
+
+        let mut query = app.world.query_filtered::<Entity, With<HeroKind>>();
+        let hero = query
+            .iter(&app.world)
+            .next()
+            .expect("Should be a single hero"); // TODO 0.7: Use single
+        assert_ne!(old_hero, hero, "New hero should replace the old one")
+    }
+
+    #[test]
+    fn hero_spawns_with_owner() {
+        let mut app = setup_app();
+        let player = app.world.spawn().id();
+
+        let mut events = app
+            .world
+            .get_resource_mut::<Events<HeroSelectEvent>>()
+            .unwrap();
+
+        events.send(HeroSelectEvent {
+            player,
+            kind: HeroKind::iter().next().unwrap(),
+            transform: Transform::default(),
+        });
+
+        app.update();
+
+        let mut query = app
+            .world
+            .query_filtered::<(Entity, &OwnerPlayer), (Without<Authority>, With<HeroKind>)>();
+        let (hero, owner) = query
+            .iter(&app.world)
+            .next()
+            .expect("Hero should be spawned without authority"); // TODO 0.7: Use single
+        assert_eq!(owner.0, player, "Player from the event be the owner");
+
+        app.world.entity_mut(hero).despawn();
+        app.world.entity_mut(player).insert(Authority);
+
+        let mut events = app
+            .world
+            .get_resource_mut::<Events<HeroSelectEvent>>()
+            .unwrap();
+
+        events.send(HeroSelectEvent {
+            player,
+            kind: HeroKind::iter().next().unwrap(),
+            transform: Transform::default(),
+        });
+
+        app.update();
+
+        let mut query = app
+            .world
+            .query_filtered::<&OwnerPlayer, (With<Authority>, With<HeroKind>)>();
+        let owner = query
+            .iter(&app.world)
+            .next()
+            .expect("Hero should be spawned with authority"); // TODO 0.7: Use single
+        assert_eq!(owner.0, player, "Player from the event be the owner");
+    }
+
+    #[test]
+    fn hero_bundle() {
+        let mut app = setup_app();
+        let player = app.world.spawn().id();
+        let mut system_state: SystemState<(
+            Commands,
+            ResMut<Assets<Mesh>>,
+            ResMut<Assets<StandardMaterial>>,
+        )> = SystemState::new(&mut app.world);
+        let (mut commands, mut meshes, mut materials) = system_state.get_mut(&mut app.world);
+
+        for kind in HeroKind::iter() {
+            let hero_bundle = HeroBundle::hero(
+                kind,
+                OwnerPlayer(player),
+                Transform::default(),
+                &mut commands,
+                &mut meshes,
+                &mut materials,
+            );
+            assert_eq!(
+                hero_bundle.kind, kind,
+                "Hero kind in bundle should be equal to specified"
+            )
+        }
+    }
+
+    fn setup_app() -> App {
+        let mut app = App::new();
+        app.add_event::<ActivationEvent>()
+            .add_event::<ProjectileHitEvent>()
+            .add_event::<DamageEvent>()
+            .add_event::<HealEvent>()
+            .add_state(AppState::InGame)
+            .add_plugin(HeadlessRenderPlugin)
+            .add_plugin(HeroesPlugin);
+
+        app
+    }
+}
