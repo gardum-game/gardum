@@ -68,9 +68,8 @@ mod tests {
     use bevy::ecs::system::SystemState;
     use strum::IntoEnumIterator;
 
-    use crate::test_utils::HeadlessRenderPlugin;
-
     use super::*;
+    use crate::test_utils::HeadlessRenderPlugin;
 
     #[test]
     fn initialization_on_start() {

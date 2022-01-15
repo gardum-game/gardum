@@ -59,9 +59,8 @@ fn main() {
 
 #[cfg(test)]
 mod tests {
-    use test_utils::HeadlessRenderPlugin;
-
     use super::*;
+    use test_utils::HeadlessRenderPlugin;
 
     #[test]
     fn update() {
