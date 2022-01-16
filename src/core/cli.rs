@@ -25,7 +25,7 @@ pub(super) struct CliPlugin;
 
 impl Plugin for CliPlugin {
     fn build(&self, app: &mut App) {
-        if cfg!(tarpaulin) {
+        if cfg!(test) {
             // Dont parse command line when tarpaulin is used
             app.init_resource::<Opts>();
         } else {
