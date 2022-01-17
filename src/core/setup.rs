@@ -22,7 +22,7 @@ use bevy::prelude::*;
 
 use super::Authority;
 use crate::{
-    characters::heroes::{HeroKind, HeroSelectEvent},
+    characters::heroes::{HeroBundle, HeroKind, OwnerPlayer},
     core::{cli::Opts, AppState},
 };
 
@@ -43,11 +43,17 @@ fn start_session_system(opts: Res<Opts>, mut app_state: ResMut<State<AppState>>)
 
 fn create_world_system(
     player_query: Query<Entity, With<Authority>>,
-    mut hero_spawn_events: EventWriter<HeroSelectEvent>,
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    hero_spawn_events.send(HeroSelectEvent {
-        player: player_query.single(),
-        kind: HeroKind::North,
-        transform: Transform::from_translation(Vec3::new(5.0, 15.0, 5.0)),
-    })
+    let hero = HeroBundle::hero(
+        HeroKind::North,
+        OwnerPlayer(player_query.single()),
+        Transform::default(),
+        &mut commands,
+        &mut meshes,
+        &mut materials,
+    );
+    commands.spawn_bundle(hero);
 }

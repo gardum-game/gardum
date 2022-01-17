@@ -24,52 +24,34 @@ use bevy::prelude::*;
 use strum::EnumIter;
 
 use super::{ability::Abilities, CharacterBundle};
-use crate::core::{player::PlayerHero, AppState, Authority};
+use crate::core::{AppState, Authority};
 use north::NorthPlugin;
 
 pub(super) struct HeroesPlugin;
 
 impl Plugin for HeroesPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<HeroSelectEvent>()
-            .add_plugin(NorthPlugin)
-            .add_system_set(
-                SystemSet::on_in_stack_update(AppState::InGame).with_system(hero_selection_system),
-            );
+        app.add_plugin(NorthPlugin).add_system_set(
+            SystemSet::on_in_stack_update(AppState::InGame).with_system(hero_authority_system),
+        );
     }
 }
 
-fn hero_selection_system(
+/// Give authority to the hero if it's player have authority
+fn hero_authority_system(
     mut commands: Commands,
-    mut selection_events: EventReader<HeroSelectEvent>,
-    player_query: Query<(Option<&PlayerHero>, Option<&Authority>)>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
+    hero_query: Query<(Entity, &OwnerPlayer), Added<OwnerPlayer>>,
+    authority_query: Query<(), With<Authority>>,
 ) {
-    for event in selection_events.iter() {
-        let hero_bundle = HeroBundle::hero(
-            event.kind,
-            OwnerPlayer(event.player),
-            event.transform,
-            &mut commands,
-            &mut meshes,
-            &mut materials,
-        );
-
-        let (hero, authority) = player_query.get(event.player).unwrap();
-        if let Some(hero) = hero {
-            commands.entity(hero.0).despawn();
-        }
-
-        let mut entity_commands = commands.spawn_bundle(hero_bundle);
-        if authority.is_some() {
-            entity_commands.insert(Authority);
+    for (hero, player) in hero_query.iter() {
+        if authority_query.get(player.0).is_ok() {
+            commands.entity(hero).insert(Authority);
         }
     }
 }
 
 #[derive(Bundle)]
-struct HeroBundle {
+pub struct HeroBundle {
     player: OwnerPlayer,
     kind: HeroKind,
     abilities: Abilities,
@@ -80,7 +62,7 @@ struct HeroBundle {
 
 impl HeroBundle {
     /// Create hero bundle from the specified kind
-    fn hero(
+    pub(crate) fn hero(
         kind: HeroKind,
         player: OwnerPlayer,
         transform: Transform,
@@ -108,15 +90,9 @@ pub(crate) struct OwnerPlayer(pub(crate) Entity);
 #[derive(Component)]
 pub(super) struct OwnerHero(pub(crate) Entity);
 
-pub(crate) struct HeroSelectEvent {
-    pub(crate) player: Entity,
-    pub(crate) kind: HeroKind,
-    pub(crate) transform: Transform,
-}
-
 #[cfg(test)]
 mod tests {
-    use bevy::{app::Events, ecs::system::SystemState};
+    use bevy::ecs::system::SystemState;
     use strum::IntoEnumIterator;
 
     use super::*;
@@ -130,87 +106,27 @@ mod tests {
     };
 
     #[test]
-    fn old_hero_despawns() {
-        let mut app = setup_app();
-        let old_hero = app
-            .world
-            .spawn()
-            .insert(HeroKind::iter().next().unwrap())
-            .id();
-        let player = app.world.spawn().insert(PlayerHero(old_hero)).id();
-
-        let mut events = app
-            .world
-            .get_resource_mut::<Events<HeroSelectEvent>>()
-            .unwrap();
-
-        events.send(HeroSelectEvent {
-            player,
-            kind: HeroKind::iter().next().unwrap(),
-            transform: Transform::default(),
-        });
-
-        app.update();
-
-        let mut query = app.world.query_filtered::<Entity, With<HeroKind>>();
-        let hero = query
-            .iter(&app.world)
-            .next()
-            .expect("Should be a single hero"); // TODO 0.7: Use single
-        assert_ne!(old_hero, hero, "New hero should replace the old one")
-    }
-
-    #[test]
-    fn hero_spawns_with_owner() {
+    fn hero_inherits_authority() {
         let mut app = setup_app();
         let player = app.world.spawn().id();
-
-        let mut events = app
-            .world
-            .get_resource_mut::<Events<HeroSelectEvent>>()
-            .unwrap();
-
-        events.send(HeroSelectEvent {
-            player,
-            kind: HeroKind::iter().next().unwrap(),
-            transform: Transform::default(),
-        });
+        let hero = app.world.spawn().insert(OwnerPlayer(player)).id();
 
         app.update();
 
-        let mut query = app
-            .world
-            .query_filtered::<(Entity, &OwnerPlayer), (Without<Authority>, With<HeroKind>)>();
-        let (hero, owner) = query
-            .iter(&app.world)
-            .next()
-            .expect("Hero should be spawned without authority"); // TODO 0.7: Use single
-        assert_eq!(owner.0, player, "Player from the event be the owner");
+        assert!(
+            app.world.get::<Authority>(hero).is_none(),
+            "Hero shouldn't have authority"
+        );
 
-        app.world.entity_mut(hero).despawn();
-        app.world.entity_mut(player).insert(Authority);
-
-        let mut events = app
-            .world
-            .get_resource_mut::<Events<HeroSelectEvent>>()
-            .unwrap();
-
-        events.send(HeroSelectEvent {
-            player,
-            kind: HeroKind::iter().next().unwrap(),
-            transform: Transform::default(),
-        });
+        let player = app.world.entity_mut(player).insert(Authority).id();
+        let hero = app.world.spawn().insert(OwnerPlayer(player)).id();
 
         app.update();
 
-        let mut query = app
-            .world
-            .query_filtered::<&OwnerPlayer, (With<Authority>, With<HeroKind>)>();
-        let owner = query
-            .iter(&app.world)
-            .next()
-            .expect("Hero should be spawned with authority"); // TODO 0.7: Use single
-        assert_eq!(owner.0, player, "Player from the event be the owner");
+        assert!(
+            app.world.get::<Authority>(hero).is_some(),
+            "Hero should have authority"
+        );
     }
 
     #[test]
