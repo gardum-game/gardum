@@ -20,9 +20,9 @@
 
 use bevy::prelude::*;
 
-use super::Authority;
+use super::{player::Player, Authority};
 use crate::{
-    characters::heroes::{HeroBundle, HeroKind, OwnerPlayer},
+    characters::heroes::HeroKind,
     core::{cli::Opts, AppState},
 };
 
@@ -31,7 +31,7 @@ pub(super) struct SetupPlugin;
 impl Plugin for SetupPlugin {
     fn build(&self, app: &mut App) {
         app.add_startup_system(start_session_system)
-            .add_system_set(SystemSet::on_enter(AppState::InGame).with_system(create_world_system));
+            .add_system_set(SystemSet::on_enter(AppState::InGame).with_system(select_hero));
     }
 }
 
@@ -41,19 +41,10 @@ fn start_session_system(opts: Res<Opts>, mut app_state: ResMut<State<AppState>>)
     }
 }
 
-fn create_world_system(
-    player_query: Query<Entity, With<Authority>>,
+fn select_hero(
+    player_query: Query<Entity, (With<Authority>, With<Player>)>,
     mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    let hero = HeroBundle::hero(
-        HeroKind::North,
-        OwnerPlayer(player_query.single()),
-        Transform::default(),
-        &mut commands,
-        &mut meshes,
-        &mut materials,
-    );
-    commands.spawn_bundle(hero);
+    let player = player_query.single();
+    commands.entity(player).insert(HeroKind::North);
 }

@@ -68,12 +68,17 @@ fn update_player_hero(
 
 #[derive(Default, Bundle)]
 pub(crate) struct PlayerBundle {
+    player: Player,
     nickname: Nickname,
     kills: Kills,
     deaths: Deaths,
     damage: Damage,
     healing: Healing,
 }
+
+/// Indicates that the entity is a player
+#[derive(Component, Default)]
+pub(crate) struct Player;
 
 /// Stores player name
 #[derive(Component, Default)]

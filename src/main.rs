@@ -18,6 +18,8 @@
  *
  */
 
+#![allow(clippy::type_complexity)] // Do not warn about long queries
+
 mod characters;
 mod core;
 mod game_modes;

@@ -22,6 +22,7 @@ use bevy::prelude::*;
 use heron::{CollisionShape, RigidBody};
 
 use super::Map;
+use crate::game_modes::SpawnPoint;
 
 impl Map {
     pub(super) fn plane(
@@ -43,10 +44,13 @@ impl Map {
                 border_radius: None,
             });
 
-        // Light
         commands.spawn_bundle(PointLightBundle {
             transform: Transform::from_translation(Vec3::new(4.0, 8.0, 4.0)),
             ..Default::default()
         });
+
+        commands
+            .spawn()
+            .insert(SpawnPoint(Vec3::new(0.0, 5.0, 0.0)));
     }
 }
