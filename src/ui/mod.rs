@@ -18,15 +18,21 @@
  *
  */
 
+mod back_button;
 mod cursor;
+mod custom_game_menu;
 mod hud;
-mod menu;
+mod ingame_menu;
+mod main_menu;
 
 use bevy::prelude::*;
 
+use back_button::BackButtonPlugin;
 use cursor::CursorPlugin;
+use custom_game_menu::CustomGameMenuPlugin;
 use hud::HudPlugin;
-use menu::MenuPlugin;
+use ingame_menu::InGameMenuPlugin;
+use main_menu::MainMenuPlugin;
 
 const UI_MARGIN: f32 = 20.0;
 
@@ -35,7 +41,10 @@ pub(super) struct UiPlugin;
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(CursorPlugin)
-            .add_plugin(MenuPlugin)
-            .add_plugin(HudPlugin);
+            .add_plugin(HudPlugin)
+            .add_plugin(MainMenuPlugin)
+            .add_plugin(CustomGameMenuPlugin)
+            .add_plugin(BackButtonPlugin)
+            .add_plugin(InGameMenuPlugin);
     }
 }
