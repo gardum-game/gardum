@@ -20,16 +20,16 @@
 
 use bevy::prelude::*;
 
-use crate::core::AppState;
+use super::UiState;
 
 pub(super) struct CursorPlugin;
 
 impl Plugin for CursorPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(SystemSet::on_enter(AppState::InGame).with_system(hide_cursor_system))
-            .add_system_set(SystemSet::on_resume(AppState::InGame).with_system(hide_cursor_system))
-            .add_system_set(SystemSet::on_pause(AppState::InGame).with_system(show_cursor_system))
-            .add_system_set(SystemSet::on_exit(AppState::InGame).with_system(show_cursor_system));
+        app.add_system_set(SystemSet::on_enter(UiState::Hud).with_system(hide_cursor_system))
+            .add_system_set(SystemSet::on_resume(UiState::Hud).with_system(hide_cursor_system))
+            .add_system_set(SystemSet::on_pause(UiState::Hud).with_system(show_cursor_system))
+            .add_system_set(SystemSet::on_exit(UiState::Hud).with_system(show_cursor_system));
     }
 }
 

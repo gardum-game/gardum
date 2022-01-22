@@ -40,11 +40,23 @@ pub(super) struct UiPlugin;
 
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugin(CursorPlugin)
+        app.add_state(UiState::MainMenu)
+            .add_plugin(CursorPlugin)
             .add_plugin(HudPlugin)
             .add_plugin(MainMenuPlugin)
             .add_plugin(CustomGameMenuPlugin)
             .add_plugin(BackButtonPlugin)
             .add_plugin(InGameMenuPlugin);
     }
+}
+
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
+pub(super) enum UiState {
+    MainMenu,
+    CustomGameMenu,
+    DirectConnectMenu,
+    CreateGameMenu,
+    LobbyMenu,
+    Hud,
+    InGameMenu,
 }

@@ -25,6 +25,7 @@ use bevy_egui::{
 };
 use strum::IntoEnumIterator;
 
+use super::UiState;
 use crate::{
     core::{player::Nickname, AppState, ServerSettings},
     game_modes::GameMode,
@@ -37,17 +38,18 @@ impl Plugin for CustomGameMenuPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<SearchText>()
             .add_system_set(
-                SystemSet::on_update(AppState::CustomGameMenu).with_system(custom_game_menu_system),
+                SystemSet::on_update(UiState::CustomGameMenu).with_system(custom_game_menu_system),
             )
             .add_system_set(
-                SystemSet::on_update(AppState::DirectConnectMenu)
+                SystemSet::on_update(UiState::DirectConnectMenu)
                     .with_system(direct_connect_menu_system),
             )
             .add_system_set(
-                SystemSet::on_update(AppState::CreateGameMenu).with_system(create_game_menu_system),
+                SystemSet::on_update(UiState::CreateGameMenu).with_system(create_game_menu_system),
             )
+            .add_system_set(SystemSet::on_update(UiState::LobbyMenu).with_system(lobby_menu_system))
             .add_system_set(
-                SystemSet::on_update(AppState::LobbyMenu).with_system(lobby_menu_system),
+                SystemSet::on_enter(AppState::Lobby).with_system(show_lobby_menu_system),
             );
     }
 }
@@ -58,7 +60,7 @@ struct SearchText(String);
 fn custom_game_menu_system(
     egui: ResMut<EguiContext>,
     mut search_text: Local<SearchText>,
-    mut app_state: ResMut<State<AppState>>,
+    mut ui_state: ResMut<State<UiState>>,
 ) {
     Window::new("Custom game")
         .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
@@ -71,10 +73,10 @@ fn custom_game_menu_system(
                     TextEdit::singleline(&mut search_text.0).hint_text("Search servers"),
                 );
                 if ui.button("Connect").clicked() {
-                    app_state.push(AppState::DirectConnectMenu).unwrap();
+                    ui_state.push(UiState::DirectConnectMenu).unwrap();
                 }
                 if ui.button("Create").clicked() {
-                    app_state.push(AppState::CreateGameMenu).unwrap();
+                    ui_state.push(UiState::CreateGameMenu).unwrap();
                 }
             });
             ui.add_space(400.0);
@@ -96,7 +98,7 @@ fn create_game_menu_system(
             ui.vertical(|ui| {
                 show_game_settings(ui, &mut server_settings, &mut game_mode, &mut map);
                 if ui.button("Create").clicked() {
-                    app_state.push(AppState::LobbyMenu).unwrap();
+                    app_state.push(AppState::Lobby).unwrap();
                 }
             })
         });
@@ -217,4 +219,8 @@ fn direct_connect_menu_system(
                 }
             });
         });
+}
+
+fn show_lobby_menu_system(mut ui_state: ResMut<State<UiState>>) {
+    ui_state.push(UiState::LobbyMenu).unwrap();
 }

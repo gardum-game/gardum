@@ -21,7 +21,7 @@
 use bevy::prelude::*;
 use derive_more::{Deref, DerefMut};
 
-use super::cooldown::Cooldown;
+use super::{cooldown::Cooldown, CharacterControl};
 use crate::core::{AppState, Authority};
 
 pub(super) struct AbilityPlugin;
@@ -31,12 +31,12 @@ impl Plugin for AbilityPlugin {
         app.init_resource::<Option<AbilitySlot>>()
             .add_event::<ActivationEvent>()
             .add_system_set(
-                SystemSet::on_in_stack_update(AppState::InGame)
+                SystemSet::on_update(AppState::InGame)
                     .label(AbilitySystems::InputSet)
                     .with_system(input_system),
             )
             .add_system_set(
-                SystemSet::on_in_stack_update(AppState::InGame)
+                SystemSet::on_update(AppState::InGame)
                     .after(AbilitySystems::InputSet)
                     .with_system(activation_system),
             );
@@ -44,10 +44,15 @@ impl Plugin for AbilityPlugin {
 }
 
 fn input_system(
+    character_control: Option<Res<CharacterControl>>,
     keys: Res<Input<KeyCode>>,
     mouse_buttons: Res<Input<MouseButton>>,
     mut input: ResMut<Option<AbilitySlot>>,
 ) {
+    if character_control.is_none() {
+        return;
+    }
+
     if keys.just_pressed(KeyCode::Q) {
         *input = Some(AbilitySlot::Ability1);
         return;
@@ -153,6 +158,38 @@ mod tests {
             None
         );
 
+        let mut events = app
+            .world
+            .get_resource_mut::<Events<KeyboardInput>>()
+            .unwrap();
+
+        events.send(KeyboardInput {
+            scan_code: 0,
+            key_code: Some(KeyCode::Q),
+            state: ElementState::Pressed,
+        });
+
+        app.update();
+
+        assert_eq!(
+            *app.world.get_resource::<Option<AbilitySlot>>().unwrap(),
+            None,
+            "Ability slot shouldn't exist without character control"
+        );
+
+        let mut events = app
+            .world
+            .get_resource_mut::<Events<KeyboardInput>>()
+            .unwrap();
+
+        events.send(KeyboardInput {
+            scan_code: 0,
+            key_code: Some(KeyCode::Q),
+            state: ElementState::Released,
+        });
+
+        app.insert_resource(CharacterControl);
+
         let inputs = [
             (KeyCode::Q, AbilitySlot::Ability1),
             (KeyCode::E, AbilitySlot::Ability2),
@@ -245,6 +282,7 @@ mod tests {
     #[test]
     fn ability_activates() {
         let mut app = setup_app();
+        app.insert_resource(CharacterControl);
         let ability = app
             .world
             .spawn()

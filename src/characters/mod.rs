@@ -82,3 +82,7 @@ impl Default for CharacterBundle {
         }
     }
 }
+
+/// If this resource exists, then player's character can be controlled
+#[derive(Default)]
+pub(crate) struct CharacterControl;

@@ -22,6 +22,7 @@ use bevy::{input::mouse::MouseMotion, prelude::*, transform::TransformSystem};
 use derive_more::{Deref, DerefMut};
 use heron::PhysicsSystem;
 
+use super::CharacterControl;
 use crate::core::{AppState, Authority};
 
 const CAMERA_DISTANCE: f32 = 10.0;
@@ -32,9 +33,7 @@ pub(super) struct CameraPlugin;
 impl Plugin for CameraPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(SystemSet::on_enter(AppState::InGame).with_system(spawn_camera_system))
-            .add_system_set(
-                SystemSet::on_in_stack_update(AppState::InGame).with_system(camera_input_system),
-            )
+            .add_system_set(SystemSet::on_update(AppState::InGame).with_system(camera_input_system))
             .add_system_to_stage(
                 CoreStage::PostUpdate,
                 camera_position_system
@@ -52,9 +51,14 @@ fn spawn_camera_system(mut commands: Commands) {
 
 fn camera_input_system(
     time: Res<Time>,
+    character_control: Option<Res<CharacterControl>>,
     mut motion_reader: EventReader<MouseMotion>,
     mut query: Query<&mut OrbitRotation, With<Authority>>,
 ) {
+    if character_control.is_none() {
+        return;
+    }
+
     let mut orbit_rotation = query.single_mut();
     for event in motion_reader.iter() {
         orbit_rotation.0 -= event.delta * CAMERA_SENSETIVITY * time.delta_seconds();
@@ -130,6 +134,20 @@ mod tests {
 
         let mut query = app.world.query::<&OrbitRotation>();
         let orbit_rotation = query.iter(&app.world).next().unwrap(); // TODO 0.7: Use single
+        assert_eq!(
+            *orbit_rotation,
+            OrbitRotation::default(),
+            "Orbital rotation shouldn't change after input without character control"
+        );
+
+        app.insert_resource(CharacterControl);
+
+        let mut events = app.world.get_resource_mut::<Events<MouseMotion>>().unwrap();
+        events.send(MouseMotion { delta: Vec2::ONE });
+
+        app.update();
+
+        let orbit_rotation = query.iter(&app.world).next().unwrap(); // TODO 0.7: Use single
         assert_ne!(
             *orbit_rotation,
             OrbitRotation::default(),
@@ -140,6 +158,7 @@ mod tests {
     #[test]
     fn camera_moves_around_player() {
         let mut app = setup_app();
+        app.insert_resource(CharacterControl);
         let player = app
             .world
             .spawn()

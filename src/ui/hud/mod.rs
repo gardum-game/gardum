@@ -27,9 +27,9 @@ use bevy_egui::{
     EguiContext,
 };
 
-use super::UI_MARGIN;
+use super::{UiState, UI_MARGIN};
 use crate::{
-    characters::{ability::Abilities, cooldown::Cooldown, health::Health},
+    characters::{ability::Abilities, cooldown::Cooldown, health::Health, CharacterControl},
     core::{AppState, Authority, IconPath},
 };
 use ability_icon::AbilityIcon;
@@ -40,11 +40,15 @@ pub(super) struct HudPlugin;
 impl Plugin for HudPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
-            SystemSet::on_update(AppState::InGame).with_system(ability_icons_texture_system),
+            SystemSet::on_update(UiState::Hud)
+                .with_system(ability_icons_texture_system)
+                .with_system(health_and_abilities_system),
         )
-        .add_system_set(
-            SystemSet::on_update(AppState::InGame).with_system(health_and_abilities_system),
-        );
+        .add_system_set(SystemSet::on_enter(AppState::InGame).with_system(show_hud_system))
+        .add_system_set(SystemSet::on_enter(UiState::Hud).with_system(enable_character_control))
+        .add_system_set(SystemSet::on_exit(UiState::Hud).with_system(disable_character_control))
+        .add_system_set(SystemSet::on_resume(UiState::Hud).with_system(enable_character_control))
+        .add_system_set(SystemSet::on_pause(UiState::Hud).with_system(disable_character_control));
     }
 }
 
@@ -91,4 +95,16 @@ fn ability_icons_texture_system(
             egui.remove_egui_texture(i as u64);
         }
     }
+}
+
+fn show_hud_system(mut ui_state: ResMut<State<UiState>>) {
+    ui_state.set(UiState::Hud).unwrap();
+}
+
+fn enable_character_control(mut commands: Commands) {
+    commands.insert_resource(CharacterControl);
+}
+
+fn disable_character_control(mut commands: Commands) {
+    commands.remove_resource::<CharacterControl>();
 }

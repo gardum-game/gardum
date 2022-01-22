@@ -28,12 +28,8 @@ pub(super) struct PlayerPlugin;
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_startup_system(create_server_player_from_opts)
-            .add_system_set(
-                SystemSet::on_enter(AppState::LobbyMenu).with_system(create_server_player),
-            )
-            .add_system_set(
-                SystemSet::on_in_stack_update(AppState::InGame).with_system(update_player_hero),
-            );
+            .add_system_set(SystemSet::on_enter(AppState::Lobby).with_system(create_server_player))
+            .add_system_set(SystemSet::on_update(AppState::InGame).with_system(update_player_hero));
     }
 }
 
@@ -179,7 +175,7 @@ mod tests {
     fn setup_app_in_lobby() -> App {
         let mut app = App::new();
         app.init_resource::<Opts>()
-            .add_state(AppState::LobbyMenu)
+            .add_state(AppState::Lobby)
             .add_plugin(PlayerPlugin);
         app
     }
@@ -189,7 +185,7 @@ mod tests {
         app.insert_resource(Opts {
             subcommand: Some(SubCommand::Host),
         })
-        .add_state(AppState::MainMenu)
+        .add_state(AppState::Menu)
         .add_plugin(PlayerPlugin);
         app
     }

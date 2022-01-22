@@ -21,6 +21,7 @@
 use bevy::{prelude::*, render::camera::Camera};
 use heron::{rapier_plugin::PhysicsWorld, CollisionLayers, CollisionShape, Velocity};
 
+use super::CharacterControl;
 use crate::core::{AppState, Authority};
 
 const MOVE_SPEED: f32 = 10.0;
@@ -35,19 +36,27 @@ impl Plugin for MovementPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<MovementInput>()
             .add_system_set(
-                SystemSet::on_in_stack_update(AppState::InGame)
+                SystemSet::on_update(AppState::InGame)
                     .label(MovementSystems::InputSet)
                     .with_system(input_system),
             )
             .add_system_set(
-                SystemSet::on_in_stack_update(AppState::InGame)
+                SystemSet::on_update(AppState::InGame)
                     .after(MovementSystems::InputSet)
                     .with_system(movement_system),
             );
     }
 }
 
-fn input_system(keys: Res<Input<KeyCode>>, mut input: ResMut<MovementInput>) {
+fn input_system(
+    character_control: Option<Res<CharacterControl>>,
+    keys: Res<Input<KeyCode>>,
+    mut input: ResMut<MovementInput>,
+) {
+    if character_control.is_none() {
+        return;
+    }
+
     input.forward = keys.pressed(KeyCode::W);
     input.backward = keys.pressed(KeyCode::S);
     input.left = keys.pressed(KeyCode::A);
@@ -207,6 +216,27 @@ mod tests {
         let mut app = setup_app();
         app.update();
 
+        let mut events = app
+            .world
+            .get_resource_mut::<Events<KeyboardInput>>()
+            .unwrap();
+
+        events.send(KeyboardInput {
+            scan_code: 0,
+            key_code: Some(KeyCode::W),
+            state: ElementState::Pressed,
+        });
+
+        app.update();
+
+        assert_eq!(
+            *app.world.get_resource::<MovementInput>().unwrap(),
+            MovementInput::default(),
+            "Player shouldn't have any movement input without character control",
+        );
+
+        app.insert_resource(CharacterControl);
+
         let test_data = [
             (
                 KeyCode::W,
@@ -324,6 +354,7 @@ mod tests {
     #[test]
     fn player_standing_on_platform() {
         let mut app = setup_app();
+        app.insert_resource(CharacterControl);
         app.world
             .spawn()
             .insert_bundle(DummyCameraBundle::default());
@@ -378,6 +409,7 @@ mod tests {
     #[test]
     fn player_moves() {
         let mut app = setup_app();
+        app.insert_resource(CharacterControl);
         app.world
             .spawn()
             .insert_bundle(DummyCameraBundle::default());

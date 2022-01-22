@@ -32,7 +32,7 @@ pub(super) struct HeroesPlugin;
 impl Plugin for HeroesPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(NorthPlugin).add_system_set(
-            SystemSet::on_in_stack_update(AppState::InGame).with_system(hero_authority_system),
+            SystemSet::on_update(AppState::InGame).with_system(hero_authority_system),
         );
     }
 }

@@ -24,17 +24,14 @@ use bevy_egui::{
     EguiContext,
 };
 
-use crate::{core::AppState, ui::UI_MARGIN};
+use super::{UiState, UI_MARGIN};
 
 pub(super) struct BackButtonPlugin;
 
 impl Plugin for BackButtonPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
-            SystemSet::on_inactive_update(AppState::InGame).with_system(back_button_system),
-        )
-        .add_system_set(
-            SystemSet::on_inactive_update(AppState::MainMenu).with_system(back_button_system),
+            SystemSet::on_inactive_update(UiState::MainMenu).with_system(back_button_system),
         );
     }
 }
@@ -42,13 +39,13 @@ impl Plugin for BackButtonPlugin {
 fn back_button_system(
     egui: ResMut<EguiContext>,
     input: Res<Input<KeyCode>>,
-    mut app_state: ResMut<State<AppState>>,
+    mut ui_state: ResMut<State<UiState>>,
 ) {
     Area::new("Back area")
         .anchor(Align2::LEFT_BOTTOM, (UI_MARGIN, -UI_MARGIN))
         .show(egui.ctx(), |ui| {
             if input.just_pressed(KeyCode::Escape) || ui.button("Back").clicked() {
-                app_state.pop().unwrap();
+                ui_state.pop().unwrap();
             }
         });
 }

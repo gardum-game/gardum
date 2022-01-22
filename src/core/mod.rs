@@ -36,7 +36,7 @@ pub(super) struct CorePlugin;
 
 impl Plugin for CorePlugin {
     fn build(&self, app: &mut App) {
-        app.add_state(AppState::MainMenu)
+        app.add_state(AppState::Menu)
             .init_resource::<ServerSettings>()
             .add_plugin(CliPlugin)
             .add_plugin(PlayerPlugin)
@@ -64,13 +64,9 @@ impl Default for ServerSettings {
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 #[cfg_attr(test, derive(EnumIter))]
 pub(super) enum AppState {
-    MainMenu,
-    CustomGameMenu,
-    DirectConnectMenu,
-    CreateGameMenu,
-    LobbyMenu,
+    Menu,
+    Lobby,
     InGame,
-    InGameMenu,
 }
 
 #[derive(PhysicsLayer)]

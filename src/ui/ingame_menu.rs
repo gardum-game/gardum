@@ -24,36 +24,35 @@ use bevy_egui::{
     EguiContext,
 };
 
-use crate::core::AppState;
+use super::UiState;
 
 pub(super) struct InGameMenuPlugin;
 
 impl Plugin for InGameMenuPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
-            SystemSet::on_update(AppState::InGameMenu).with_system(ingame_menu_system),
+            SystemSet::on_update(UiState::InGameMenu)
+                .with_system(ingame_menu_system)
+                .with_system(hide_ingame_menu_system),
         )
-        .add_system_set(SystemSet::on_update(AppState::InGame).with_system(show_ingame_menu_system))
-        .add_system_set(
-            SystemSet::on_update(AppState::InGameMenu).with_system(hide_ingame_menu_system),
-        );
+        .add_system_set(SystemSet::on_update(UiState::Hud).with_system(show_ingame_menu_system));
     }
 }
 
 fn ingame_menu_system(
     egui: ResMut<EguiContext>,
     mut exit_event: EventWriter<AppExit>,
-    mut app_state: ResMut<State<AppState>>,
+    mut ui_state: ResMut<State<UiState>>,
 ) {
     Area::new("Main Menu")
         .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
         .show(egui.ctx(), |ui| {
             if ui.button("Resume").clicked() {
-                app_state.pop().unwrap();
+                ui_state.pop().unwrap();
             }
             ui.add_enabled(false, Button::new("Settings"));
             if ui.button("Main menu").clicked() {
-                app_state.replace(AppState::MainMenu).unwrap();
+                ui_state.replace(UiState::MainMenu).unwrap();
             }
             if ui.button("Exit").clicked() {
                 exit_event.send(AppExit);
@@ -61,22 +60,16 @@ fn ingame_menu_system(
         });
 }
 
-fn show_ingame_menu_system(
-    mut keys: ResMut<Input<KeyCode>>,
-    mut app_state: ResMut<State<AppState>>,
-) {
+fn show_ingame_menu_system(mut keys: ResMut<Input<KeyCode>>, mut ui_state: ResMut<State<UiState>>) {
     if keys.just_pressed(KeyCode::Escape) {
-        app_state.push(AppState::InGameMenu).unwrap();
         keys.reset(KeyCode::Escape);
+        ui_state.push(UiState::InGameMenu).unwrap();
     }
 }
 
-fn hide_ingame_menu_system(
-    mut keys: ResMut<Input<KeyCode>>,
-    mut app_state: ResMut<State<AppState>>,
-) {
+fn hide_ingame_menu_system(mut keys: ResMut<Input<KeyCode>>, mut ui_state: ResMut<State<UiState>>) {
     if keys.just_pressed(KeyCode::Escape) {
-        app_state.pop().unwrap();
         keys.reset(KeyCode::Escape);
+        ui_state.pop().unwrap();
     }
 }
