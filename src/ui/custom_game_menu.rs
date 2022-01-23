@@ -25,7 +25,7 @@ use bevy_egui::{
 };
 use strum::IntoEnumIterator;
 
-use super::UiState;
+use super::ui_state::{UiState, UiStateHistory};
 use crate::{
     core::{player::Nickname, AppState, ServerSettings},
     game_modes::GameMode,
@@ -60,7 +60,7 @@ struct SearchText(String);
 fn custom_game_menu_system(
     egui: ResMut<EguiContext>,
     mut search_text: Local<SearchText>,
-    mut ui_state: ResMut<State<UiState>>,
+    mut ui_state_history: ResMut<UiStateHistory>,
 ) {
     Window::new("Custom game")
         .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
@@ -73,10 +73,10 @@ fn custom_game_menu_system(
                     TextEdit::singleline(&mut search_text.0).hint_text("Search servers"),
                 );
                 if ui.button("Connect").clicked() {
-                    ui_state.push(UiState::DirectConnectMenu).unwrap();
+                    ui_state_history.push(UiState::DirectConnectMenu);
                 }
                 if ui.button("Create").clicked() {
-                    ui_state.push(UiState::CreateGameMenu).unwrap();
+                    ui_state_history.push(UiState::CreateGameMenu);
                 }
             });
             ui.add_space(400.0);
@@ -98,7 +98,7 @@ fn create_game_menu_system(
             ui.vertical(|ui| {
                 show_game_settings(ui, &mut server_settings, &mut game_mode, &mut map);
                 if ui.button("Create").clicked() {
-                    app_state.push(AppState::Lobby).unwrap();
+                    app_state.set(AppState::Lobby).unwrap();
                 }
             })
         });
@@ -125,7 +125,7 @@ fn lobby_menu_system(
                     })
                 });
                 if ui.button("Start").clicked() {
-                    app_state.replace(AppState::InGame).unwrap();
+                    app_state.set(AppState::InGame).unwrap();
                 }
             })
         });
@@ -215,12 +215,12 @@ fn direct_connect_menu_system(
                 });
             ui.vertical_centered(|ui| {
                 if ui.button("Connect").clicked() {
-                    app_state.replace(AppState::InGame).unwrap();
+                    app_state.set(AppState::InGame).unwrap();
                 }
             });
         });
 }
 
-fn show_lobby_menu_system(mut ui_state: ResMut<State<UiState>>) {
-    ui_state.push(UiState::LobbyMenu).unwrap();
+fn show_lobby_menu_system(mut ui_state_history: ResMut<UiStateHistory>) {
+    ui_state_history.push(UiState::LobbyMenu);
 }

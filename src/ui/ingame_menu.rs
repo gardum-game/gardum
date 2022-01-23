@@ -24,7 +24,7 @@ use bevy_egui::{
     EguiContext,
 };
 
-use super::UiState;
+use super::ui_state::{UiState, UiStateHistory};
 
 pub(super) struct InGameMenuPlugin;
 
@@ -42,17 +42,18 @@ impl Plugin for InGameMenuPlugin {
 fn ingame_menu_system(
     egui: ResMut<EguiContext>,
     mut exit_event: EventWriter<AppExit>,
-    mut ui_state: ResMut<State<UiState>>,
+    mut ui_state_history: ResMut<UiStateHistory>,
 ) {
     Area::new("Main Menu")
         .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
         .show(egui.ctx(), |ui| {
             if ui.button("Resume").clicked() {
-                ui_state.pop().unwrap();
+                ui_state_history.pop();
             }
             ui.add_enabled(false, Button::new("Settings"));
             if ui.button("Main menu").clicked() {
-                ui_state.replace(UiState::MainMenu).unwrap();
+                ui_state_history.clear();
+                ui_state_history.push(UiState::MainMenu);
             }
             if ui.button("Exit").clicked() {
                 exit_event.send(AppExit);
@@ -60,16 +61,22 @@ fn ingame_menu_system(
         });
 }
 
-fn show_ingame_menu_system(mut keys: ResMut<Input<KeyCode>>, mut ui_state: ResMut<State<UiState>>) {
+fn show_ingame_menu_system(
+    mut keys: ResMut<Input<KeyCode>>,
+    mut ui_state_history: ResMut<UiStateHistory>,
+) {
     if keys.just_pressed(KeyCode::Escape) {
         keys.reset(KeyCode::Escape);
-        ui_state.push(UiState::InGameMenu).unwrap();
+        ui_state_history.push(UiState::InGameMenu);
     }
 }
 
-fn hide_ingame_menu_system(mut keys: ResMut<Input<KeyCode>>, mut ui_state: ResMut<State<UiState>>) {
+fn hide_ingame_menu_system(
+    mut keys: ResMut<Input<KeyCode>>,
+    mut ui_state_history: ResMut<UiStateHistory>,
+) {
     if keys.just_pressed(KeyCode::Escape) {
         keys.reset(KeyCode::Escape);
-        ui_state.pop().unwrap();
+        ui_state_history.pop();
     }
 }

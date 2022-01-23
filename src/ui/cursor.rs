@@ -20,7 +20,7 @@
 
 use bevy::prelude::*;
 
-use super::UiState;
+use super::ui_state::UiState;
 
 pub(super) struct CursorPlugin;
 

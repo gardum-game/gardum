@@ -24,6 +24,7 @@ mod custom_game_menu;
 mod hud;
 mod ingame_menu;
 mod main_menu;
+mod ui_state;
 
 use bevy::prelude::*;
 
@@ -33,6 +34,7 @@ use custom_game_menu::CustomGameMenuPlugin;
 use hud::HudPlugin;
 use ingame_menu::InGameMenuPlugin;
 use main_menu::MainMenuPlugin;
+use ui_state::UiStatePlugin;
 
 const UI_MARGIN: f32 = 20.0;
 
@@ -40,7 +42,7 @@ pub(super) struct UiPlugin;
 
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
-        app.add_state(UiState::MainMenu)
+        app.add_plugin(UiStatePlugin)
             .add_plugin(CursorPlugin)
             .add_plugin(HudPlugin)
             .add_plugin(MainMenuPlugin)
@@ -48,15 +50,4 @@ impl Plugin for UiPlugin {
             .add_plugin(BackButtonPlugin)
             .add_plugin(InGameMenuPlugin);
     }
-}
-
-#[derive(Debug, Clone, Eq, PartialEq, Hash)]
-pub(super) enum UiState {
-    MainMenu,
-    CustomGameMenu,
-    DirectConnectMenu,
-    CreateGameMenu,
-    LobbyMenu,
-    Hud,
-    InGameMenu,
 }

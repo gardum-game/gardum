@@ -27,7 +27,10 @@ use bevy_egui::{
     EguiContext,
 };
 
-use super::{UiState, UI_MARGIN};
+use super::{
+    ui_state::{UiState, UiStateHistory},
+    UI_MARGIN,
+};
 use crate::{
     characters::{ability::Abilities, cooldown::Cooldown, health::Health, CharacterControl},
     core::{AppState, Authority, IconPath},
@@ -97,8 +100,9 @@ fn ability_icons_texture_system(
     }
 }
 
-fn show_hud_system(mut ui_state: ResMut<State<UiState>>) {
-    ui_state.set(UiState::Hud).unwrap();
+fn show_hud_system(mut ui_state_history: ResMut<UiStateHistory>) {
+    ui_state_history.clear();
+    ui_state_history.push(UiState::Hud);
 }
 
 fn enable_character_control(mut commands: Commands) {

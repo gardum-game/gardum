@@ -24,7 +24,10 @@ use bevy_egui::{
     EguiContext,
 };
 
-use super::{UiState, UI_MARGIN};
+use super::{
+    ui_state::{UiState, UiStateHistory},
+    UI_MARGIN,
+};
 
 pub(super) struct MainMenuPlugin;
 
@@ -37,7 +40,7 @@ impl Plugin for MainMenuPlugin {
 fn main_menu_system(
     egui: ResMut<EguiContext>,
     mut exit_event: EventWriter<AppExit>,
-    mut ui_state: ResMut<State<UiState>>,
+    mut ui_state_history: ResMut<UiStateHistory>,
 ) {
     Area::new("Main Menu")
         .anchor(Align2::LEFT_CENTER, (UI_MARGIN, 0.0))
@@ -52,7 +55,7 @@ fn main_menu_system(
                 ))
                 .clicked()
             {
-                ui_state.push(UiState::CustomGameMenu).unwrap();
+                ui_state_history.push(UiState::CustomGameMenu);
             }
             ui.add_enabled(
                 false,

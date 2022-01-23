@@ -78,7 +78,7 @@ mod tests {
 
         for state in AppState::iter().skip(1) {
             let mut current_state = app.world.get_resource_mut::<State<AppState>>().unwrap();
-            current_state.push(state).unwrap();
+            current_state.set(state).unwrap();
             app.update();
         }
     }
