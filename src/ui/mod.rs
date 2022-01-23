@@ -21,6 +21,7 @@
 mod back_button;
 mod cursor;
 mod custom_game_menu;
+mod hero_selection;
 mod hud;
 mod ingame_menu;
 mod main_menu;
@@ -31,6 +32,7 @@ use bevy::prelude::*;
 use back_button::BackButtonPlugin;
 use cursor::CursorPlugin;
 use custom_game_menu::CustomGameMenuPlugin;
+use hero_selection::HeroSelectionPlugin;
 use hud::HudPlugin;
 use ingame_menu::InGameMenuPlugin;
 use main_menu::MainMenuPlugin;
@@ -44,6 +46,7 @@ impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(UiStatePlugin)
             .add_plugin(CursorPlugin)
+            .add_plugin(HeroSelectionPlugin)
             .add_plugin(HudPlugin)
             .add_plugin(MainMenuPlugin)
             .add_plugin(CustomGameMenuPlugin)

@@ -21,6 +21,8 @@
 use bevy::prelude::*;
 use clap::{Parser, Subcommand};
 
+use super::AppState;
+
 pub(super) struct CliPlugin;
 
 impl Plugin for CliPlugin {
@@ -31,6 +33,13 @@ impl Plugin for CliPlugin {
         } else {
             app.insert_resource(Opts::parse());
         }
+        app.add_startup_system(start_session_system);
+    }
+}
+
+fn start_session_system(opts: Res<Opts>, mut app_state: ResMut<State<AppState>>) {
+    if opts.subcommand.is_some() {
+        app_state.set(AppState::InGame).unwrap();
     }
 }
 
@@ -45,4 +54,33 @@ pub(super) struct Opts {
 pub(super) enum SubCommand {
     Connect,
     Host,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn session_starts_from_cli() {
+        let mut app = setup_app();
+        let mut opts = app.world.get_resource_mut::<Opts>().unwrap();
+        opts.subcommand = Some(SubCommand::Host);
+
+        app.update();
+
+        assert_eq!(
+            *app.world
+                .get_resource_mut::<State<AppState>>()
+                .unwrap()
+                .current(),
+            AppState::InGame,
+            "Game should start right away"
+        )
+    }
+
+    fn setup_app() -> App {
+        let mut app = App::new();
+        app.add_state(AppState::Menu).add_plugin(CliPlugin);
+        app
+    }
 }

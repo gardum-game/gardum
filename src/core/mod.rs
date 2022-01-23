@@ -20,7 +20,6 @@
 
 mod cli;
 pub(super) mod player;
-mod setup;
 
 use bevy::prelude::*;
 use derive_more::From;
@@ -30,7 +29,6 @@ use strum::EnumIter;
 
 use cli::CliPlugin;
 use player::PlayerPlugin;
-use setup::SetupPlugin;
 
 pub(super) struct CorePlugin;
 
@@ -39,8 +37,7 @@ impl Plugin for CorePlugin {
         app.add_state(AppState::Menu)
             .init_resource::<ServerSettings>()
             .add_plugin(CliPlugin)
-            .add_plugin(PlayerPlugin)
-            .add_plugin(SetupPlugin);
+            .add_plugin(PlayerPlugin);
     }
 }
 

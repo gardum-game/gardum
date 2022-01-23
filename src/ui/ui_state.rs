@@ -56,6 +56,7 @@ pub(super) enum UiState {
     DirectConnectMenu,
     CreateGameMenu,
     LobbyMenu,
+    HeroSelection,
     Hud,
     InGameMenu,
 }

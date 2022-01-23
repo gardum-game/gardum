@@ -27,13 +27,10 @@ use bevy_egui::{
     EguiContext,
 };
 
-use super::{
-    ui_state::{UiState, UiStateHistory},
-    UI_MARGIN,
-};
+use super::{ui_state::UiState, UI_MARGIN};
 use crate::{
     characters::{ability::Abilities, cooldown::Cooldown, health::Health, CharacterControl},
-    core::{AppState, Authority, IconPath},
+    core::{Authority, IconPath},
 };
 use ability_icon::AbilityIcon;
 use health_bar::HealthBar;
@@ -47,7 +44,6 @@ impl Plugin for HudPlugin {
                 .with_system(ability_icons_texture_system)
                 .with_system(health_and_abilities_system),
         )
-        .add_system_set(SystemSet::on_enter(AppState::InGame).with_system(show_hud_system))
         .add_system_set(SystemSet::on_enter(UiState::Hud).with_system(enable_character_control))
         .add_system_set(SystemSet::on_exit(UiState::Hud).with_system(disable_character_control))
         .add_system_set(SystemSet::on_resume(UiState::Hud).with_system(enable_character_control))
@@ -98,11 +94,6 @@ fn ability_icons_texture_system(
             egui.remove_egui_texture(i as u64);
         }
     }
-}
-
-fn show_hud_system(mut ui_state_history: ResMut<UiStateHistory>) {
-    ui_state_history.clear();
-    ui_state_history.push(UiState::Hud);
 }
 
 fn enable_character_control(mut commands: Commands) {
