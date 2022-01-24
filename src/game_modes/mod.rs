@@ -22,7 +22,7 @@ use bevy::prelude::*;
 use strum::EnumIter;
 
 use crate::{
-    characters::heroes::{HeroBundle, HeroKind},
+    characters::{heroes::HeroKind, CharacterBundle},
     core::AppState,
 };
 
@@ -44,7 +44,7 @@ fn spawn_system(
 ) {
     for (player, hero_kind) in player_query.iter() {
         for spawn_point in spawn_point_query.iter() {
-            let hero = HeroBundle::hero(
+            let hero = CharacterBundle::hero(
                 *hero_kind,
                 Transform::from_translation(spawn_point.0),
                 &mut commands,

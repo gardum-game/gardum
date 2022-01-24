@@ -23,7 +23,7 @@ mod north;
 use bevy::prelude::*;
 use strum::EnumIter;
 
-use super::{ability::Abilities, CharacterBundle};
+use super::CharacterBundle;
 use north::NorthPlugin;
 
 pub(super) struct HeroesPlugin;
@@ -34,15 +34,7 @@ impl Plugin for HeroesPlugin {
     }
 }
 
-#[derive(Bundle)]
-pub struct HeroBundle {
-    abilities: Abilities,
-
-    #[bundle]
-    character: CharacterBundle,
-}
-
-impl HeroBundle {
+impl CharacterBundle {
     /// Create hero bundle from the specified kind
     pub(crate) fn hero(
         hero_kind: HeroKind,
@@ -52,7 +44,7 @@ impl HeroBundle {
         materials: &mut Assets<StandardMaterial>,
     ) -> Self {
         let create_fn = match hero_kind {
-            HeroKind::North => HeroBundle::north,
+            HeroKind::North => CharacterBundle::north,
         };
         create_fn(transform, commands, meshes, materials)
     }
@@ -62,10 +54,6 @@ impl HeroBundle {
 pub(crate) enum HeroKind {
     North,
 }
-
-/// Used to store reference to the hero
-#[derive(Component)]
-pub(super) struct OwnerHero(pub(crate) Entity);
 
 #[cfg(test)]
 mod tests {
@@ -83,7 +71,7 @@ mod tests {
     };
 
     #[test]
-    fn hero_bundle() {
+    fn heroes() {
         let mut app = setup_app();
         let mut system_state: SystemState<(
             Commands,
@@ -93,7 +81,7 @@ mod tests {
         let (mut commands, mut meshes, mut materials) = system_state.get_mut(&mut app.world);
 
         for hero_kind in HeroKind::iter() {
-            HeroBundle::hero(
+            CharacterBundle::hero(
                 hero_kind,
                 Transform::default(),
                 &mut commands,

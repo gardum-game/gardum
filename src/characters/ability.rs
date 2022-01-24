@@ -130,7 +130,7 @@ pub(super) enum AbilitySlot {
     Ultimate,
 }
 
-#[derive(Deref, DerefMut, Component)]
+#[derive(Default, Deref, DerefMut, Component)]
 pub(crate) struct Abilities(pub(crate) Vec<Entity>);
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, SystemLabel)]

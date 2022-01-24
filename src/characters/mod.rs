@@ -31,6 +31,7 @@ use bevy::prelude::*;
 use heron::{CollisionLayers, CollisionShape, RigidBody, Velocity};
 
 use crate::core::CollisionLayer;
+use ability::Abilities;
 use ability::AbilityPlugin;
 use camera::CameraPlugin;
 use cooldown::CooldownPlugin;
@@ -59,6 +60,7 @@ impl Plugin for CharactersPlugin {
 #[derive(Bundle)]
 pub(super) struct CharacterBundle {
     health: Health,
+    abilities: Abilities,
     rigid_body: RigidBody,
     shape: CollisionShape,
     collision_layers: CollisionLayers,
@@ -72,6 +74,7 @@ impl Default for CharacterBundle {
     fn default() -> Self {
         Self {
             health: Health::default(),
+            abilities: Abilities::default(),
             rigid_body: RigidBody::KinematicVelocityBased,
             shape: CollisionShape::default(),
             collision_layers: CollisionLayers::all::<CollisionLayer>()
@@ -85,3 +88,7 @@ impl Default for CharacterBundle {
 /// If this resource exists, then player's character can be controlled
 #[derive(Default)]
 pub(crate) struct CharacterControl;
+
+/// Used to store reference to the owner
+#[derive(Component)]
+pub(super) struct Owner(pub(crate) Entity);

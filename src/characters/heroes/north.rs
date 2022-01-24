@@ -21,14 +21,13 @@
 use bevy::{prelude::*, render::camera::Camera};
 use heron::{CollisionShape, Velocity};
 
-use super::{HeroBundle, OwnerHero};
 use crate::{
     characters::{
         ability::{Abilities, AbilitySlot, ActivationEvent},
         cooldown::Cooldown,
         health::DamageEvent,
         projectile::{ProjectileBundle, ProjectileHitEvent},
-        CharacterBundle,
+        CharacterBundle, Owner,
     },
     core::{AppState, IconPath},
 };
@@ -73,14 +72,14 @@ fn frost_bolt_system(
                 &mut materials,
             ))
             .insert(FrostBoltProjectile)
-            .insert(OwnerHero(event.caster));
+            .insert(Owner(event.caster));
     }
 }
 
 fn frost_bolt_hit_system(
     mut hit_events: EventReader<ProjectileHitEvent>,
     mut damage_events: EventWriter<DamageEvent>,
-    query: Query<&OwnerHero, With<FrostBoltProjectile>>,
+    query: Query<&Owner, With<FrostBoltProjectile>>,
 ) {
     for event in hit_events.iter() {
         if let Ok(character) = query.get(event.projectile) {
@@ -118,7 +117,7 @@ struct FrostBoltAbility;
 #[derive(Component)]
 struct FrostBoltProjectile;
 
-impl HeroBundle {
+impl CharacterBundle {
     pub(super) fn north(
         transform: Transform,
         commands: &mut Commands,
@@ -127,19 +126,17 @@ impl HeroBundle {
     ) -> Self {
         Self {
             abilities: Abilities(vec![commands.spawn_bundle(FrostBoltBundle::default()).id()]),
-            character: CharacterBundle {
-                pbr: PbrBundle {
-                    mesh: meshes.add(Mesh::from(shape::Capsule::default())),
-                    material: materials.add(Color::rgb(0.3, 0.3, 0.3).into()),
-                    transform,
-                    ..Default::default()
-                },
-                shape: CollisionShape::Capsule {
-                    half_segment: 0.5,
-                    radius: 0.5,
-                },
+            pbr: PbrBundle {
+                mesh: meshes.add(Mesh::from(shape::Capsule::default())),
+                material: materials.add(Color::rgb(0.3, 0.3, 0.3).into()),
+                transform,
                 ..Default::default()
             },
+            shape: CollisionShape::Capsule {
+                half_segment: 0.5,
+                radius: 0.5,
+            },
+            ..Default::default()
         }
     }
 }
@@ -252,7 +249,7 @@ mod tests {
             .world
             .spawn()
             .insert(FrostBoltProjectile)
-            .insert(OwnerHero(instigator))
+            .insert(Owner(instigator))
             .id();
         let target = app.world.spawn().id();
 
