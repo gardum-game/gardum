@@ -35,12 +35,11 @@ use ability::AbilityPlugin;
 use camera::CameraPlugin;
 use cooldown::CooldownPlugin;
 use despawn_timer::DespawnTimerPlugin;
+use health::Health;
 use health::HealthPlugin;
 use heroes::HeroesPlugin;
 use movement::MovementPlugin;
 use projectile::ProjectilePlugin;
-
-use self::health::Health;
 
 pub(super) struct CharactersPlugin;
 
