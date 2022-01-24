@@ -54,33 +54,33 @@ fn hero_selection_system(
     mut player_query: Query<(Entity, Option<&mut HeroKind>), (With<Authority>, With<Player>)>,
     mut ui_state_history: ResMut<UiStateHistory>,
 ) {
-    let (player, hero_kind) = player_query.single_mut();
+    let (player, current_hero_kind) = player_query.single_mut();
 
     Window::new("Custom game")
         .anchor(Align2::LEFT_CENTER, (UI_MARGIN, 0.0))
         .collapsible(false)
         .resizable(false)
         .show(egui.ctx(), |ui| {
-            if let Some(mut hero_kind) = hero_kind {
+            if let Some(mut current_hero_kind) = current_hero_kind {
                 for kind in HeroKind::iter() {
-                    let selected = *hero_kind == kind;
+                    let selected = *current_hero_kind == kind;
                     // TODO: Add hero icon
                     let button = ImageButton::new(TextureId::Egui, vec2(32.0, 32.0))
                         .uv(Rect::from_two_pos(WHITE_UV, WHITE_UV))
                         .selected(selected);
 
                     if ui.add(button).clicked() && selected {
-                        *hero_kind = kind;
+                        *current_hero_kind = kind;
                     };
                 }
             } else {
-                for kind in HeroKind::iter() {
+                for hero_kind in HeroKind::iter() {
                     // TODO: Add hero icon
                     let button = ImageButton::new(TextureId::Egui, vec2(32.0, 32.0))
                         .uv(Rect::from_two_pos(WHITE_UV, WHITE_UV));
 
                     if ui.add(button).clicked() {
-                        commands.entity(player).insert(kind);
+                        commands.entity(player).insert(hero_kind);
                     };
                 }
             }

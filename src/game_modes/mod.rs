@@ -83,10 +83,10 @@ mod tests {
     #[test]
     fn hero_spawns() {
         const SPAWN_POINT: Vec3 = Vec3::ONE;
-        let kind = HeroKind::iter().next().unwrap();
+        let hero_kind = HeroKind::iter().next().unwrap();
 
         let mut app = setup_app();
-        let player = app.world.spawn().insert(kind).id();
+        let player = app.world.spawn().insert(hero_kind).id();
         app.world.spawn().insert(SpawnPoint(SPAWN_POINT)).id();
 
         app.update();

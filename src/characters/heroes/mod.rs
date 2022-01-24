@@ -45,13 +45,13 @@ pub struct HeroBundle {
 impl HeroBundle {
     /// Create hero bundle from the specified kind
     pub(crate) fn hero(
-        kind: HeroKind,
+        hero_kind: HeroKind,
         transform: Transform,
         commands: &mut Commands,
         meshes: &mut Assets<Mesh>,
         materials: &mut Assets<StandardMaterial>,
     ) -> Self {
-        let create_fn = match kind {
+        let create_fn = match hero_kind {
             HeroKind::North => HeroBundle::north,
         };
         create_fn(transform, commands, meshes, materials)
@@ -92,9 +92,9 @@ mod tests {
         )> = SystemState::new(&mut app.world);
         let (mut commands, mut meshes, mut materials) = system_state.get_mut(&mut app.world);
 
-        for kind in HeroKind::iter() {
+        for hero_kind in HeroKind::iter() {
             HeroBundle::hero(
-                kind,
+                hero_kind,
                 Transform::default(),
                 &mut commands,
                 &mut meshes,

@@ -95,7 +95,7 @@ fn frost_bolt_hit_system(
 
 #[derive(Bundle)]
 struct FrostBoltBundle {
-    kind: FrostBoltAbility,
+    frost_bolt_ability: FrostBoltAbility,
     icon: IconPath,
     slot: AbilitySlot,
     cooldown: Cooldown,
@@ -104,7 +104,7 @@ struct FrostBoltBundle {
 impl Default for FrostBoltBundle {
     fn default() -> Self {
         Self {
-            kind: FrostBoltAbility,
+            frost_bolt_ability: FrostBoltAbility,
             icon: "charaters/heroes/north/frost_bolt.png".into(),
             slot: AbilitySlot::BaseAttack,
             cooldown: Cooldown::from_secs(4),
