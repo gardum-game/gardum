@@ -20,7 +20,6 @@
 
 use bevy::prelude::*;
 
-use super::heroes::OwnerPlayer;
 use crate::core::{
     player::{Damage, Deaths, Healing, Kills},
     AppState,
@@ -43,8 +42,7 @@ impl Plugin for HealthPlugin {
 fn heal_system(
     mut events: EventReader<HealEvent>,
     mut target_query: Query<&mut Health>,
-    instigator_query: Query<&OwnerPlayer>,
-    mut instigator_player_query: Query<&mut Healing>,
+    mut instigator_query: Query<&mut Healing>,
 ) {
     for event in events.iter() {
         let mut health = target_query.get_mut(event.target).unwrap();
@@ -55,33 +53,26 @@ fn heal_system(
         let delta = event.heal.min(health.max - health.current);
         health.current += delta;
 
-        let player = instigator_query.get(event.instigator).unwrap();
-        let mut healing = instigator_player_query.get_mut(player.0).unwrap();
+        let mut healing = instigator_query.get_mut(event.instigator).unwrap();
         healing.0 += delta;
     }
 }
 
 fn damage_system(
     mut events: EventReader<DamageEvent>,
-    mut target_query: Query<(&OwnerPlayer, &mut Health)>,
-    mut target_player_query: Query<&mut Deaths>,
-    instigator_query: Query<&OwnerPlayer>,
-    mut instigator_player_query: Query<(&mut Damage, &mut Kills)>,
+    mut target_query: Query<(&mut Health, &mut Deaths)>,
+    mut instigator_query: Query<(&mut Damage, &mut Kills)>,
 ) {
     for event in events.iter() {
-        let (target_player, mut health) = target_query.get_mut(event.target).unwrap();
+        let (mut health, mut deaths) = target_query.get_mut(event.target).unwrap();
         let delta = health.current.min(event.damage);
         health.current -= delta;
         if health.current == 0 {
-            let mut deaths = target_player_query.get_mut(target_player.0).unwrap();
             deaths.0 += 1;
         }
 
         if event.target != event.instigator {
-            let instigator_player = instigator_query.get(event.instigator).unwrap();
-            let (mut damage, mut kills) = instigator_player_query
-                .get_mut(instigator_player.0)
-                .unwrap();
+            let (mut damage, mut kills) = instigator_query.get_mut(event.instigator).unwrap();
             damage.0 += delta;
 
             if health.current == 0 {
@@ -128,27 +119,16 @@ mod tests {
     #[test]
     fn healing() {
         let mut app = setup_app();
-        let target_player = app
-            .world
-            .spawn()
-            .insert_bundle(PlayerBundle::default())
-            .id();
         let target = app
             .world
             .spawn()
             .insert(Health::default())
-            .insert(OwnerPlayer(target_player))
-            .id();
-
-        let instigator_player = app
-            .world
-            .spawn()
             .insert_bundle(PlayerBundle::default())
             .id();
         let instigator = app
             .world
             .spawn()
-            .insert(OwnerPlayer(instigator_player))
+            .insert_bundle(PlayerBundle::default())
             .id();
 
         for (initial_health, heal, expected_healing, expected_health) in [
@@ -158,7 +138,7 @@ mod tests {
             (0, 20, 0, 0),
         ] {
             app.world.get_mut::<Health>(target).unwrap().current = initial_health;
-            app.world.get_mut::<Healing>(instigator_player).unwrap().0 = 0;
+            app.world.get_mut::<Healing>(instigator).unwrap().0 = 0;
 
             let mut events = app.world.get_resource_mut::<Events<HealEvent>>().unwrap();
             events.send(HealEvent {
@@ -176,7 +156,7 @@ mod tests {
                 initial_health, heal, expected_health
             );
 
-            let healing = app.world.get::<Healing>(instigator_player).unwrap();
+            let healing = app.world.get::<Healing>(instigator).unwrap();
             assert_eq!(
                 healing.0, expected_healing,
                 "Healing from {} for {} points should set amount of healing to {}",
@@ -188,27 +168,16 @@ mod tests {
     #[test]
     fn damaging() {
         let mut app = setup_app();
-        let target_player = app
-            .world
-            .spawn()
-            .insert_bundle(PlayerBundle::default())
-            .id();
         let target = app
             .world
             .spawn()
             .insert(Health::default())
-            .insert(OwnerPlayer(target_player))
-            .id();
-
-        let instigator_player = app
-            .world
-            .spawn()
             .insert_bundle(PlayerBundle::default())
             .id();
         let instigator = app
             .world
             .spawn()
-            .insert(OwnerPlayer(instigator_player))
+            .insert_bundle(PlayerBundle::default())
             .id();
 
         for (initial_health, damage, expected_damage, expected_health) in [
@@ -218,7 +187,7 @@ mod tests {
             (0, 20, 0, 0),
         ] {
             app.world.get_mut::<Health>(target).unwrap().current = initial_health;
-            app.world.get_mut::<Damage>(instigator_player).unwrap().0 = 0;
+            app.world.get_mut::<Damage>(instigator).unwrap().0 = 0;
 
             let mut events = app.world.get_resource_mut::<Events<DamageEvent>>().unwrap();
             events.send(DamageEvent {
@@ -236,7 +205,7 @@ mod tests {
                 initial_health, damage, expected_health
             );
 
-            let damaging = app.world.get::<Damage>(instigator_player).unwrap();
+            let damaging = app.world.get::<Damage>(instigator).unwrap();
             assert_eq!(
                 damaging.0, expected_damage,
                 "Damaging from {} for {} points should set amount of damage to {}",
@@ -244,21 +213,21 @@ mod tests {
             );
 
             if health.current == 0 {
-                let kills = app.world.get::<Kills>(instigator_player).unwrap();
+                let kills = app.world.get::<Kills>(instigator).unwrap();
                 assert_eq!(
                     kills.0, 1,
                     "The instigator gets a kill if the target's health drops to 0"
                 );
 
-                let deaths = app.world.get::<Deaths>(target_player).unwrap();
+                let deaths = app.world.get::<Deaths>(target).unwrap();
                 assert_eq!(
                     deaths.0, 1,
                     "The target gets a death if its health drops to 0"
                 );
 
                 // Reset for the next iteration
-                app.world.get_mut::<Kills>(instigator_player).unwrap().0 = 0;
-                app.world.get_mut::<Deaths>(target_player).unwrap().0 = 0;
+                app.world.get_mut::<Kills>(instigator).unwrap().0 = 0;
+                app.world.get_mut::<Deaths>(target).unwrap().0 = 0;
             }
         }
     }
@@ -268,16 +237,11 @@ mod tests {
         let damage = Health::default().max;
 
         let mut app = setup_app();
-        let target_player = app
-            .world
-            .spawn()
-            .insert_bundle(PlayerBundle::default())
-            .id();
         let target = app
             .world
             .spawn()
             .insert(Health::default())
-            .insert(OwnerPlayer(target_player))
+            .insert_bundle(PlayerBundle::default())
             .id();
 
         let mut events = app.world.get_resource_mut::<Events<DamageEvent>>().unwrap();
@@ -296,16 +260,16 @@ mod tests {
             "Health should decrease by the amount of damage"
         );
 
-        let healing = app.world.get::<Damage>(target_player).unwrap();
+        let healing = app.world.get::<Damage>(target).unwrap();
         assert_eq!(
             healing.0, 0,
             "Amount of damage shouldn't increase for self-damage"
         );
 
-        let kills = app.world.get::<Kills>(target_player).unwrap();
+        let kills = app.world.get::<Kills>(target).unwrap();
         assert_eq!(kills.0, 0, "Kills shouldn't counted for self-damage");
 
-        let deaths = app.world.get::<Deaths>(target_player).unwrap();
+        let deaths = app.world.get::<Deaths>(target).unwrap();
         assert_eq!(deaths.0, 1, "Deaths should counted for self-damage");
     }
 

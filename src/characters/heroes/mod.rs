@@ -24,36 +24,18 @@ use bevy::prelude::*;
 use strum::EnumIter;
 
 use super::{ability::Abilities, CharacterBundle};
-use crate::core::{AppState, Authority};
 use north::NorthPlugin;
 
 pub(super) struct HeroesPlugin;
 
 impl Plugin for HeroesPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugin(NorthPlugin).add_system_set(
-            SystemSet::on_update(AppState::InGame).with_system(hero_authority_system),
-        );
-    }
-}
-
-/// Give authority to the hero if it's player have authority
-fn hero_authority_system(
-    mut commands: Commands,
-    hero_query: Query<(Entity, &OwnerPlayer), Added<OwnerPlayer>>,
-    authority_query: Query<(), With<Authority>>,
-) {
-    for (hero, player) in hero_query.iter() {
-        if authority_query.get(player.0).is_ok() {
-            commands.entity(hero).insert(Authority);
-        }
+        app.add_plugin(NorthPlugin);
     }
 }
 
 #[derive(Bundle)]
 pub struct HeroBundle {
-    player: OwnerPlayer,
-    kind: HeroKind,
     abilities: Abilities,
 
     #[bundle]
@@ -64,7 +46,6 @@ impl HeroBundle {
     /// Create hero bundle from the specified kind
     pub(crate) fn hero(
         kind: HeroKind,
-        player: OwnerPlayer,
         transform: Transform,
         commands: &mut Commands,
         meshes: &mut Assets<Mesh>,
@@ -73,7 +54,7 @@ impl HeroBundle {
         let create_fn = match kind {
             HeroKind::North => HeroBundle::north,
         };
-        create_fn(player, transform, commands, meshes, materials)
+        create_fn(transform, commands, meshes, materials)
     }
 }
 
@@ -81,10 +62,6 @@ impl HeroBundle {
 pub(crate) enum HeroKind {
     North,
 }
-
-/// Used to store hero's player entity
-#[derive(Component)]
-pub(crate) struct OwnerPlayer(pub(crate) Entity);
 
 /// Used to store reference to the hero
 #[derive(Component)]
@@ -106,33 +83,8 @@ mod tests {
     };
 
     #[test]
-    fn hero_inherits_authority() {
-        let mut app = setup_app();
-        let player = app.world.spawn().id();
-        let hero = app.world.spawn().insert(OwnerPlayer(player)).id();
-
-        app.update();
-
-        assert!(
-            app.world.get::<Authority>(hero).is_none(),
-            "Hero shouldn't have authority"
-        );
-
-        let player = app.world.entity_mut(player).insert(Authority).id();
-        let hero = app.world.spawn().insert(OwnerPlayer(player)).id();
-
-        app.update();
-
-        assert!(
-            app.world.get::<Authority>(hero).is_some(),
-            "Hero should have authority"
-        );
-    }
-
-    #[test]
     fn hero_bundle() {
         let mut app = setup_app();
-        let player = app.world.spawn().id();
         let mut system_state: SystemState<(
             Commands,
             ResMut<Assets<Mesh>>,
@@ -141,18 +93,13 @@ mod tests {
         let (mut commands, mut meshes, mut materials) = system_state.get_mut(&mut app.world);
 
         for kind in HeroKind::iter() {
-            let hero_bundle = HeroBundle::hero(
+            HeroBundle::hero(
                 kind,
-                OwnerPlayer(player),
                 Transform::default(),
                 &mut commands,
                 &mut meshes,
                 &mut materials,
             );
-            assert_eq!(
-                hero_bundle.kind, kind,
-                "Hero kind in bundle should be equal to specified"
-            )
         }
     }
 
@@ -162,7 +109,6 @@ mod tests {
             .add_event::<ProjectileHitEvent>()
             .add_event::<DamageEvent>()
             .add_event::<HealEvent>()
-            .add_state(AppState::InGame)
             .add_plugin(HeadlessRenderPlugin)
             .add_plugin(HeroesPlugin);
 

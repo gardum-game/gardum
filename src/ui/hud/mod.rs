@@ -52,11 +52,11 @@ impl Plugin for HudPlugin {
 }
 
 fn health_and_abilities_system(
-    hero_query: Query<(&Abilities, &Health), With<Authority>>,
+    player_query: Query<(&Abilities, &Health), With<Authority>>,
     ability_query: Query<&Cooldown>,
     egui: ResMut<EguiContext>,
 ) {
-    let (abilities, health) = match hero_query.get_single() {
+    let (abilities, health) = match player_query.get_single() {
         Ok(result) => result,
         Err(_) => return,
     };
