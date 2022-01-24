@@ -1496,9 +1496,9 @@ dependencies = [
 
 [[package]]
 name = "heron"
-version = "1.0.1-rc.1"
+version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7b54cff12c61097232cdfdf2d13f3144cf40898638cc20cdbc904cd5b2ea26c8"
+checksum = "864335a89bb0e2e6a86d3a2511410390e6710aa4151fe14759fd1f05e2fab371"
 dependencies = [
  "bevy",
  "cfg_aliases",
