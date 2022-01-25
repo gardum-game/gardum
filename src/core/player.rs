@@ -94,7 +94,7 @@ mod tests {
         query
             .iter(&app.world)
             .next()
-            .expect("Player should be spawned"); // TODO 0.7: Use single
+            .expect("Player should be created"); // TODO 0.7: Use single
     }
 
     #[test]
@@ -106,7 +106,7 @@ mod tests {
         query
             .iter(&app.world)
             .next()
-            .expect("Player should be spawned"); // TODO 0.7: Use single
+            .expect("Player should be created"); // TODO 0.7: Use single
     }
 
     fn setup_app_in_lobby() -> App {

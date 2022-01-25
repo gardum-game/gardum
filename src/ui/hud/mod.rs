@@ -52,11 +52,11 @@ impl Plugin for HudPlugin {
 }
 
 fn health_and_abilities_system(
-    player_query: Query<(&Abilities, &Health), With<Authority>>,
+    character_query: Query<(&Abilities, &Health), With<Authority>>,
     ability_query: Query<&Cooldown>,
     egui: ResMut<EguiContext>,
 ) {
-    let (abilities, health) = match player_query.get_single() {
+    let (abilities, health) = match character_query.get_single() {
         Ok(result) => result,
         Err(_) => return,
     };
@@ -77,12 +77,12 @@ fn health_and_abilities_system(
 }
 
 fn ability_icons_texture_system(
-    player_query: Query<&Abilities, Added<Authority>>,
+    character_query: Query<&Abilities, Added<Authority>>,
     ability_query: Query<&IconPath>,
     assets: Res<AssetServer>,
     mut egui: ResMut<EguiContext>,
 ) {
-    let abilities = match player_query.get_single() {
+    let abilities = match character_query.get_single() {
         Ok(abilities) => abilities,
         Err(_) => return,
     };

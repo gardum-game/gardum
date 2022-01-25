@@ -70,15 +70,18 @@ fn movement_system(
     input: Res<MovementInput>,
     physics_world: PhysicsWorld,
     camera_query: Query<&Transform, (With<Camera>, With<Authority>)>,
-    mut player_query: Query<(Entity, &Transform, &CollisionShape, &mut Velocity), With<Authority>>,
+    mut character_query: Query<
+        (Entity, &Transform, &CollisionShape, &mut Velocity),
+        With<Authority>,
+    >,
 ) {
-    if let Ok((entity, transform, shape, mut velocity)) = player_query.get_single_mut() {
+    if let Ok((character, transform, shape, mut velocity)) = character_query.get_single_mut() {
         let motion = input.movement_direction(camera_query.single().rotation) * MOVE_SPEED;
         velocity.linear = velocity
             .linear
             .lerp(motion, VELOCITY_INTERPOLATE_SPEED * time.delta_seconds());
 
-        if is_on_floor(&physics_world, entity, shape, transform) {
+        if is_on_floor(&physics_world, character, shape, transform) {
             if input.jumping {
                 velocity.linear.y += JUMP_IMPULSE;
             } else {
@@ -232,7 +235,7 @@ mod tests {
         assert_eq!(
             *app.world.get_resource::<MovementInput>().unwrap(),
             MovementInput::default(),
-            "Player shouldn't have any movement input without character control",
+            "Character shouldn't have any movement input without character control",
         );
 
         app.insert_resource(CharacterControl);
@@ -301,33 +304,33 @@ mod tests {
     }
 
     #[test]
-    fn player_falls() {
+    fn character_falls() {
         let mut app = setup_app();
         app.world
             .spawn()
             .insert_bundle(DummyCameraBundle::default());
-        let player = app
+        let character = app
             .world
             .spawn()
-            .insert_bundle(DummyPlayerBundle::default())
+            .insert_bundle(DummyCharacterBundle::default())
             .id();
 
         app.update();
         app.update();
 
         // Clone collision and transform because PhysicsWorld is a mutable SystemParam
-        let collision_shape = app.world.get::<CollisionShape>(player).unwrap().clone();
-        let transform = app.world.get::<Transform>(player).unwrap().clone();
+        let collision_shape = app.world.get::<CollisionShape>(character).unwrap().clone();
+        let transform = app.world.get::<Transform>(character).unwrap().clone();
         let mut system_state: SystemState<PhysicsWorld> = SystemState::new(&mut app.world);
         let physics_world = system_state.get_mut(&mut app.world);
 
         assert!(
-            !is_on_floor(&physics_world, player, &collision_shape, &transform,),
-            "Player shouldn't be on floor"
+            !is_on_floor(&physics_world, character, &collision_shape, &transform,),
+            "Character shouldn't be on floor"
         );
         assert!(
-            DummyPlayerBundle::default().transform.translation.y > transform.translation.y,
-            "Player should be affected by gravity"
+            DummyCharacterBundle::default().transform.translation.y > transform.translation.y,
+            "Character should be affected by gravity"
         );
 
         let mut events = app
@@ -341,49 +344,49 @@ mod tests {
             state: ElementState::Pressed,
         });
 
-        let previous_translation = app.world.get::<Transform>(player).unwrap().translation;
+        let previous_translation = app.world.get::<Transform>(character).unwrap().translation;
 
         app.update();
 
         assert!(
-            previous_translation.y > app.world.get::<Transform>(player).unwrap().translation.y,
-            "Player should't be able to jump"
+            previous_translation.y > app.world.get::<Transform>(character).unwrap().translation.y,
+            "Character should't be able to jump"
         );
     }
 
     #[test]
-    fn player_standing_on_platform() {
+    fn character_standing_on_platform() {
         let mut app = setup_app();
         app.insert_resource(CharacterControl);
         app.world
             .spawn()
             .insert_bundle(DummyCameraBundle::default());
         app.world.spawn().insert_bundle(DummyPlainBundle::default());
-        let player = app
+        let character = app
             .world
             .spawn()
-            .insert_bundle(DummyPlayerBundle::default())
+            .insert_bundle(DummyCharacterBundle::default())
             .id();
 
         app.update();
 
-        let previous_translation = app.world.get::<Transform>(player).unwrap().translation;
+        let previous_translation = app.world.get::<Transform>(character).unwrap().translation;
 
         app.update();
 
         // Clone collision and transform because PhysicsWorld is a mutable SystemParam
-        let collision_shape = app.world.get::<CollisionShape>(player).unwrap().clone();
-        let transform = app.world.get::<Transform>(player).unwrap().clone();
+        let collision_shape = app.world.get::<CollisionShape>(character).unwrap().clone();
+        let transform = app.world.get::<Transform>(character).unwrap().clone();
         let mut system_state: SystemState<PhysicsWorld> = SystemState::new(&mut app.world);
         let physics_world = system_state.get_mut(&mut app.world);
 
         assert!(
-            is_on_floor(&physics_world, player, &collision_shape, &transform,),
-            "Player should be on floor"
+            is_on_floor(&physics_world, character, &collision_shape, &transform,),
+            "Character should be on floor"
         );
         assert_eq!(
             previous_translation.y, transform.translation.y,
-            "Player shouldn't be affected by gravity"
+            "Character shouldn't be affected by gravity"
         );
 
         let mut events = app
@@ -400,23 +403,23 @@ mod tests {
         app.update();
 
         assert!(
-            DummyPlayerBundle::default().transform.translation.y
-                < app.world.get::<Transform>(player).unwrap().translation.y,
-            "Player should be able to jump"
+            DummyCharacterBundle::default().transform.translation.y
+                < app.world.get::<Transform>(character).unwrap().translation.y,
+            "Character should be able to jump"
         );
     }
 
     #[test]
-    fn player_moves() {
+    fn character_moves() {
         let mut app = setup_app();
         app.insert_resource(CharacterControl);
         app.world
             .spawn()
             .insert_bundle(DummyCameraBundle::default());
-        let player = app
+        let character = app
             .world
             .spawn()
-            .insert_bundle(DummyPlayerBundle::default())
+            .insert_bundle(DummyCharacterBundle::default())
             .id();
 
         app.update();
@@ -451,18 +454,18 @@ mod tests {
 
             let previous_translation = app
                 .world
-                .get::<Transform>(player)
+                .get::<Transform>(character)
                 .unwrap()
                 .translation
                 .clone();
 
             // Clean previous velocity to avoid interpolation
-            app.world.get_mut::<Velocity>(player).unwrap().linear = Vec3::ZERO;
+            app.world.get_mut::<Velocity>(character).unwrap().linear = Vec3::ZERO;
 
             app.update();
 
             let mut direction =
-                app.world.get::<Transform>(player).unwrap().translation - previous_translation;
+                app.world.get::<Transform>(character).unwrap().translation - previous_translation;
             direction.y = 0.0; // Remove gravity
             direction = direction.normalize();
 
@@ -504,7 +507,7 @@ mod tests {
     }
 
     #[derive(Bundle)]
-    struct DummyPlayerBundle {
+    struct DummyCharacterBundle {
         rigid_body: RigidBody,
         shape: CollisionShape,
         transform: Transform,
@@ -513,7 +516,7 @@ mod tests {
         authority: Authority,
     }
 
-    impl Default for DummyPlayerBundle {
+    impl Default for DummyCharacterBundle {
         fn default() -> Self {
             Self {
                 rigid_body: RigidBody::KinematicVelocityBased,

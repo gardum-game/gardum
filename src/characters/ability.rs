@@ -84,7 +84,7 @@ fn input_system(
 fn activation_system(
     activated_slot: Res<Option<AbilitySlot>>,
     mut events: EventWriter<ActivationEvent>,
-    caster_query: Query<(Entity, &Abilities), With<Authority>>,
+    character_query: Query<(Entity, &Abilities), With<Authority>>,
     mut abilities_query: Query<(&AbilitySlot, Option<&mut Cooldown>)>,
 ) {
     let input = match *activated_slot {
@@ -92,7 +92,7 @@ fn activation_system(
         None => return,
     };
 
-    for (caster, abilities) in caster_query.iter() {
+    for (character, abilities) in character_query.iter() {
         for ability in abilities.iter() {
             let (slot, cooldown) = abilities_query.get_mut(*ability).unwrap();
 
@@ -108,7 +108,7 @@ fn activation_system(
             }
 
             events.send(ActivationEvent {
-                caster,
+                character,
                 ability: *ability,
             });
             return;
@@ -117,7 +117,7 @@ fn activation_system(
 }
 
 pub(super) struct ActivationEvent {
-    pub(super) caster: Entity,
+    pub(super) character: Entity,
     pub(super) ability: Entity,
 }
 
@@ -253,7 +253,7 @@ mod tests {
             .id();
         app.world
             .spawn()
-            .insert_bundle(DummyCasterBundle::new(ability))
+            .insert_bundle(DummyCharacterBundle::new(ability))
             .id();
 
         let mut events = app
@@ -288,10 +288,10 @@ mod tests {
             .spawn()
             .insert_bundle(DummyAbilityBundle::default())
             .id();
-        let caster = app
+        let character = app
             .world
             .spawn()
-            .insert_bundle(DummyCasterBundle::new(ability))
+            .insert_bundle(DummyCharacterBundle::new(ability))
             .id();
 
         let mut events = app
@@ -315,8 +315,8 @@ mod tests {
             .expect("Activation event should be triggered");
 
         assert_eq!(
-            event.caster, caster,
-            "Activation event should have the same caster"
+            event.character, character,
+            "Activation event should have the same character"
         );
         assert_eq!(
             event.ability, ability,
@@ -337,7 +337,7 @@ mod tests {
             .id();
         app.world
             .spawn()
-            .insert_bundle(DummyCasterBundle::new(ability))
+            .insert_bundle(DummyCharacterBundle::new(ability))
             .id();
 
         let mut cooldown = app.world.get_mut::<Cooldown>(ability).unwrap();
@@ -377,12 +377,12 @@ mod tests {
     }
 
     #[derive(Bundle)]
-    struct DummyCasterBundle {
+    struct DummyCharacterBundle {
         authority: Authority,
         abilities: Abilities,
     }
 
-    impl DummyCasterBundle {
+    impl DummyCharacterBundle {
         fn new(dummy_ability: Entity) -> Self {
             Self {
                 authority: Authority,

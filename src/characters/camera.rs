@@ -71,22 +71,22 @@ fn camera_input_system(
 
 fn camera_position_system(
     app_state: Res<State<AppState>>,
-    player_query: Query<&Transform, (With<Authority>, Without<OrbitRotation>)>,
+    character_query: Query<&Transform, (With<Authority>, Without<OrbitRotation>)>,
     mut camera_query: Query<(&mut Transform, &OrbitRotation), With<Authority>>,
 ) {
     if *app_state.current() != AppState::InGame {
         return;
     }
 
-    let player_translation = match player_query.get_single() {
+    let character_translation = match character_query.get_single() {
         Ok(transform) => transform.translation,
         Err(_) => return,
     };
 
     let (mut camera_transform, orbit_rotation) = camera_query.single_mut();
     camera_transform.translation =
-        orbit_rotation.to_quat() * Vec3::Y * CAMERA_DISTANCE + player_translation;
-    camera_transform.look_at(player_translation, Vec3::Y);
+        orbit_rotation.to_quat() * Vec3::Y * CAMERA_DISTANCE + character_translation;
+    camera_transform.look_at(character_translation, Vec3::Y);
 }
 
 #[derive(Bundle, Default)]
@@ -156,18 +156,18 @@ mod tests {
     }
 
     #[test]
-    fn camera_moves_around_player() {
+    fn camera_moves_around_character() {
         let mut app = setup_app();
         app.insert_resource(CharacterControl);
-        let player = app
+        let character = app
             .world
             .spawn()
-            .insert_bundle(DummyPlayerBundle::default())
+            .insert_bundle(DummyCharacterBundle::default())
             .id();
 
         app.update();
 
-        for (player_translation, camera_rotation) in [
+        for (character_translation, camera_rotation) in [
             (Vec3::ZERO, Vec2::ZERO),
             (Vec3::ONE * CAMERA_DISTANCE, Vec2::ZERO),
             (Vec3::ONE, Vec2::ONE * PI),
@@ -176,25 +176,28 @@ mod tests {
             let mut query = app.world.query_filtered::<Entity, With<OrbitRotation>>();
             let camera = query.iter(&app.world).next().unwrap(); // TODO 0.7: Use single
 
-            app.world.get_mut::<Transform>(player).unwrap().translation = player_translation;
+            app.world
+                .get_mut::<Transform>(character)
+                .unwrap()
+                .translation = character_translation;
             app.world.get_mut::<OrbitRotation>(camera).unwrap().0 = camera_rotation;
 
             app.update();
 
             let camera_transform = app.world.get::<Transform>(camera).unwrap();
-            let player_transform = app.world.get::<Transform>(player).unwrap();
+            let character_transform = app.world.get::<Transform>(character).unwrap();
 
             assert_relative_eq!(
                 camera_transform
                     .translation
-                    .distance(player_transform.translation),
+                    .distance(character_transform.translation),
                 CAMERA_DISTANCE,
                 epsilon = 0.001
             );
             assert_eq!(
                 *camera_transform,
-                camera_transform.looking_at(player_transform.translation, Vec3::Y),
-                "Camera should look at the player"
+                camera_transform.looking_at(character_transform.translation, Vec3::Y),
+                "Camera should look at the character"
             );
         }
     }
@@ -210,7 +213,7 @@ mod tests {
     }
 
     #[derive(Bundle, Default)]
-    struct DummyPlayerBundle {
+    struct DummyCharacterBundle {
         transform: Transform,
         authority: Authority,
     }

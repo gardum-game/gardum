@@ -54,7 +54,7 @@ fn frost_bolt_system(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     frost_bolt_query: Query<(), With<FrostBoltAbility>>,
-    caster_query: Query<&Transform>,
+    character_query: Query<&Transform>,
     camera_query: Query<&Transform, With<Camera>>,
 ) {
     for event in events
@@ -62,17 +62,17 @@ fn frost_bolt_system(
         .filter(|event| frost_bolt_query.get(event.ability).is_ok())
     {
         let camera_transform = camera_query.single();
-        let caster_transform = caster_query.get(event.caster).unwrap();
+        let character_transform = character_query.get(event.character).unwrap();
 
         commands
             .spawn_bundle(ProjectileBundle::frost_bolt(
                 camera_transform,
-                caster_transform,
+                character_transform,
                 &mut meshes,
                 &mut materials,
             ))
             .insert(FrostBoltProjectile)
-            .insert(Owner(event.caster));
+            .insert(Owner(event.character));
     }
 }
 
@@ -144,7 +144,7 @@ impl CharacterBundle {
 impl ProjectileBundle {
     fn frost_bolt(
         camera_transform: &Transform,
-        caster_transform: &Transform,
+        character_transform: &Transform,
         meshes: &mut Assets<Mesh>,
         materials: &mut Assets<StandardMaterial>,
     ) -> Self {
@@ -160,11 +160,11 @@ impl ProjectileBundle {
                 mesh: meshes.add(Mesh::from(shape::Capsule::default())),
                 material: materials.add(Color::rgb(0.3, 0.3, 0.3).into()),
                 transform: Transform {
-                    translation: caster_transform.translation
+                    translation: character_transform.translation
                         + camera_transform.rotation * -Vec3::Z * FROST_BOLT_SPAWN_OFFSET,
                     rotation: camera_transform.rotation
                         * Quat::from_rotation_x(90.0_f32.to_radians()),
-                    scale: caster_transform.scale,
+                    scale: character_transform.scale,
                 },
                 ..Default::default()
             },
@@ -189,7 +189,7 @@ mod tests {
             .spawn()
             .insert_bundle(FrostBoltBundle::default())
             .id();
-        let caster = app
+        let character = app
             .world
             .spawn()
             .insert(Transform::from_translation(Vec3::ONE))
@@ -204,33 +204,33 @@ mod tests {
             .get_resource_mut::<Events<ActivationEvent>>()
             .unwrap();
 
-        events.send(ActivationEvent { caster, ability });
+        events.send(ActivationEvent { character, ability });
 
         app.update();
         app.update();
 
-        let mut caster_query = app.world.query_filtered::<&Transform, Without<Camera>>();
+        let mut character_query = app.world.query_filtered::<&Transform, Without<Camera>>();
         let mut projectile_query = app.world.query_filtered::<&Transform, With<Projectile>>();
         let mut camera_query = app.world.query_filtered::<&Transform, With<Camera>>();
 
-        let caster_transform = caster_query.iter(&app.world).next().unwrap(); // TODO 0.7: Use single
+        let character_transform = character_query.iter(&app.world).next().unwrap(); // TODO 0.7: Use single
         let projectile_transform = projectile_query.iter(&app.world).next().unwrap(); // TODO 0.7: Use single
 
         assert_relative_eq!(
-            caster_transform.translation.x,
+            character_transform.translation.x,
             projectile_transform.translation.x
         );
         assert_relative_eq!(
-            caster_transform.translation.y + FROST_BOLT_SPAWN_OFFSET,
+            character_transform.translation.y + FROST_BOLT_SPAWN_OFFSET,
             projectile_transform.translation.y
         );
         assert_relative_eq!(
-            caster_transform.translation.z,
+            character_transform.translation.z,
             projectile_transform.translation.z
         );
         assert_eq!(
-            caster_transform.scale, projectile_transform.scale,
-            "Spawned projectile must be of the same scale as the caster"
+            character_transform.scale, projectile_transform.scale,
+            "Spawned projectile must be of the same scale as the character"
         );
 
         let camera_trasnform = camera_query.iter(&app.world).next().unwrap(); // TODO 0.7: Use single
