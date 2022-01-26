@@ -30,7 +30,7 @@ use bevy_egui::{
 use super::{ui_state::UiState, UI_MARGIN};
 use crate::{
     characters::{ability::Abilities, cooldown::Cooldown, health::Health, CharacterControl},
-    core::{Authority, IconPath},
+    core::{IconPath, Local},
 };
 use ability_icon::AbilityIcon;
 use health_bar::HealthBar;
@@ -52,7 +52,7 @@ impl Plugin for HudPlugin {
 }
 
 fn health_and_abilities_system(
-    local_character: Query<(&Abilities, &Health), With<Authority>>,
+    local_character: Query<(&Abilities, &Health), With<Local>>,
     ability_cooldowns: Query<&Cooldown>,
     egui: ResMut<EguiContext>,
 ) {
@@ -77,7 +77,7 @@ fn health_and_abilities_system(
 }
 
 fn ability_icons_texture_system(
-    new_local_abilities: Query<&Abilities, Added<Authority>>,
+    new_local_abilities: Query<&Abilities, Added<Local>>,
     icons: Query<&IconPath>,
     assets: Res<AssetServer>,
     mut egui: ResMut<EguiContext>,

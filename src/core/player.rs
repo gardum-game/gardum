@@ -20,7 +20,7 @@
 
 use bevy::prelude::*;
 
-use super::{cli::Opts, AppState, Authority};
+use super::{cli::Opts, AppState, Local};
 
 pub(super) struct PlayerPlugin;
 
@@ -43,7 +43,7 @@ fn create_server_player(mut commands: Commands) {
             nickname: Nickname("New player".to_string()),
             ..Default::default()
         })
-        .insert(Authority);
+        .insert(Local);
 }
 
 #[derive(Default, Bundle)]
@@ -90,8 +90,8 @@ mod tests {
         let mut app = setup_app_in_lobby();
         app.update();
 
-        let mut authorities = app.world.query_filtered::<(), With<Authority>>();
-        authorities
+        let mut locals = app.world.query_filtered::<(), With<Local>>();
+        locals
             .iter(&app.world)
             .next()
             .expect("Player should be created"); // TODO 0.7: Use single
@@ -102,8 +102,8 @@ mod tests {
         let mut app = setup_app_with_host_command();
         app.update();
 
-        let mut authorities = app.world.query_filtered::<(), With<Authority>>();
-        authorities
+        let mut locals = app.world.query_filtered::<(), With<Local>>();
+        locals
             .iter(&app.world)
             .next()
             .expect("Player should be created"); // TODO 0.7: Use single

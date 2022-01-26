@@ -23,7 +23,7 @@ use derive_more::{Deref, DerefMut};
 use heron::PhysicsSystem;
 
 use super::CharacterControl;
-use crate::core::{AppState, Authority};
+use crate::core::{AppState, Local};
 
 const CAMERA_DISTANCE: f32 = 10.0;
 const CAMERA_SENSETIVITY: f32 = 0.2;
@@ -46,14 +46,14 @@ impl Plugin for CameraPlugin {
 fn spawn_camera_system(mut commands: Commands) {
     commands
         .spawn_bundle(OrbitCameraBundle::default())
-        .insert(Authority);
+        .insert(Local);
 }
 
 fn camera_input_system(
     time: Res<Time>,
     character_control: Option<Res<CharacterControl>>,
     mut motion_reader: EventReader<MouseMotion>,
-    mut orbit_rotations: Query<&mut OrbitRotation, With<Authority>>,
+    mut orbit_rotations: Query<&mut OrbitRotation, With<Local>>,
 ) {
     if character_control.is_none() {
         return;
@@ -71,8 +71,8 @@ fn camera_input_system(
 
 fn camera_position_system(
     app_state: Res<State<AppState>>,
-    character_transforms: Query<&Transform, (With<Authority>, Without<OrbitRotation>)>,
-    mut cameras: Query<(&mut Transform, &OrbitRotation), With<Authority>>,
+    character_transforms: Query<&Transform, (With<Local>, Without<OrbitRotation>)>,
+    mut cameras: Query<(&mut Transform, &OrbitRotation), With<Local>>,
 ) {
     if *app_state.current() != AppState::InGame {
         return;
@@ -215,6 +215,6 @@ mod tests {
     #[derive(Bundle, Default)]
     struct DummyCharacterBundle {
         transform: Transform,
-        authority: Authority,
+        local: Local,
     }
 }

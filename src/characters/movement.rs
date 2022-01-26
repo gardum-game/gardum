@@ -22,7 +22,7 @@ use bevy::{prelude::*, render::camera::Camera};
 use heron::{rapier_plugin::PhysicsWorld, CollisionLayers, CollisionShape, Velocity};
 
 use super::CharacterControl;
-use crate::core::{AppState, Authority};
+use crate::core::{AppState, Local};
 
 const MOVE_SPEED: f32 = 10.0;
 const GRAVITY: f32 = 9.8;
@@ -69,11 +69,8 @@ fn movement_system(
     time: Res<Time>,
     input: Res<MovementInput>,
     physics_world: PhysicsWorld,
-    local_camera: Query<&Transform, (With<Camera>, With<Authority>)>,
-    mut local_character: Query<
-        (Entity, &Transform, &CollisionShape, &mut Velocity),
-        With<Authority>,
-    >,
+    local_camera: Query<&Transform, (With<Camera>, With<Local>)>,
+    mut local_character: Query<(Entity, &Transform, &CollisionShape, &mut Velocity), With<Local>>,
 ) {
     if let Ok((character, transform, shape, mut velocity)) = local_character.get_single_mut() {
         let motion = input.movement_direction(local_camera.single().rotation) * MOVE_SPEED;
@@ -513,7 +510,7 @@ mod tests {
         transform: Transform,
         global_transform: GlobalTransform,
         velocity: Velocity,
-        authority: Authority,
+        local: Local,
     }
 
     impl Default for DummyCharacterBundle {
@@ -527,7 +524,7 @@ mod tests {
                 transform: Transform::default(),
                 global_transform: GlobalTransform::default(),
                 velocity: Velocity::default(),
-                authority: Authority,
+                local: Local,
             }
         }
     }
@@ -536,6 +533,6 @@ mod tests {
     struct DummyCameraBundle {
         camera: Camera,
         transform: Transform,
-        authority: Authority,
+        local: Local,
     }
 }

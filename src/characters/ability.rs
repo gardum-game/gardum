@@ -146,7 +146,7 @@ mod tests {
     };
 
     use super::*;
-    use crate::{characters::cooldown::CooldownPlugin, core::Authority};
+    use crate::{characters::cooldown::CooldownPlugin, core::Local};
 
     #[test]
     fn ability_input() {
@@ -378,14 +378,14 @@ mod tests {
 
     #[derive(Bundle)]
     struct DummyCharacterBundle {
-        authority: Authority,
+        local: Local,
         abilities: Abilities,
     }
 
     impl DummyCharacterBundle {
         fn new(dummy_ability: Entity) -> Self {
             Self {
-                authority: Authority,
+                local: Local,
                 abilities: Abilities(vec![dummy_ability]),
             }
         }
