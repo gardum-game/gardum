@@ -32,8 +32,8 @@ impl Plugin for CooldownPlugin {
     }
 }
 
-fn cooldown_system(time: Res<Time>, mut query: Query<&mut Cooldown>) {
-    for mut cooldown in query.iter_mut() {
+fn cooldown_system(time: Res<Time>, mut cooldowns: Query<&mut Cooldown>) {
+    for mut cooldown in cooldowns.iter_mut() {
         cooldown.tick(time.delta());
     }
 }

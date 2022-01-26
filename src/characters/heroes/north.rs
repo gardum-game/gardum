@@ -53,16 +53,16 @@ fn frost_bolt_system(
     mut events: EventReader<ActivationEvent>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    frost_bolt_query: Query<(), With<FrostBoltAbility>>,
-    character_query: Query<&Transform>,
-    camera_query: Query<&Transform, With<Camera>>,
+    frost_bolts: Query<(), With<FrostBoltAbility>>,
+    character_transforms: Query<&Transform>,
+    camera_transforms: Query<&Transform, With<Camera>>,
 ) {
     for event in events
         .iter()
-        .filter(|event| frost_bolt_query.get(event.ability).is_ok())
+        .filter(|event| frost_bolts.get(event.ability).is_ok())
     {
-        let camera_transform = camera_query.single();
-        let character_transform = character_query.get(event.character).unwrap();
+        let camera_transform = camera_transforms.single();
+        let character_transform = character_transforms.get(event.character).unwrap();
 
         commands
             .spawn_bundle(ProjectileBundle::frost_bolt(
@@ -79,10 +79,10 @@ fn frost_bolt_system(
 fn frost_bolt_hit_system(
     mut hit_events: EventReader<ProjectileHitEvent>,
     mut damage_events: EventWriter<DamageEvent>,
-    query: Query<&Owner, With<FrostBoltProjectile>>,
+    frost_bolt_owners: Query<&Owner, With<FrostBoltProjectile>>,
 ) {
     for event in hit_events.iter() {
-        if let Ok(character) = query.get(event.projectile) {
+        if let Ok(character) = frost_bolt_owners.get(event.projectile) {
             damage_events.send(DamageEvent {
                 instigator: character.0,
                 target: event.target,
@@ -209,12 +209,12 @@ mod tests {
         app.update();
         app.update();
 
-        let mut character_query = app.world.query_filtered::<&Transform, Without<Camera>>();
-        let mut projectile_query = app.world.query_filtered::<&Transform, With<Projectile>>();
-        let mut camera_query = app.world.query_filtered::<&Transform, With<Camera>>();
+        let mut character_transforms = app.world.query_filtered::<&Transform, Without<Camera>>();
+        let mut projectile_transforms = app.world.query_filtered::<&Transform, With<Projectile>>();
+        let mut camera_transforms = app.world.query_filtered::<&Transform, With<Camera>>();
 
-        let character_transform = character_query.iter(&app.world).next().unwrap(); // TODO 0.7: Use single
-        let projectile_transform = projectile_query.iter(&app.world).next().unwrap(); // TODO 0.7: Use single
+        let character_transform = character_transforms.iter(&app.world).next().unwrap(); // TODO 0.7: Use single
+        let projectile_transform = projectile_transforms.iter(&app.world).next().unwrap(); // TODO 0.7: Use single
 
         assert_relative_eq!(
             character_transform.translation.x,
@@ -233,7 +233,7 @@ mod tests {
             "Spawned projectile must be of the same scale as the character"
         );
 
-        let camera_trasnform = camera_query.iter(&app.world).next().unwrap(); // TODO 0.7: Use single
+        let camera_trasnform = camera_transforms.iter(&app.world).next().unwrap(); // TODO 0.7: Use single
         assert_eq!(
             projectile_transform.rotation,
             camera_trasnform.rotation * Quat::from_rotation_x(90.0_f32.to_radians()),

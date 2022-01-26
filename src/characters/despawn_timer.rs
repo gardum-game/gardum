@@ -37,9 +37,9 @@ impl Plugin for DespawnTimerPlugin {
 fn despawn_timer_system(
     time: Res<Time>,
     mut commands: Commands,
-    mut query: Query<(Entity, &mut DespawnTimer)>,
+    mut timers: Query<(Entity, &mut DespawnTimer)>,
 ) {
-    for (entity, mut despawn_timer) in query.iter_mut() {
+    for (entity, mut despawn_timer) in timers.iter_mut() {
         despawn_timer.tick(time.delta());
         if despawn_timer.just_finished() {
             commands.entity(entity).despawn_recursive();

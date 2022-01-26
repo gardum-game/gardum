@@ -52,11 +52,11 @@ impl Plugin for HudPlugin {
 }
 
 fn health_and_abilities_system(
-    character_query: Query<(&Abilities, &Health), With<Authority>>,
-    ability_query: Query<&Cooldown>,
+    local_character: Query<(&Abilities, &Health), With<Authority>>,
+    ability_cooldowns: Query<&Cooldown>,
     egui: ResMut<EguiContext>,
 ) {
-    let (abilities, health) = match character_query.get_single() {
+    let (abilities, health) = match local_character.get_single() {
         Ok(result) => result,
         Err(_) => return,
     };
@@ -69,7 +69,7 @@ fn health_and_abilities_system(
             ui.horizontal(|ui| {
                 for (slot, ability) in abilities.iter().enumerate() {
                     let image = Image::new(TextureId::User(slot as u64), [64.0, 64.0]);
-                    let cooldown = ability_query.get(*ability).ok();
+                    let cooldown = ability_cooldowns.get(*ability).ok();
                     ui.add(AbilityIcon::new(image, cooldown));
                 }
             })
@@ -77,18 +77,18 @@ fn health_and_abilities_system(
 }
 
 fn ability_icons_texture_system(
-    character_query: Query<&Abilities, Added<Authority>>,
-    ability_query: Query<&IconPath>,
+    new_local_abilities: Query<&Abilities, Added<Authority>>,
+    icons: Query<&IconPath>,
     assets: Res<AssetServer>,
     mut egui: ResMut<EguiContext>,
 ) {
-    let abilities = match character_query.get_single() {
+    let abilities = match new_local_abilities.get_single() {
         Ok(abilities) => abilities,
         Err(_) => return,
     };
 
     for (i, ability) in abilities.iter().enumerate() {
-        if let Ok(icon) = ability_query.get(*ability) {
+        if let Ok(icon) = icons.get(*ability) {
             egui.set_egui_texture(i as u64, assets.load(icon.0));
         } else {
             egui.remove_egui_texture(i as u64);

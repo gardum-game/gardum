@@ -69,14 +69,14 @@ fn movement_system(
     time: Res<Time>,
     input: Res<MovementInput>,
     physics_world: PhysicsWorld,
-    camera_query: Query<&Transform, (With<Camera>, With<Authority>)>,
-    mut character_query: Query<
+    local_camera: Query<&Transform, (With<Camera>, With<Authority>)>,
+    mut local_character: Query<
         (Entity, &Transform, &CollisionShape, &mut Velocity),
         With<Authority>,
     >,
 ) {
-    if let Ok((character, transform, shape, mut velocity)) = character_query.get_single_mut() {
-        let motion = input.movement_direction(camera_query.single().rotation) * MOVE_SPEED;
+    if let Ok((character, transform, shape, mut velocity)) = local_character.get_single_mut() {
+        let motion = input.movement_direction(local_camera.single().rotation) * MOVE_SPEED;
         velocity.linear = velocity
             .linear
             .lerp(motion, VELOCITY_INTERPOLATE_SPEED * time.delta_seconds());

@@ -90,8 +90,8 @@ mod tests {
         let mut app = setup_app_in_lobby();
         app.update();
 
-        let mut query = app.world.query_filtered::<(), With<Authority>>();
-        query
+        let mut authorities = app.world.query_filtered::<(), With<Authority>>();
+        authorities
             .iter(&app.world)
             .next()
             .expect("Player should be created"); // TODO 0.7: Use single
@@ -102,8 +102,8 @@ mod tests {
         let mut app = setup_app_with_host_command();
         app.update();
 
-        let mut query = app.world.query_filtered::<(), With<Authority>>();
-        query
+        let mut authorities = app.world.query_filtered::<(), With<Authority>>();
+        authorities
             .iter(&app.world)
             .next()
             .expect("Player should be created"); // TODO 0.7: Use single

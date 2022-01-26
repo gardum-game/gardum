@@ -53,13 +53,13 @@ fn camera_input_system(
     time: Res<Time>,
     character_control: Option<Res<CharacterControl>>,
     mut motion_reader: EventReader<MouseMotion>,
-    mut query: Query<&mut OrbitRotation, With<Authority>>,
+    mut orbit_rotations: Query<&mut OrbitRotation, With<Authority>>,
 ) {
     if character_control.is_none() {
         return;
     }
 
-    let mut orbit_rotation = query.single_mut();
+    let mut orbit_rotation = orbit_rotations.single_mut();
     for event in motion_reader.iter() {
         orbit_rotation.0 -= event.delta * CAMERA_SENSETIVITY * time.delta_seconds();
     }
@@ -71,19 +71,19 @@ fn camera_input_system(
 
 fn camera_position_system(
     app_state: Res<State<AppState>>,
-    character_query: Query<&Transform, (With<Authority>, Without<OrbitRotation>)>,
-    mut camera_query: Query<(&mut Transform, &OrbitRotation), With<Authority>>,
+    character_transforms: Query<&Transform, (With<Authority>, Without<OrbitRotation>)>,
+    mut cameras: Query<(&mut Transform, &OrbitRotation), With<Authority>>,
 ) {
     if *app_state.current() != AppState::InGame {
         return;
     }
 
-    let character_translation = match character_query.get_single() {
+    let character_translation = match character_transforms.get_single() {
         Ok(transform) => transform.translation,
         Err(_) => return,
     };
 
-    let (mut camera_transform, orbit_rotation) = camera_query.single_mut();
+    let (mut camera_transform, orbit_rotation) = cameras.single_mut();
     camera_transform.translation =
         orbit_rotation.to_quat() * Vec3::Y * CAMERA_DISTANCE + character_translation;
     camera_transform.look_at(character_translation, Vec3::Y);
@@ -132,8 +132,8 @@ mod tests {
 
         app.update();
 
-        let mut query = app.world.query::<&OrbitRotation>();
-        let orbit_rotation = query.iter(&app.world).next().unwrap(); // TODO 0.7: Use single
+        let mut orbit_rotations = app.world.query::<&OrbitRotation>();
+        let orbit_rotation = orbit_rotations.iter(&app.world).next().unwrap(); // TODO 0.7: Use single
         assert_eq!(
             *orbit_rotation,
             OrbitRotation::default(),
@@ -147,7 +147,7 @@ mod tests {
 
         app.update();
 
-        let orbit_rotation = query.iter(&app.world).next().unwrap(); // TODO 0.7: Use single
+        let orbit_rotation = orbit_rotations.iter(&app.world).next().unwrap(); // TODO 0.7: Use single
         assert_ne!(
             *orbit_rotation,
             OrbitRotation::default(),
@@ -173,8 +173,8 @@ mod tests {
             (Vec3::ONE, Vec2::ONE * PI),
             (Vec3::ONE, Vec2::ONE * 2.0 * PI),
         ] {
-            let mut query = app.world.query_filtered::<Entity, With<OrbitRotation>>();
-            let camera = query.iter(&app.world).next().unwrap(); // TODO 0.7: Use single
+            let mut cameras = app.world.query_filtered::<Entity, With<OrbitRotation>>();
+            let camera = cameras.iter(&app.world).next().unwrap(); // TODO 0.7: Use single
 
             app.world
                 .get_mut::<Transform>(character)

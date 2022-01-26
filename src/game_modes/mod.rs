@@ -36,14 +36,14 @@ impl Plugin for GameModesPlugin {
 }
 
 fn spawn_system(
-    spawn_point_query: Query<&SpawnPoint>,
-    player_query: Query<(Entity, &HeroKind), Added<HeroKind>>,
+    spawn_points: Query<&SpawnPoint>,
+    players: Query<(Entity, &HeroKind), Added<HeroKind>>,
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    for (player, hero_kind) in player_query.iter() {
-        for spawn_point in spawn_point_query.iter() {
+    for (player, hero_kind) in players.iter() {
+        for spawn_point in spawn_points.iter() {
             let hero = CharacterBundle::hero(
                 *hero_kind,
                 Transform::from_translation(spawn_point.0),

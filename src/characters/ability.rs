@@ -22,7 +22,7 @@ use bevy::prelude::*;
 use derive_more::{Deref, DerefMut};
 
 use super::{cooldown::Cooldown, CharacterControl};
-use crate::core::{AppState, Authority};
+use crate::core::AppState;
 
 pub(super) struct AbilityPlugin;
 
@@ -84,17 +84,17 @@ fn input_system(
 fn activation_system(
     activated_slot: Res<Option<AbilitySlot>>,
     mut events: EventWriter<ActivationEvent>,
-    character_query: Query<(Entity, &Abilities), With<Authority>>,
-    mut abilities_query: Query<(&AbilitySlot, Option<&mut Cooldown>)>,
+    characters: Query<(Entity, &Abilities)>,
+    mut abilities: Query<(&AbilitySlot, Option<&mut Cooldown>)>,
 ) {
     let input = match *activated_slot {
         Some(input) => input,
         None => return,
     };
 
-    for (character, abilities) in character_query.iter() {
-        for ability in abilities.iter() {
-            let (slot, cooldown) = abilities_query.get_mut(*ability).unwrap();
+    for (character, character_abilities) in characters.iter() {
+        for ability in character_abilities.iter() {
+            let (slot, cooldown) = abilities.get_mut(*ability).unwrap();
 
             if input != *slot {
                 continue;
@@ -146,7 +146,7 @@ mod tests {
     };
 
     use super::*;
-    use crate::characters::cooldown::CooldownPlugin;
+    use crate::{characters::cooldown::CooldownPlugin, core::Authority};
 
     #[test]
     fn ability_input() {

@@ -106,7 +106,7 @@ fn create_game_menu_system(
 
 fn lobby_menu_system(
     egui: ResMut<EguiContext>,
-    nicknames_query: Query<&Nickname>,
+    nicknames: Query<&Nickname>,
     mut server_settings: ResMut<ServerSettings>,
     mut game_mode: ResMut<GameMode>,
     mut map: ResMut<Map>,
@@ -119,7 +119,7 @@ fn lobby_menu_system(
         .show(egui.ctx(), |ui| {
             ui.vertical_centered(|ui| {
                 ui.horizontal(|ui| {
-                    show_teams(ui, *game_mode, nicknames_query.iter().collect());
+                    show_teams(ui, *game_mode, nicknames.iter().collect());
                     SidePanel::right("Server settings").show_inside(ui, |ui| {
                         show_game_settings(ui, &mut server_settings, &mut game_mode, &mut map);
                     })
