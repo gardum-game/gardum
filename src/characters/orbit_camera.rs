@@ -27,9 +27,9 @@ use crate::core::{AppState, Local};
 const CAMERA_DISTANCE: f32 = 10.0;
 const CAMERA_SENSETIVITY: f32 = 0.2;
 
-pub(super) struct CameraPlugin;
+pub(super) struct OrbitCameraPlugin;
 
-impl Plugin for CameraPlugin {
+impl Plugin for OrbitCameraPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(SystemSet::on_enter(AppState::InGame).with_system(spawn_camera_system))
             .add_system_set(SystemSet::on_update(AppState::InGame).with_system(camera_input_system))
@@ -193,7 +193,7 @@ mod tests {
             .add_plugins(MinimalPlugins)
             .add_plugin(InputPlugin)
             .add_plugin(PhysicsPlugin::default())
-            .add_plugin(CameraPlugin);
+            .add_plugin(OrbitCameraPlugin);
         app
     }
 

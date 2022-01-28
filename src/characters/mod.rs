@@ -20,12 +20,12 @@
 
 pub(super) mod ability;
 pub(super) mod action;
-mod camera;
 pub(super) mod cooldown;
 mod despawn_timer;
 pub(super) mod health;
 pub(super) mod heroes;
 mod movement;
+mod orbit_camera;
 mod projectile;
 
 use bevy::prelude::*;
@@ -37,13 +37,13 @@ use ability::Abilities;
 use ability::AbilityPlugin;
 use action::Action;
 use action::ActionPlugin;
-use camera::CameraPlugin;
 use cooldown::CooldownPlugin;
 use despawn_timer::DespawnTimerPlugin;
 use health::Health;
 use health::HealthPlugin;
 use heroes::HeroesPlugin;
 use movement::MovementPlugin;
+use orbit_camera::OrbitCameraPlugin;
 use projectile::ProjectilePlugin;
 
 pub(super) struct CharactersPlugin;
@@ -52,7 +52,7 @@ impl Plugin for CharactersPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(ActionPlugin)
             .add_plugin(MovementPlugin)
-            .add_plugin(CameraPlugin)
+            .add_plugin(OrbitCameraPlugin)
             .add_plugin(CooldownPlugin)
             .add_plugin(HealthPlugin)
             .add_plugin(DespawnTimerPlugin)
