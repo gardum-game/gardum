@@ -19,6 +19,7 @@
  */
 
 pub(super) mod ability;
+pub(super) mod action;
 mod camera;
 pub(super) mod cooldown;
 mod despawn_timer;
@@ -29,10 +30,13 @@ mod projectile;
 
 use bevy::prelude::*;
 use heron::{CollisionLayers, CollisionShape, RigidBody, Velocity};
+use leafwing_input_manager::prelude::ActionState;
 
 use crate::core::CollisionLayer;
 use ability::Abilities;
 use ability::AbilityPlugin;
+use action::Action;
+use action::ActionPlugin;
 use camera::CameraPlugin;
 use cooldown::CooldownPlugin;
 use despawn_timer::DespawnTimerPlugin;
@@ -46,7 +50,8 @@ pub(super) struct CharactersPlugin;
 
 impl Plugin for CharactersPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugin(MovementPlugin)
+        app.add_plugin(ActionPlugin)
+            .add_plugin(MovementPlugin)
             .add_plugin(CameraPlugin)
             .add_plugin(CooldownPlugin)
             .add_plugin(HealthPlugin)
@@ -65,6 +70,7 @@ pub(super) struct CharacterBundle {
     shape: CollisionShape,
     collision_layers: CollisionLayers,
     velocity: Velocity,
+    action_state: ActionState<Action>,
 
     #[bundle]
     pbr: PbrBundle,
@@ -80,14 +86,11 @@ impl Default for CharacterBundle {
             collision_layers: CollisionLayers::all::<CollisionLayer>()
                 .with_group(CollisionLayer::Character),
             velocity: Velocity::default(),
+            action_state: ActionState::default(),
             pbr: PbrBundle::default(),
         }
     }
 }
-
-/// If this resource exists, then player's character can be controlled
-#[derive(Default)]
-pub(crate) struct CharacterControl;
 
 /// Used to store reference to the owner
 #[derive(Component)]

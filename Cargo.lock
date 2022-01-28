@@ -1327,6 +1327,7 @@ dependencies = [
  "clap",
  "derive_more",
  "heron",
+ "leafwing-input-manager",
  "strum",
 ]
 
@@ -1621,6 +1622,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "itertools"
+version = "0.10.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a9a9d19fa1e79b6215ff29b9d6880b706147f16e9b1dbb1e4e5947b5b02bc5e3"
+dependencies = [
+ "either",
+]
+
+[[package]]
 name = "itoa"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1656,6 +1666,29 @@ name = "lazy_static"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
+
+[[package]]
+name = "leafwing-input-manager"
+version = "0.2.0"
+source = "git+https://github.com/Leafwing-Studios/leafwing-input-manager#056998c42e778aa75bd5dff4692a34862fabaddb"
+dependencies = [
+ "bevy",
+ "itertools",
+ "leafwing_input_manager_macros",
+ "petitset",
+ "strum",
+ "thiserror",
+]
+
+[[package]]
+name = "leafwing_input_manager_macros"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "696e60c9dd31a8bc9622baf5c71aa2a44985d83ab04e2af754c062067d8afee8"
+dependencies = [
+ "quote",
+ "syn",
+]
 
 [[package]]
 name = "libc"
@@ -2136,6 +2169,12 @@ dependencies = [
  "fixedbitset",
  "indexmap",
 ]
+
+[[package]]
+name = "petitset"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "aa2f1d872ba8a3e42e42143754370d9106109acf565855af577b324801bd36d7"
 
 [[package]]
 name = "pin-project-lite"

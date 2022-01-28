@@ -29,7 +29,7 @@ use bevy_egui::{
 
 use super::{ui_state::UiState, UI_MARGIN};
 use crate::{
-    characters::{ability::Abilities, cooldown::Cooldown, health::Health, CharacterControl},
+    characters::{ability::Abilities, cooldown::Cooldown, health::Health},
     core::{IconPath, Local},
 };
 use ability_icon::AbilityIcon;
@@ -43,11 +43,7 @@ impl Plugin for HudPlugin {
             SystemSet::on_update(UiState::Hud)
                 .with_system(ability_icons_texture_system)
                 .with_system(health_and_abilities_system),
-        )
-        .add_system_set(SystemSet::on_enter(UiState::Hud).with_system(enable_character_control))
-        .add_system_set(SystemSet::on_exit(UiState::Hud).with_system(disable_character_control))
-        .add_system_set(SystemSet::on_resume(UiState::Hud).with_system(enable_character_control))
-        .add_system_set(SystemSet::on_pause(UiState::Hud).with_system(disable_character_control));
+        );
     }
 }
 
@@ -94,12 +90,4 @@ fn ability_icons_texture_system(
             egui.remove_egui_texture(i as u64);
         }
     }
-}
-
-fn enable_character_control(mut commands: Commands) {
-    commands.insert_resource(CharacterControl);
-}
-
-fn disable_character_control(mut commands: Commands) {
-    commands.remove_resource::<CharacterControl>();
 }

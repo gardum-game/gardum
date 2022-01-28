@@ -22,7 +22,6 @@ use bevy::{input::mouse::MouseMotion, prelude::*, transform::TransformSystem};
 use derive_more::{Deref, DerefMut};
 use heron::PhysicsSystem;
 
-use super::CharacterControl;
 use crate::core::{AppState, Local};
 
 const CAMERA_DISTANCE: f32 = 10.0;
@@ -51,11 +50,12 @@ fn spawn_camera_system(mut commands: Commands) {
 
 fn camera_input_system(
     time: Res<Time>,
-    character_control: Option<Res<CharacterControl>>,
+    #[cfg(not(test))] windows: ResMut<Windows>,
     mut motion_reader: EventReader<MouseMotion>,
     mut orbit_rotations: Query<&mut OrbitRotation, With<Local>>,
 ) {
-    if character_control.is_none() {
+    #[cfg(not(test))] // Can't run tests with windows, ignore.
+    if !windows.get_primary().unwrap().cursor_locked() {
         return;
     }
 
@@ -134,20 +134,6 @@ mod tests {
 
         let mut orbit_rotations = app.world.query::<&OrbitRotation>();
         let orbit_rotation = orbit_rotations.iter(&app.world).next().unwrap(); // TODO 0.7: Use single
-        assert_eq!(
-            *orbit_rotation,
-            OrbitRotation::default(),
-            "Orbital rotation shouldn't change after input without character control"
-        );
-
-        app.insert_resource(CharacterControl);
-
-        let mut events = app.world.get_resource_mut::<Events<MouseMotion>>().unwrap();
-        events.send(MouseMotion { delta: Vec2::ONE });
-
-        app.update();
-
-        let orbit_rotation = orbit_rotations.iter(&app.world).next().unwrap(); // TODO 0.7: Use single
         assert_ne!(
             *orbit_rotation,
             OrbitRotation::default(),
@@ -158,7 +144,6 @@ mod tests {
     #[test]
     fn camera_moves_around_character() {
         let mut app = setup_app();
-        app.insert_resource(CharacterControl);
         let character = app
             .world
             .spawn()

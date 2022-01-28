@@ -20,8 +20,9 @@
 
 use bevy::{prelude::*, render::camera::Camera};
 use heron::{rapier_plugin::PhysicsWorld, CollisionLayers, CollisionShape, Velocity};
+use leafwing_input_manager::prelude::ActionState;
 
-use super::CharacterControl;
+use super::action::Action;
 use crate::core::{AppState, Local};
 
 const MOVE_SPEED: f32 = 10.0;
@@ -34,52 +35,35 @@ pub(super) struct MovementPlugin;
 
 impl Plugin for MovementPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<MovementInput>()
-            .add_system_set(
-                SystemSet::on_update(AppState::InGame)
-                    .label(MovementSystems::InputSet)
-                    .with_system(input_system),
-            )
-            .add_system_set(
-                SystemSet::on_update(AppState::InGame)
-                    .after(MovementSystems::InputSet)
-                    .with_system(movement_system),
-            );
+        app.add_system_set(SystemSet::on_update(AppState::InGame).with_system(movement_system));
     }
-}
-
-fn input_system(
-    character_control: Option<Res<CharacterControl>>,
-    keys: Res<Input<KeyCode>>,
-    mut input: ResMut<MovementInput>,
-) {
-    if character_control.is_none() {
-        return;
-    }
-
-    input.forward = keys.pressed(KeyCode::W);
-    input.backward = keys.pressed(KeyCode::S);
-    input.left = keys.pressed(KeyCode::A);
-    input.right = keys.pressed(KeyCode::D);
-
-    input.jumping = keys.pressed(KeyCode::Space);
 }
 
 fn movement_system(
     time: Res<Time>,
-    input: Res<MovementInput>,
     physics_world: PhysicsWorld,
     local_camera: Query<&Transform, (With<Camera>, With<Local>)>,
-    mut local_character: Query<(Entity, &Transform, &CollisionShape, &mut Velocity), With<Local>>,
+    mut local_character: Query<
+        (
+            Entity,
+            &ActionState<Action>,
+            &Transform,
+            &CollisionShape,
+            &mut Velocity,
+        ),
+        With<Local>,
+    >,
 ) {
-    if let Ok((character, transform, shape, mut velocity)) = local_character.get_single_mut() {
-        let motion = input.movement_direction(local_camera.single().rotation) * MOVE_SPEED;
+    if let Ok((character, actions, transform, shape, mut velocity)) =
+        local_character.get_single_mut()
+    {
+        let motion = movement_direction(actions, local_camera.single().rotation) * MOVE_SPEED;
         velocity.linear = velocity
             .linear
             .lerp(motion, VELOCITY_INTERPOLATE_SPEED * time.delta_seconds());
 
         if is_on_floor(&physics_world, character, shape, transform) {
-            if input.jumping {
+            if actions.pressed(Action::Jump) {
                 velocity.linear.y += JUMP_IMPULSE;
             } else {
                 velocity.linear.y = 0.0;
@@ -88,6 +72,27 @@ fn movement_system(
             velocity.linear.y -= GRAVITY * VELOCITY_INTERPOLATE_SPEED * time.delta_seconds();
         }
     }
+}
+
+fn movement_direction(actions: &ActionState<Action>, rotation: Quat) -> Vec3 {
+    let mut direction = Vec3::ZERO;
+    if actions.pressed(Action::Left) {
+        direction.x -= 1.0;
+    }
+    if actions.pressed(Action::Right) {
+        direction.x += 1.0;
+    }
+    if actions.pressed(Action::Forward) {
+        direction.z -= 1.0;
+    }
+    if actions.pressed(Action::Backward) {
+        direction.z += 1.0;
+    }
+
+    direction = rotation * direction;
+    direction.y = 0.0;
+
+    direction.normalize_or_zero()
 }
 
 fn is_on_floor(
@@ -108,81 +113,35 @@ fn is_on_floor(
         .is_some()
 }
 
-#[derive(Default, Debug, PartialEq)]
-struct MovementInput {
-    forward: bool,
-    backward: bool,
-    left: bool,
-    right: bool,
-    jumping: bool,
-}
-
-impl MovementInput {
-    fn movement_direction(&self, rotation: Quat) -> Vec3 {
-        let mut direction = Vec3::ZERO;
-        if self.left {
-            direction.x -= 1.0;
-        }
-        if self.right {
-            direction.x += 1.0;
-        }
-        if self.forward {
-            direction.z -= 1.0;
-        }
-        if self.backward {
-            direction.z += 1.0;
-        }
-
-        direction = rotation * direction;
-        direction.y = 0.0;
-
-        direction.normalize_or_zero()
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash, SystemLabel)]
-enum MovementSystems {
-    InputSet,
-}
-
 #[cfg(test)]
 mod tests {
     use approx::assert_relative_eq;
-    use bevy::{
-        app::Events,
-        ecs::system::SystemState,
-        input::{keyboard::KeyboardInput, ElementState, InputPlugin},
-    };
+    use bevy::{ecs::system::SystemState, input::InputPlugin};
     use heron::{PhysicsPlugin, RigidBody};
+    use leafwing_input_manager::prelude::InputManagerPlugin;
 
     use super::*;
 
     #[test]
     fn movement_direction_normalization() {
-        let input = MovementInput {
-            forward: true,
-            backward: false,
-            left: true,
-            right: false,
-            jumping: true,
-        };
+        let mut actions = ActionState::<Action>::default();
+        actions.press(Action::Forward);
+        actions.press(Action::Right);
 
-        let direction = input.movement_direction(Quat::IDENTITY);
+        let direction = movement_direction(&actions, Quat::IDENTITY);
         assert!(direction.is_normalized(), "Should be normalized");
         assert_eq!(direction.y, 0.0, "Shouldn't point up");
     }
 
     #[test]
     fn movement_direction_compensation() {
-        let input = MovementInput {
-            forward: true,
-            backward: true,
-            left: true,
-            right: true,
-            jumping: true,
-        };
+        let mut actions = ActionState::<Action>::default();
+        actions.press(Action::Forward);
+        actions.press(Action::Backward);
+        actions.press(Action::Right);
+        actions.press(Action::Left);
 
-        let direction = input.movement_direction(Quat::IDENTITY);
+        let direction = movement_direction(&actions, Quat::IDENTITY);
         assert_eq!(
             direction.x, 0.0,
             "Should be 0 when opposite buttons are pressed"
@@ -195,109 +154,14 @@ mod tests {
 
     #[test]
     fn movement_direction_empty() {
-        let input = MovementInput {
-            forward: false,
-            backward: false,
-            left: false,
-            right: false,
-            jumping: false,
-        };
+        let actions = ActionState::<Action>::default();
 
-        let direction = input.movement_direction(Quat::IDENTITY);
+        let direction = movement_direction(&actions, Quat::IDENTITY);
         assert_eq!(
             direction,
             Vec3::ZERO,
             "Should be zero when no buttons are pressed"
         );
-    }
-
-    #[test]
-    fn movement_input() {
-        let mut app = setup_app();
-        app.update();
-
-        let mut events = app
-            .world
-            .get_resource_mut::<Events<KeyboardInput>>()
-            .unwrap();
-
-        events.send(KeyboardInput {
-            scan_code: 0,
-            key_code: Some(KeyCode::W),
-            state: ElementState::Pressed,
-        });
-
-        app.update();
-
-        assert_eq!(
-            *app.world.get_resource::<MovementInput>().unwrap(),
-            MovementInput::default(),
-            "Character shouldn't have any movement input without character control",
-        );
-
-        app.insert_resource(CharacterControl);
-
-        let test_data = [
-            (
-                KeyCode::W,
-                MovementInput {
-                    forward: true,
-                    ..Default::default()
-                },
-            ),
-            (
-                KeyCode::S,
-                MovementInput {
-                    backward: true,
-                    ..Default::default()
-                },
-            ),
-            (
-                KeyCode::A,
-                MovementInput {
-                    left: true,
-                    ..Default::default()
-                },
-            ),
-            (
-                KeyCode::D,
-                MovementInput {
-                    right: true,
-                    ..Default::default()
-                },
-            ),
-        ];
-
-        for (i, (key, expected_input)) in test_data.iter().enumerate() {
-            let mut events = app
-                .world
-                .get_resource_mut::<Events<KeyboardInput>>()
-                .unwrap();
-
-            if i != 0 {
-                // Previous key should be released manually
-                events.send(KeyboardInput {
-                    scan_code: 0,
-                    key_code: Some(test_data[i - 1].0),
-                    state: ElementState::Released,
-                });
-            }
-
-            events.send(KeyboardInput {
-                scan_code: 0,
-                key_code: Some(*key),
-                state: ElementState::Pressed,
-            });
-
-            app.update();
-
-            assert_eq!(
-                app.world.get_resource::<MovementInput>().unwrap(),
-                expected_input,
-                "Movement input should correspond to the pressed key: {:?}",
-                key
-            );
-        }
     }
 
     #[test]
@@ -330,17 +194,8 @@ mod tests {
             "Character should be affected by gravity"
         );
 
-        let mut events = app
-            .world
-            .get_resource_mut::<Events<KeyboardInput>>()
-            .unwrap();
-
-        events.send(KeyboardInput {
-            scan_code: 0,
-            key_code: Some(KeyCode::Space),
-            state: ElementState::Pressed,
-        });
-
+        let mut actions = app.world.get_mut::<ActionState<Action>>(character).unwrap();
+        actions.press(Action::Jump);
         let previous_translation = app.world.get::<Transform>(character).unwrap().translation;
 
         app.update();
@@ -354,7 +209,6 @@ mod tests {
     #[test]
     fn character_standing_on_platform() {
         let mut app = setup_app();
-        app.insert_resource(CharacterControl);
         app.world
             .spawn()
             .insert_bundle(DummyCameraBundle::default());
@@ -386,16 +240,8 @@ mod tests {
             "Character shouldn't be affected by gravity"
         );
 
-        let mut events = app
-            .world
-            .get_resource_mut::<Events<KeyboardInput>>()
-            .unwrap();
-
-        events.send(KeyboardInput {
-            scan_code: 0,
-            key_code: Some(KeyCode::Space),
-            state: ElementState::Pressed,
-        });
+        let mut actions = app.world.get_mut::<ActionState<Action>>(character).unwrap();
+        actions.press(Action::Jump);
 
         app.update();
 
@@ -409,7 +255,6 @@ mod tests {
     #[test]
     fn character_moves() {
         let mut app = setup_app();
-        app.insert_resource(CharacterControl);
         app.world
             .spawn()
             .insert_bundle(DummyCameraBundle::default());
@@ -422,32 +267,16 @@ mod tests {
         app.update();
 
         let test_data = [
-            (KeyCode::W, -Vec3::Z),
-            (KeyCode::S, Vec3::Z),
-            (KeyCode::A, -Vec3::X),
-            (KeyCode::D, Vec3::X),
+            (Action::Forward, -Vec3::Z),
+            (Action::Backward, Vec3::Z),
+            (Action::Left, -Vec3::X),
+            (Action::Right, Vec3::X),
         ];
 
-        for (i, (key, expected_direction)) in test_data.iter().enumerate() {
-            let mut events = app
-                .world
-                .get_resource_mut::<Events<KeyboardInput>>()
-                .unwrap();
-
-            if i != 0 {
-                // Previous key should be released manually
-                events.send(KeyboardInput {
-                    scan_code: 0,
-                    key_code: Some(test_data[i - 1].0),
-                    state: ElementState::Released,
-                });
-            }
-
-            events.send(KeyboardInput {
-                scan_code: 0,
-                key_code: Some(*key),
-                state: ElementState::Pressed,
-            });
+        for (key, expected_direction) in test_data.iter() {
+            let mut actions = app.world.get_mut::<ActionState<Action>>(character).unwrap();
+            actions.release_all();
+            actions.press(*key);
 
             let previous_translation = app
                 .world
@@ -476,7 +305,9 @@ mod tests {
         app.add_state(AppState::InGame)
             .add_plugins(MinimalPlugins)
             .add_plugin(InputPlugin)
+            .add_plugin(InputManagerPlugin::<Action>::default())
             .add_plugin(PhysicsPlugin::default())
+            .add_plugin(InputPlugin)
             .add_plugin(MovementPlugin);
         app
     }
@@ -510,6 +341,7 @@ mod tests {
         transform: Transform,
         global_transform: GlobalTransform,
         velocity: Velocity,
+        action_state: ActionState<Action>,
         local: Local,
     }
 
@@ -524,6 +356,7 @@ mod tests {
                 transform: Transform::default(),
                 global_transform: GlobalTransform::default(),
                 velocity: Velocity::default(),
+                action_state: ActionState::default(),
                 local: Local,
             }
         }

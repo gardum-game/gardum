@@ -50,7 +50,7 @@ impl Default for UiStateHistory {
 }
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
-pub(super) enum UiState {
+pub(crate) enum UiState {
     MainMenu,
     CustomGameMenu,
     DirectConnectMenu,

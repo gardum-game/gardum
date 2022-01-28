@@ -25,7 +25,7 @@ mod hero_selection;
 mod hud;
 mod ingame_menu;
 mod main_menu;
-mod ui_state;
+pub(super) mod ui_state;
 
 use bevy::prelude::*;
 
