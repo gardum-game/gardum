@@ -24,9 +24,9 @@ use strum::EnumIter;
 
 use crate::core::{AppState, Local};
 
-pub(super) struct ActionPlugin;
+pub(super) struct CharacterActionPlugin;
 
-impl Plugin for ActionPlugin {
+impl Plugin for CharacterActionPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(SystemSet::on_enter(AppState::InGame).with_system(setup_actions));
     }
@@ -37,21 +37,21 @@ fn setup_actions(mut commands: Commands, local_player: Query<Entity, With<Local>
     let local_player = local_player.single();
     let mut input_map = InputMap::default();
     input_map
-        .insert(Action::Forward, KeyCode::W)
-        .insert(Action::Backward, KeyCode::S)
-        .insert(Action::Left, KeyCode::A)
-        .insert(Action::Right, KeyCode::D)
-        .insert(Action::Jump, KeyCode::Space)
-        .insert(Action::BaseAttack, MouseButton::Left)
-        .insert(Action::Ability1, KeyCode::Q)
-        .insert(Action::Ability2, KeyCode::E)
-        .insert(Action::Ability3, KeyCode::LShift)
-        .insert(Action::Ultimate, KeyCode::R);
+        .insert(CharacterAction::Forward, KeyCode::W)
+        .insert(CharacterAction::Backward, KeyCode::S)
+        .insert(CharacterAction::Left, KeyCode::A)
+        .insert(CharacterAction::Right, KeyCode::D)
+        .insert(CharacterAction::Jump, KeyCode::Space)
+        .insert(CharacterAction::BaseAttack, MouseButton::Left)
+        .insert(CharacterAction::Ability1, KeyCode::Q)
+        .insert(CharacterAction::Ability2, KeyCode::E)
+        .insert(CharacterAction::Ability3, KeyCode::LShift)
+        .insert(CharacterAction::Ultimate, KeyCode::R);
     commands.entity(local_player).insert(input_map);
 }
 
 #[derive(Actionlike, Component, PartialEq, Eq, Clone, Copy, Hash, Debug, EnumIter)]
-pub(crate) enum Action {
+pub(crate) enum CharacterAction {
     // Movement
     Forward,
     Backward,
@@ -82,14 +82,15 @@ mod tests {
             app.world
                 .get_entity(player)
                 .unwrap()
-                .contains::<InputMap<Action>>(),
+                .contains::<InputMap<CharacterAction>>(),
             "Mappings should be added to the local player"
         );
     }
 
     fn setup_app() -> App {
         let mut app = App::new();
-        app.add_state(AppState::InGame).add_plugin(ActionPlugin);
+        app.add_state(AppState::InGame)
+            .add_plugin(CharacterActionPlugin);
         app
     }
 }

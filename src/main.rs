@@ -40,8 +40,8 @@ use game_modes::GameModesPlugin;
 use maps::MapsPlugin;
 #[cfg(feature = "client")]
 use {
-    characters::action::Action, leafwing_input_manager::prelude::InputManagerPlugin,
-    ui::ui_state::UiState, ui::UiPlugin,
+    characters::character_action::CharacterAction,
+    leafwing_input_manager::prelude::InputManagerPlugin, ui::ui_state::UiState, ui::UiPlugin,
 };
 
 #[cfg(not(tarpaulin_include))]
@@ -61,9 +61,7 @@ fn main() {
 
     #[cfg(feature = "client")]
     app.add_plugin(EguiPlugin)
-        .add_plugin(InputManagerPlugin::<Action, UiState>::run_in_state(
-            UiState::Hud,
-        ))
+        .add_plugin(InputManagerPlugin::<CharacterAction, UiState>::run_in_state(UiState::Hud))
         .add_plugin(UiPlugin);
 
     app.run();

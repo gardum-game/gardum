@@ -22,7 +22,7 @@ use bevy::prelude::*;
 use derive_more::{Deref, DerefMut};
 use leafwing_input_manager::prelude::ActionState;
 
-use super::{action::Action, cooldown::Cooldown};
+use super::{character_action::CharacterAction, cooldown::Cooldown};
 use crate::core::AppState;
 
 pub(super) struct AbilityPlugin;
@@ -36,8 +36,8 @@ impl Plugin for AbilityPlugin {
 
 fn activation_system(
     mut events: EventWriter<ActivationEvent>,
-    characters: Query<(Entity, &Abilities, &ActionState<Action>)>,
-    mut abilities: Query<(&Action, Option<&mut Cooldown>)>,
+    characters: Query<(Entity, &Abilities, &ActionState<CharacterAction>)>,
+    mut abilities: Query<(&CharacterAction, Option<&mut Cooldown>)>,
 ) {
     for (character, character_abilities, actions) in characters.iter() {
         for ability in character_abilities.iter() {
@@ -89,8 +89,11 @@ mod tests {
             .insert_bundle(DummyCharacterBundle::new(ability))
             .id();
 
-        let mut actions = app.world.get_mut::<ActionState<Action>>(character).unwrap();
-        actions.press(Action::Ability2);
+        let mut actions = app
+            .world
+            .get_mut::<ActionState<CharacterAction>>(character)
+            .unwrap();
+        actions.press(CharacterAction::Ability2);
 
         app.update();
 
@@ -118,8 +121,11 @@ mod tests {
             .insert_bundle(DummyCharacterBundle::new(ability))
             .id();
 
-        let mut actions = app.world.get_mut::<ActionState<Action>>(character).unwrap();
-        actions.press(Action::Ability1);
+        let mut actions = app
+            .world
+            .get_mut::<ActionState<CharacterAction>>(character)
+            .unwrap();
+        actions.press(CharacterAction::Ability1);
 
         app.update();
 
@@ -160,8 +166,11 @@ mod tests {
         let mut cooldown = app.world.get_mut::<Cooldown>(ability).unwrap();
         cooldown.reset();
 
-        let mut actions = app.world.get_mut::<ActionState<Action>>(character).unwrap();
-        actions.press(Action::Ability1);
+        let mut actions = app
+            .world
+            .get_mut::<ActionState<CharacterAction>>(character)
+            .unwrap();
+        actions.press(CharacterAction::Ability1);
 
         app.update();
 
@@ -188,7 +197,7 @@ mod tests {
     #[derive(Bundle)]
     struct DummyCharacterBundle {
         abilities: Abilities,
-        action_state: ActionState<Action>,
+        action_state: ActionState<CharacterAction>,
         local: Local,
     }
 
@@ -204,14 +213,14 @@ mod tests {
 
     #[derive(Bundle)]
     struct DummyAbilityBundle {
-        action: Action,
+        action: CharacterAction,
         cooldown: Cooldown,
     }
 
     impl Default for DummyAbilityBundle {
         fn default() -> Self {
             Self {
-                action: Action::Ability1,
+                action: CharacterAction::Ability1,
                 cooldown: Cooldown::from_secs(1),
             }
         }

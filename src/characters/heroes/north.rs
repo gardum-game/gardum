@@ -24,7 +24,7 @@ use heron::{CollisionShape, Velocity};
 use crate::{
     characters::{
         ability::{Abilities, ActivationEvent},
-        action::Action,
+        character_action::CharacterAction,
         cooldown::Cooldown,
         health::DamageEvent,
         projectile::{ProjectileBundle, ProjectileHitEvent},
@@ -97,7 +97,7 @@ fn frost_bolt_hit_system(
 struct FrostBoltBundle {
     frost_bolt_ability: FrostBoltAbility,
     icon: IconPath,
-    action: Action,
+    action: CharacterAction,
     cooldown: Cooldown,
 }
 
@@ -106,7 +106,7 @@ impl Default for FrostBoltBundle {
         Self {
             frost_bolt_ability: FrostBoltAbility,
             icon: "charaters/heroes/north/frost_bolt.png".into(),
-            action: Action::BaseAttack,
+            action: CharacterAction::BaseAttack,
             cooldown: Cooldown::from_secs(4),
         }
     }

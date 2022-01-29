@@ -19,7 +19,7 @@
  */
 
 pub(super) mod ability;
-pub(super) mod action;
+pub(super) mod character_action;
 pub(super) mod cooldown;
 mod despawn_timer;
 pub(super) mod health;
@@ -35,8 +35,8 @@ use leafwing_input_manager::prelude::ActionState;
 use crate::core::CollisionLayer;
 use ability::Abilities;
 use ability::AbilityPlugin;
-use action::Action;
-use action::ActionPlugin;
+use character_action::CharacterAction;
+use character_action::CharacterActionPlugin;
 use cooldown::CooldownPlugin;
 use despawn_timer::DespawnTimerPlugin;
 use health::Health;
@@ -50,7 +50,7 @@ pub(super) struct CharactersPlugin;
 
 impl Plugin for CharactersPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugin(ActionPlugin)
+        app.add_plugin(CharacterActionPlugin)
             .add_plugin(MovementPlugin)
             .add_plugin(OrbitCameraPlugin)
             .add_plugin(CooldownPlugin)
@@ -70,7 +70,7 @@ pub(super) struct CharacterBundle {
     shape: CollisionShape,
     collision_layers: CollisionLayers,
     velocity: Velocity,
-    action_state: ActionState<Action>,
+    action_state: ActionState<CharacterAction>,
 
     #[bundle]
     pbr: PbrBundle,

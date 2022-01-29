@@ -22,7 +22,7 @@ use bevy::prelude::*;
 use heron::{rapier_plugin::PhysicsWorld, CollisionLayers, CollisionShape, Velocity};
 use leafwing_input_manager::prelude::ActionState;
 
-use super::{action::Action, orbit_camera::CameraTarget};
+use super::{character_action::CharacterAction, orbit_camera::CameraTarget};
 use crate::core::AppState;
 
 const MOVE_SPEED: f32 = 10.0;
@@ -45,7 +45,7 @@ fn movement_system(
     cameras: Query<(&Transform, &CameraTarget)>,
     mut characters: Query<(
         Entity,
-        &ActionState<Action>,
+        &ActionState<CharacterAction>,
         &Transform,
         &CollisionShape,
         &mut Velocity,
@@ -61,7 +61,7 @@ fn movement_system(
             .lerp(motion, VELOCITY_INTERPOLATE_SPEED * time.delta_seconds());
 
         if is_on_floor(&physics_world, character, shape, transform) {
-            if actions.pressed(Action::Jump) {
+            if actions.pressed(CharacterAction::Jump) {
                 velocity.linear.y += JUMP_IMPULSE;
             } else {
                 velocity.linear.y = 0.0;
@@ -72,18 +72,18 @@ fn movement_system(
     }
 }
 
-fn movement_direction(actions: &ActionState<Action>, rotation: Quat) -> Vec3 {
+fn movement_direction(actions: &ActionState<CharacterAction>, rotation: Quat) -> Vec3 {
     let mut direction = Vec3::ZERO;
-    if actions.pressed(Action::Left) {
+    if actions.pressed(CharacterAction::Left) {
         direction.x -= 1.0;
     }
-    if actions.pressed(Action::Right) {
+    if actions.pressed(CharacterAction::Right) {
         direction.x += 1.0;
     }
-    if actions.pressed(Action::Forward) {
+    if actions.pressed(CharacterAction::Forward) {
         direction.z -= 1.0;
     }
-    if actions.pressed(Action::Backward) {
+    if actions.pressed(CharacterAction::Backward) {
         direction.z += 1.0;
     }
 
@@ -123,9 +123,9 @@ mod tests {
 
     #[test]
     fn movement_direction_normalization() {
-        let mut actions = ActionState::<Action>::default();
-        actions.press(Action::Forward);
-        actions.press(Action::Right);
+        let mut actions = ActionState::<CharacterAction>::default();
+        actions.press(CharacterAction::Forward);
+        actions.press(CharacterAction::Right);
 
         let direction = movement_direction(&actions, Quat::IDENTITY);
         assert!(direction.is_normalized(), "Should be normalized");
@@ -134,11 +134,11 @@ mod tests {
 
     #[test]
     fn movement_direction_compensation() {
-        let mut actions = ActionState::<Action>::default();
-        actions.press(Action::Forward);
-        actions.press(Action::Backward);
-        actions.press(Action::Right);
-        actions.press(Action::Left);
+        let mut actions = ActionState::<CharacterAction>::default();
+        actions.press(CharacterAction::Forward);
+        actions.press(CharacterAction::Backward);
+        actions.press(CharacterAction::Right);
+        actions.press(CharacterAction::Left);
 
         let direction = movement_direction(&actions, Quat::IDENTITY);
         assert_eq!(
@@ -153,7 +153,7 @@ mod tests {
 
     #[test]
     fn movement_direction_empty() {
-        let actions = ActionState::<Action>::default();
+        let actions = ActionState::<CharacterAction>::default();
 
         let direction = movement_direction(&actions, Quat::IDENTITY);
         assert_eq!(
@@ -193,8 +193,11 @@ mod tests {
             "Character should be affected by gravity"
         );
 
-        let mut actions = app.world.get_mut::<ActionState<Action>>(character).unwrap();
-        actions.press(Action::Jump);
+        let mut actions = app
+            .world
+            .get_mut::<ActionState<CharacterAction>>(character)
+            .unwrap();
+        actions.press(CharacterAction::Jump);
         let previous_translation = app.world.get::<Transform>(character).unwrap().translation;
 
         app.update();
@@ -239,8 +242,11 @@ mod tests {
             "Character shouldn't be affected by gravity"
         );
 
-        let mut actions = app.world.get_mut::<ActionState<Action>>(character).unwrap();
-        actions.press(Action::Jump);
+        let mut actions = app
+            .world
+            .get_mut::<ActionState<CharacterAction>>(character)
+            .unwrap();
+        actions.press(CharacterAction::Jump);
 
         app.update();
 
@@ -266,14 +272,17 @@ mod tests {
         app.update();
 
         let test_data = [
-            (Action::Forward, -Vec3::Z),
-            (Action::Backward, Vec3::Z),
-            (Action::Left, -Vec3::X),
-            (Action::Right, Vec3::X),
+            (CharacterAction::Forward, -Vec3::Z),
+            (CharacterAction::Backward, Vec3::Z),
+            (CharacterAction::Left, -Vec3::X),
+            (CharacterAction::Right, Vec3::X),
         ];
 
         for (key, expected_direction) in test_data.iter() {
-            let mut actions = app.world.get_mut::<ActionState<Action>>(character).unwrap();
+            let mut actions = app
+                .world
+                .get_mut::<ActionState<CharacterAction>>(character)
+                .unwrap();
             actions.release_all();
             actions.press(*key);
 
@@ -304,7 +313,7 @@ mod tests {
         app.add_state(AppState::InGame)
             .add_plugins(MinimalPlugins)
             .add_plugin(InputPlugin)
-            .add_plugin(InputManagerPlugin::<Action>::default())
+            .add_plugin(InputManagerPlugin::<CharacterAction>::default())
             .add_plugin(PhysicsPlugin::default())
             .add_plugin(InputPlugin)
             .add_plugin(MovementPlugin);
@@ -340,7 +349,7 @@ mod tests {
         transform: Transform,
         global_transform: GlobalTransform,
         velocity: Velocity,
-        action_state: ActionState<Action>,
+        action_state: ActionState<CharacterAction>,
         local: Local,
     }
 
