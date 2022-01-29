@@ -25,6 +25,7 @@ mod hero_selection;
 mod hud;
 mod ingame_menu;
 mod main_menu;
+pub(super) mod ui_action;
 pub(super) mod ui_state;
 
 use bevy::prelude::*;
@@ -36,6 +37,7 @@ use hero_selection::HeroSelectionPlugin;
 use hud::HudPlugin;
 use ingame_menu::InGameMenuPlugin;
 use main_menu::MainMenuPlugin;
+use ui_action::UiActionPlugin;
 use ui_state::UiStatePlugin;
 
 const UI_MARGIN: f32 = 20.0;
@@ -46,6 +48,7 @@ impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(UiStatePlugin)
             .add_plugin(CursorPlugin)
+            .add_plugin(UiActionPlugin)
             .add_plugin(HeroSelectionPlugin)
             .add_plugin(HudPlugin)
             .add_plugin(MainMenuPlugin)

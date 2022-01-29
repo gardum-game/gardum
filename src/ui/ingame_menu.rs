@@ -18,13 +18,17 @@
  *
  */
 
-use bevy::{app::AppExit, prelude::*};
+use bevy::{app::AppExit, prelude::*, utils::Instant};
 use bevy_egui::{
     egui::{Align2, Area, Button},
     EguiContext,
 };
+use leafwing_input_manager::prelude::ActionState;
 
-use super::ui_state::{UiState, UiStateHistory};
+use super::{
+    ui_action::UiAction,
+    ui_state::{UiState, UiStateHistory},
+};
 
 pub(super) struct InGameMenuPlugin;
 
@@ -62,21 +66,23 @@ fn ingame_menu_system(
 }
 
 fn show_ingame_menu_system(
-    mut keys: ResMut<Input<KeyCode>>,
+    mut ui_actions: Query<&mut ActionState<UiAction>>,
     mut ui_state_history: ResMut<UiStateHistory>,
 ) {
-    if keys.just_pressed(KeyCode::Escape) {
-        keys.reset(KeyCode::Escape);
+    let mut ui_actions = ui_actions.single_mut();
+    if ui_actions.just_pressed(UiAction::Back) {
+        ui_actions.tick(Instant::now());
         ui_state_history.push(UiState::InGameMenu);
     }
 }
 
 fn hide_ingame_menu_system(
-    mut keys: ResMut<Input<KeyCode>>,
+    mut ui_actions: Query<&mut ActionState<UiAction>>,
     mut ui_state_history: ResMut<UiStateHistory>,
 ) {
-    if keys.just_pressed(KeyCode::Escape) {
-        keys.reset(KeyCode::Escape);
+    let mut ui_actions = ui_actions.single_mut();
+    if ui_actions.just_pressed(UiAction::Back) {
+        ui_actions.tick(Instant::now());
         ui_state_history.pop();
     }
 }

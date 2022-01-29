@@ -23,8 +23,10 @@ use bevy_egui::{
     egui::{Align2, Area},
     EguiContext,
 };
+use leafwing_input_manager::prelude::ActionState;
 
 use super::{
+    ui_action::UiAction,
     ui_state::{UiState, UiStateHistory},
     UI_MARGIN,
 };
@@ -48,13 +50,13 @@ impl Plugin for BackButtonPlugin {
 
 fn back_button_system(
     egui: ResMut<EguiContext>,
-    input: Res<Input<KeyCode>>,
+    ui_actions: Query<&ActionState<UiAction>>,
     mut ui_state_history: ResMut<UiStateHistory>,
 ) {
     Area::new("Back area")
         .anchor(Align2::LEFT_BOTTOM, (UI_MARGIN, -UI_MARGIN))
         .show(egui.ctx(), |ui| {
-            if input.just_pressed(KeyCode::Escape) || ui.button("Back").clicked() {
+            if ui_actions.single().just_pressed(UiAction::Back) || ui.button("Back").clicked() {
                 ui_state_history.pop();
             }
         });
