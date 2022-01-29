@@ -51,7 +51,7 @@ fn scoreboard_system(
         .collapsible(false)
         .resizable(false)
         .show(egui.ctx(), |ui| {
-            Grid::new("Scoreboard grid").show(ui, |ui| {
+            Grid::new("Scoreboard grid").striped(true).show(ui, |ui| {
                 ui.label("Player");
                 ui.label("Kills");
                 ui.label("Deaths");
