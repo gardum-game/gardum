@@ -19,6 +19,7 @@
  */
 
 use bevy::prelude::*;
+use derive_more::Deref;
 
 use super::{cli::Opts, AppState, Local};
 
@@ -65,19 +66,19 @@ pub(crate) struct Player;
 pub(crate) struct Nickname(pub(crate) String);
 
 /// Used to keep statistics of the number of kills
-#[derive(Component, Default, Debug, PartialEq)]
+#[derive(Component, Default, Debug, PartialEq, Deref)]
 pub(crate) struct Kills(pub(crate) u32);
 
 /// Used to keep statistics of the number of deaths
-#[derive(Component, Default, Debug, PartialEq)]
+#[derive(Component, Default, Debug, PartialEq, Deref)]
 pub(crate) struct Deaths(pub(crate) u32);
 
 /// Used to keep statistics of the damage done
-#[derive(Component, Default, Debug, PartialEq)]
+#[derive(Component, Default, Debug, PartialEq, Deref)]
 pub(crate) struct Damage(pub(crate) u32);
 
 /// Used to keep statistics of the healing done
-#[derive(Component, Default, Debug, PartialEq)]
+#[derive(Component, Default, Debug, PartialEq, Deref)]
 pub(crate) struct Healing(pub(crate) u32);
 
 #[cfg(test)]

@@ -33,7 +33,9 @@ impl Plugin for UiActionPlugin {
 /// Setup player input on game start
 fn setup_actions(mut commands: Commands) {
     let mut input_map = InputMap::default();
-    input_map.insert(UiAction::Back, KeyCode::Escape);
+    input_map
+        .insert(UiAction::Back, KeyCode::Escape)
+        .insert(UiAction::Scoreboard, KeyCode::Tab);
     commands.spawn_bundle(InputManagerBundle::<UiAction> {
         input_map,
         ..Default::default()
@@ -43,6 +45,7 @@ fn setup_actions(mut commands: Commands) {
 #[derive(Actionlike, Component, PartialEq, Eq, Clone, Copy, Hash, Debug, EnumIter)]
 pub(crate) enum UiAction {
     Back,
+    Scoreboard,
 }
 
 #[cfg(test)]
