@@ -18,10 +18,16 @@
  *
  */
 
-use bevy::{input::mouse::MouseMotion, prelude::*, transform::TransformSystem};
-use derive_more::{Deref, DerefMut};
+use bevy::{
+    input::mouse::MouseMotion,
+    prelude::*,
+    render::camera::{ActiveCameras, CameraPlugin},
+    transform::TransformSystem,
+};
+use derive_more::{Deref, DerefMut, From};
 use heron::PhysicsSystem;
 
+use super::heroes::HeroKind;
 use crate::core::{AppState, Local};
 
 const CAMERA_DISTANCE: f32 = 10.0;
@@ -31,7 +37,7 @@ pub(super) struct OrbitCameraPlugin;
 
 impl Plugin for OrbitCameraPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(SystemSet::on_enter(AppState::InGame).with_system(spawn_camera_system))
+        app.add_system_set(SystemSet::on_update(AppState::InGame).with_system(spawn_camera_system))
             .add_system_set(SystemSet::on_update(AppState::InGame).with_system(camera_input_system))
             .add_system_to_stage(
                 CoreStage::PostUpdate,
@@ -42,10 +48,20 @@ impl Plugin for OrbitCameraPlugin {
     }
 }
 
-fn spawn_camera_system(mut commands: Commands) {
-    commands
-        .spawn_bundle(OrbitCameraBundle::default())
-        .insert(Local);
+fn spawn_camera_system(
+    mut commands: Commands,
+    spawned_heroes: Query<(Entity, Option<&Local>), Added<HeroKind>>,
+    mut active_cameras: ResMut<ActiveCameras>,
+) {
+    for (hero, local) in spawned_heroes.iter() {
+        let mut entity_commands = commands.spawn_bundle(OrbitCameraBundle::new(hero.into()));
+
+        if local.is_some() {
+            entity_commands.insert(Local);
+            let active_camera = active_cameras.get_mut(CameraPlugin::CAMERA_3D).unwrap();
+            active_camera.entity = Some(entity_commands.id());
+        }
+    }
 }
 
 fn camera_input_system(
@@ -59,43 +75,55 @@ fn camera_input_system(
         return;
     }
 
-    let mut orbit_rotation = orbit_rotations.single_mut();
-    for event in motion_reader.iter() {
-        orbit_rotation.0 -= event.delta * CAMERA_SENSETIVITY * time.delta_seconds();
-    }
+    if let Ok(mut orbit_rotation) = orbit_rotations.get_single_mut() {
+        for event in motion_reader.iter() {
+            orbit_rotation.0 -= event.delta * CAMERA_SENSETIVITY * time.delta_seconds();
+        }
 
-    orbit_rotation.y = orbit_rotation
-        .y
-        .clamp(10_f32.to_radians(), 90_f32.to_radians());
+        orbit_rotation.y = orbit_rotation
+            .y
+            .clamp(10_f32.to_radians(), 90_f32.to_radians());
+    }
 }
 
 fn camera_position_system(
     app_state: Res<State<AppState>>,
-    character_transforms: Query<&Transform, (With<Local>, Without<OrbitRotation>)>,
-    mut cameras: Query<(&mut Transform, &OrbitRotation), With<Local>>,
+    transforms: Query<&Transform, Without<OrbitRotation>>,
+    mut cameras: Query<(&mut Transform, &OrbitRotation, &CameraTarget)>,
 ) {
     if *app_state.current() != AppState::InGame {
         return;
     }
 
-    let character_translation = match character_transforms.get_single() {
-        Ok(transform) => transform.translation,
-        Err(_) => return,
-    };
-
-    let (mut camera_transform, orbit_rotation) = cameras.single_mut();
-    camera_transform.translation =
-        orbit_rotation.to_quat() * Vec3::Y * CAMERA_DISTANCE + character_translation;
-    camera_transform.look_at(character_translation, Vec3::Y);
+    for (mut camera_transform, orbit_rotation, target) in cameras.iter_mut() {
+        let character_translation = transforms.get(target.0).unwrap().translation;
+        camera_transform.translation =
+            orbit_rotation.to_quat() * Vec3::Y * CAMERA_DISTANCE + character_translation;
+        camera_transform.look_at(character_translation, Vec3::Y);
+    }
 }
 
-#[derive(Bundle, Default)]
+#[derive(Bundle)]
 struct OrbitCameraBundle {
+    camera_target: CameraTarget,
     orbit_rotation: OrbitRotation,
 
     #[bundle]
     camera: PerspectiveCameraBundle,
 }
+
+impl OrbitCameraBundle {
+    fn new(camera_target: CameraTarget) -> Self {
+        Self {
+            camera_target,
+            orbit_rotation: OrbitRotation::default(),
+            camera: PerspectiveCameraBundle::default(),
+        }
+    }
+}
+
+#[derive(Component, From)]
+pub(super) struct CameraTarget(pub(super) Entity);
 
 #[derive(Component, Deref, DerefMut, Debug, PartialEq)]
 struct OrbitRotation(Vec2);
@@ -120,10 +148,63 @@ mod tests {
     use std::f32::consts::PI;
 
     use super::*;
+    use crate::test_utils::HeadlessRenderPlugin;
+
+    #[test]
+    fn camera_spawn() {
+        let mut app = setup_app();
+        let local_player = app
+            .world
+            .spawn()
+            .insert_bundle(DummyCharacterBundle::default())
+            .id();
+
+        app.update();
+
+        let active_cameras = app.world.get_resource::<ActiveCameras>().unwrap();
+        let camera_3d = active_cameras
+            .get(CameraPlugin::CAMERA_3D)
+            .unwrap()
+            .entity
+            .expect("3D camera should present");
+        let camera_target = app.world.get::<CameraTarget>(camera_3d).unwrap();
+        assert_eq!(
+            camera_target.0, local_player,
+            "Active camera should target local player"
+        );
+
+        app.world
+            .spawn()
+            .insert_bundle(DummyCharacterBundle::default())
+            .remove::<Local>();
+
+        app.update();
+
+        let mut cameras = app.world.query::<&Camera>();
+        assert_eq!(
+            cameras.iter(&app.world).count(),
+            2,
+            "A new camera should be spawned for new hero"
+        );
+
+        let active_cameras = app.world.get_resource::<ActiveCameras>().unwrap();
+        let current_camera = active_cameras
+            .get(CameraPlugin::CAMERA_3D)
+            .unwrap()
+            .entity
+            .expect("3D camera should present");
+        assert_eq!(
+            camera_3d, current_camera,
+            "Active camera should should remain the same because the new hero isn't local"
+        );
+    }
 
     #[test]
     fn camera_input() {
         let mut app = setup_app();
+        app.world
+            .spawn()
+            .insert_bundle(DummyCharacterBundle::default());
 
         app.update();
 
@@ -190,16 +271,27 @@ mod tests {
     fn setup_app() -> App {
         let mut app = App::new();
         app.add_state(AppState::InGame)
-            .add_plugins(MinimalPlugins)
+            .add_plugin(HeadlessRenderPlugin)
             .add_plugin(InputPlugin)
             .add_plugin(PhysicsPlugin::default())
             .add_plugin(OrbitCameraPlugin);
         app
     }
 
-    #[derive(Bundle, Default)]
+    #[derive(Bundle)]
     struct DummyCharacterBundle {
         transform: Transform,
         local: Local,
+        hero_kind: HeroKind,
+    }
+
+    impl Default for DummyCharacterBundle {
+        fn default() -> Self {
+            Self {
+                transform: Transform::default(),
+                local: Local::default(),
+                hero_kind: HeroKind::North,
+            }
+        }
     }
 }

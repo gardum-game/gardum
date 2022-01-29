@@ -18,12 +18,12 @@
  *
  */
 
-use bevy::{prelude::*, render::camera::Camera};
+use bevy::prelude::*;
 use heron::{rapier_plugin::PhysicsWorld, CollisionLayers, CollisionShape, Velocity};
 use leafwing_input_manager::prelude::ActionState;
 
-use super::action::Action;
-use crate::core::{AppState, Local};
+use super::{action::Action, orbit_camera::CameraTarget};
+use crate::core::AppState;
 
 const MOVE_SPEED: f32 = 10.0;
 const GRAVITY: f32 = 9.8;
@@ -42,22 +42,20 @@ impl Plugin for MovementPlugin {
 fn movement_system(
     time: Res<Time>,
     physics_world: PhysicsWorld,
-    local_camera: Query<&Transform, (With<Camera>, With<Local>)>,
-    mut local_character: Query<
-        (
-            Entity,
-            &ActionState<Action>,
-            &Transform,
-            &CollisionShape,
-            &mut Velocity,
-        ),
-        With<Local>,
-    >,
+    cameras: Query<(&Transform, &CameraTarget)>,
+    mut characters: Query<(
+        Entity,
+        &ActionState<Action>,
+        &Transform,
+        &CollisionShape,
+        &mut Velocity,
+    )>,
 ) {
-    if let Ok((character, actions, transform, shape, mut velocity)) =
-        local_character.get_single_mut()
-    {
-        let motion = movement_direction(actions, local_camera.single().rotation) * MOVE_SPEED;
+    for (camera_transform, camera_target) in cameras.iter() {
+        let (character, actions, transform, shape, mut velocity) =
+            characters.get_mut(camera_target.0).unwrap();
+
+        let motion = movement_direction(actions, camera_transform.rotation) * MOVE_SPEED;
         velocity.linear = velocity
             .linear
             .lerp(motion, VELOCITY_INTERPOLATE_SPEED * time.delta_seconds());
@@ -121,6 +119,7 @@ mod tests {
     use leafwing_input_manager::prelude::InputManagerPlugin;
 
     use super::*;
+    use crate::core::Local;
 
     #[test]
     fn movement_direction_normalization() {
@@ -167,14 +166,14 @@ mod tests {
     #[test]
     fn character_falls() {
         let mut app = setup_app();
-        app.world
-            .spawn()
-            .insert_bundle(DummyCameraBundle::default());
         let character = app
             .world
             .spawn()
             .insert_bundle(DummyCharacterBundle::default())
             .id();
+        app.world
+            .spawn()
+            .insert_bundle(DummyCameraBundle::new(character.into()));
 
         app.update();
         app.update();
@@ -209,15 +208,15 @@ mod tests {
     #[test]
     fn character_standing_on_platform() {
         let mut app = setup_app();
-        app.world
-            .spawn()
-            .insert_bundle(DummyCameraBundle::default());
-        app.world.spawn().insert_bundle(DummyPlainBundle::default());
         let character = app
             .world
             .spawn()
             .insert_bundle(DummyCharacterBundle::default())
             .id();
+        app.world
+            .spawn()
+            .insert_bundle(DummyCameraBundle::new(character.into()));
+        app.world.spawn().insert_bundle(DummyPlainBundle::default());
 
         app.update();
 
@@ -255,14 +254,14 @@ mod tests {
     #[test]
     fn character_moves() {
         let mut app = setup_app();
-        app.world
-            .spawn()
-            .insert_bundle(DummyCameraBundle::default());
         let character = app
             .world
             .spawn()
             .insert_bundle(DummyCharacterBundle::default())
             .id();
+        app.world
+            .spawn()
+            .insert_bundle(DummyCameraBundle::new(character.into()));
 
         app.update();
 
@@ -362,10 +361,20 @@ mod tests {
         }
     }
 
-    #[derive(Bundle, Default)]
+    #[derive(Bundle)]
     struct DummyCameraBundle {
-        camera: Camera,
+        camera_target: CameraTarget,
         transform: Transform,
         local: Local,
+    }
+
+    impl DummyCameraBundle {
+        fn new(camera_target: CameraTarget) -> Self {
+            Self {
+                camera_target,
+                transform: Transform::default(),
+                local: Local::default(),
+            }
+        }
     }
 }
