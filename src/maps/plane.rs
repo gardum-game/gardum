@@ -22,7 +22,7 @@ use bevy::prelude::*;
 use heron::{CollisionShape, RigidBody};
 
 use super::Map;
-use crate::session::SpawnPoint;
+use crate::session::spawn::SpawnPoint;
 
 impl Map {
     pub(super) fn plane(
