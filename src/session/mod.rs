@@ -26,9 +26,9 @@ use crate::{
     core::AppState,
 };
 
-pub(super) struct GameModesPlugin;
+pub(super) struct SessionPlugin;
 
-impl Plugin for GameModesPlugin {
+impl Plugin for SessionPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(GameMode::Deathmatch)
             .add_system_set(SystemSet::on_update(AppState::InGame).with_system(spawn_system));
@@ -43,7 +43,7 @@ fn spawn_system(
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     for (player, hero_kind) in players.iter() {
-        // TODO: determine best spawn position based on other characters location 
+        // TODO: determine best spawn position based on other characters location
         let spawn_point = spawn_points
             .iter()
             .next()
@@ -65,14 +65,13 @@ pub(crate) struct SpawnPoint(pub(crate) Vec3);
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash, EnumIter)]
 pub(crate) enum GameMode {
-    Disabled,
     Deathmatch,
 }
 
 impl GameMode {
     pub(crate) const fn slots_count(self) -> u8 {
         match self {
-            GameMode::Disabled | GameMode::Deathmatch => 10,
+            GameMode::Deathmatch => 10,
         }
     }
 }
@@ -109,7 +108,7 @@ mod tests {
         let mut app = App::new();
         app.add_state(AppState::InGame)
             .add_plugin(HeadlessRenderPlugin)
-            .add_plugin(GameModesPlugin);
+            .add_plugin(SessionPlugin);
 
         app
     }

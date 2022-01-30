@@ -22,8 +22,8 @@
 
 mod characters;
 mod core;
-mod game_modes;
 mod maps;
+mod session;
 #[cfg(test)]
 mod test_utils;
 #[cfg(feature = "client")]
@@ -36,8 +36,8 @@ use heron::PhysicsPlugin;
 
 use crate::core::CorePlugin;
 use characters::CharactersPlugin;
-use game_modes::GameModesPlugin;
 use maps::MapsPlugin;
+use session::SessionPlugin;
 #[cfg(feature = "client")]
 use {
     characters::character_action::CharacterAction,
@@ -59,7 +59,7 @@ fn main() {
         .add_plugin(CorePlugin)
         .add_plugin(MapsPlugin)
         .add_plugin(CharactersPlugin)
-        .add_plugin(GameModesPlugin);
+        .add_plugin(SessionPlugin);
 
     #[cfg(feature = "client")]
     app.add_plugin(EguiPlugin)
@@ -99,7 +99,7 @@ mod tests {
             .add_plugin(CorePlugin)
             .add_plugin(MapsPlugin)
             .add_plugin(CharactersPlugin)
-            .add_plugin(GameModesPlugin);
+            .add_plugin(SessionPlugin);
 
         app
     }

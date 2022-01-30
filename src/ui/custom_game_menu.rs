@@ -28,8 +28,8 @@ use strum::IntoEnumIterator;
 use super::ui_state::{UiState, UiStateHistory};
 use crate::{
     core::{player::Nickname, AppState, ServerSettings},
-    game_modes::GameMode,
     maps::Map,
+    session::GameMode,
 };
 
 pub(super) struct CustomGameMenuPlugin;
