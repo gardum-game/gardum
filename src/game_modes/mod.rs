@@ -43,16 +43,20 @@ fn spawn_system(
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     for (player, hero_kind) in players.iter() {
-        for spawn_point in spawn_points.iter() {
-            let hero = CharacterBundle::hero(
-                *hero_kind,
-                Transform::from_translation(spawn_point.0),
-                &mut commands,
-                &mut meshes,
-                &mut materials,
-            );
-            commands.entity(player).insert_bundle(hero);
-        }
+        // TODO: determine best spawn position based on other characters location 
+        let spawn_point = spawn_points
+            .iter()
+            .next()
+            .expect("Unable to find any spawn points");
+
+        let hero = CharacterBundle::hero(
+            *hero_kind,
+            Transform::from_translation(spawn_point.0),
+            &mut commands,
+            &mut meshes,
+            &mut materials,
+        );
+        commands.entity(player).insert_bundle(hero);
     }
 }
 
