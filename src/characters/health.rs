@@ -62,6 +62,7 @@ fn damage_system(
     mut events: EventReader<DamageEvent>,
     mut targets: Query<(&mut Health, &mut Deaths)>,
     mut instigators: Query<(&mut Damage, &mut Kills)>,
+    mut commands: Commands,
 ) {
     for event in events.iter() {
         let (mut health, mut deaths) = targets.get_mut(event.target).unwrap();
@@ -69,6 +70,7 @@ fn damage_system(
         health.current -= delta;
         if health.current == 0 {
             deaths.0 += 1;
+            commands.entity(event.target).insert(Dead);
         }
 
         if event.target != event.instigator {
@@ -108,6 +110,9 @@ pub(super) struct DamageEvent {
     pub(super) target: Entity,
     pub(super) damage: u32,
 }
+
+#[derive(Component)]
+pub(super) struct Dead;
 
 #[cfg(test)]
 mod tests {
@@ -225,6 +230,10 @@ mod tests {
                     "The target gets a death if its health drops to 0"
                 );
 
+                app.world
+                    .get::<Dead>(target)
+                    .expect("Target should have a Dead component");
+
                 // Reset for the next iteration
                 app.world.get_mut::<Kills>(instigator).unwrap().0 = 0;
                 app.world.get_mut::<Deaths>(target).unwrap().0 = 0;
@@ -271,6 +280,10 @@ mod tests {
 
         let deaths = app.world.get::<Deaths>(target).unwrap();
         assert_eq!(deaths.0, 1, "Deaths should counted for self-damage");
+
+        app.world
+            .get::<Dead>(target)
+            .expect("Target should have a Dead component");
     }
 
     fn setup_app() -> App {
