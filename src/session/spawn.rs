@@ -19,17 +19,23 @@
  */
 
 use bevy::prelude::*;
+use derive_more::{Deref, DerefMut};
 
 use crate::{
     characters::{heroes::HeroKind, CharacterBundle},
-    core::AppState,
+    core::{player::Deaths, AppState},
 };
 
 pub(super) struct SpawnPlugin;
 
 impl Plugin for SpawnPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(SystemSet::on_update(AppState::InGame).with_system(spawn_system));
+        app.add_system_set(
+            SystemSet::on_update(AppState::InGame)
+                .with_system(spawn_system)
+                .with_system(assign_respawn_system)
+                .with_system(respawn_system),
+        );
     }
 }
 
@@ -55,6 +61,47 @@ fn spawn_system(
             &mut materials,
         );
         commands.entity(player).insert_bundle(hero);
+    }
+}
+
+fn assign_respawn_system(
+    mut died_players: Query<(Entity, ChangeTrackers<Deaths>)>,
+    mut commands: Commands,
+) {
+    for (player, deaths_trackers) in died_players.iter_mut() {
+        if deaths_trackers.is_changed() && !deaths_trackers.is_added() {
+            commands.entity(player).insert(RespawnTimer::default());
+        }
+    }
+}
+
+fn respawn_system(
+    time: Res<Time>,
+    spawn_points: Query<&SpawnPoint>,
+    mut dead_players: Query<(Entity, &mut Transform, &mut RespawnTimer)>,
+    mut commands: Commands,
+) {
+    for (player, mut transform, mut respawn_timer) in dead_players.iter_mut() {
+        respawn_timer.tick(time.delta());
+        if respawn_timer.finished() {
+            commands.entity(player).remove::<RespawnTimer>();
+            // TODO: determine best spawn position based on other characters location
+            let spawn_point = spawn_points
+                .iter()
+                .next()
+                .expect("Unable to find any spawn points");
+
+            transform.translation = spawn_point.0;
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+struct RespawnTimer(Timer);
+
+impl Default for RespawnTimer {
+    fn default() -> Self {
+        Self(Timer::from_seconds(10.0, false))
     }
 }
 
@@ -86,6 +133,77 @@ mod tests {
         assert_eq!(
             transform.translation, SPAWN_POINT,
             "Hero should be spawned at the specified location"
+        );
+    }
+
+    #[test]
+    fn respawn_asigns() {
+        let mut app = setup_app();
+        let player = app.world.spawn().insert(Deaths::default()).id();
+
+        app.update();
+
+        assert!(
+            !app.world.entity(player).contains::<RespawnTimer>(),
+            "Player shouldn't have respawn timer assigned until first death"
+        );
+
+        app.world.entity_mut(player).get_mut::<Deaths>().unwrap().0 += 1;
+
+        app.update();
+
+        assert!(
+            app.world.entity(player).contains::<RespawnTimer>(),
+            "Player should have respawn timer assigned after death"
+        );
+    }
+
+    #[test]
+    fn player_respawns() {
+        let mut app = setup_app();
+        let player = app
+            .world
+            .spawn()
+            .insert(RespawnTimer::default())
+            .insert(Transform::default())
+            .id();
+        let spawn_point = app.world.spawn().insert(SpawnPoint(Vec3::ONE)).id();
+
+        app.update();
+        app.update();
+
+        assert!(
+            app.world
+                .entity(player)
+                .get::<RespawnTimer>()
+                .unwrap()
+                .elapsed_secs()
+                > 0.0,
+            "Respawn timer should tick"
+        );
+
+        app.world
+            .entity_mut(player)
+            .get_mut::<RespawnTimer>()
+            .unwrap()
+            .tick(RespawnTimer::default().duration());
+        app.update();
+
+        assert!(
+            !app.world.entity(player).contains::<RespawnTimer>(),
+            "Respawn timer should be removed"
+        );
+
+        let player_translation = app
+            .world
+            .entity(player)
+            .get::<Transform>()
+            .unwrap()
+            .translation;
+        assert_eq!(
+            player_translation,
+            app.world.entity(spawn_point).get::<SpawnPoint>().unwrap().0,
+            "Player should be moved to spawn point"
         );
     }
 
