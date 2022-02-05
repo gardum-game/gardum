@@ -44,7 +44,7 @@ fn load_map_system(
 }
 
 #[derive(Clone, Copy, Debug, EnumIter, PartialEq)]
-pub(super) enum Map {
+pub(crate) enum Map {
     Plane,
 }
 

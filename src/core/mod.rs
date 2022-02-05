@@ -18,8 +18,13 @@
  *
  */
 
+pub(super) mod character;
 mod cli;
+mod despawn_timer;
+pub(super) mod map;
 pub(super) mod player;
+mod projectile;
+pub(super) mod session;
 
 use bevy::prelude::*;
 use derive_more::From;
@@ -27,8 +32,13 @@ use heron::PhysicsLayer;
 #[cfg(test)]
 use strum::EnumIter;
 
+use character::CharactersPlugin;
 use cli::CliPlugin;
+use despawn_timer::DespawnTimerPlugin;
+use map::MapsPlugin;
 use player::PlayerPlugin;
+use projectile::ProjectilePlugin;
+use session::SessionPlugin;
 
 pub(super) struct CorePlugin;
 
@@ -36,8 +46,13 @@ impl Plugin for CorePlugin {
     fn build(&self, app: &mut App) {
         app.add_state(AppState::Menu)
             .init_resource::<ServerSettings>()
+            .add_plugin(CharactersPlugin)
             .add_plugin(CliPlugin)
-            .add_plugin(PlayerPlugin);
+            .add_plugin(MapsPlugin)
+            .add_plugin(PlayerPlugin)
+            .add_plugin(SessionPlugin)
+            .add_plugin(DespawnTimerPlugin)
+            .add_plugin(ProjectilePlugin);
     }
 }
 

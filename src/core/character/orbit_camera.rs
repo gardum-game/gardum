@@ -27,7 +27,7 @@ use bevy::{
 use derive_more::{Deref, DerefMut, From};
 use heron::PhysicsSystem;
 
-use super::heroes::HeroKind;
+use super::hero::HeroKind;
 use crate::core::{AppState, Local};
 
 const CAMERA_DISTANCE: f32 = 10.0;

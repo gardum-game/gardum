@@ -21,9 +21,10 @@
 use bevy::prelude::*;
 use derive_more::{Deref, DerefMut};
 
-use crate::{
-    characters::{heroes::HeroKind, CharacterBundle},
-    core::{player::Deaths, AppState},
+use crate::core::{
+    character::{hero::HeroKind, CharacterBundle},
+    player::Deaths,
+    AppState,
 };
 
 pub(super) struct SpawnPlugin;

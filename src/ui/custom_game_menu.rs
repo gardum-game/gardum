@@ -26,11 +26,7 @@ use bevy_egui::{
 use strum::IntoEnumIterator;
 
 use super::ui_state::{UiState, UiStateHistory};
-use crate::{
-    core::{player::Nickname, AppState, ServerSettings},
-    maps::Map,
-    session::GameMode,
-};
+use crate::core::{map::Map, player::Nickname, session::GameMode, AppState, ServerSettings};
 
 pub(super) struct CustomGameMenuPlugin;
 

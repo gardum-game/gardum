@@ -20,7 +20,7 @@
 
 use bevy_egui::egui::*;
 
-use crate::characters::cooldown::Cooldown;
+use crate::core::character::cooldown::Cooldown;
 
 /// Displays ability icon and its cooldown.
 pub(super) struct AbilityIcon<'a> {

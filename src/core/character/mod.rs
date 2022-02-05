@@ -18,33 +18,25 @@
  *
  */
 
-pub(super) mod ability;
-pub(super) mod character_action;
-pub(super) mod cooldown;
-mod despawn_timer;
-pub(super) mod health;
-pub(super) mod heroes;
+pub(crate) mod ability;
+pub(crate) mod character_action;
+pub(crate) mod cooldown;
+pub(crate) mod health;
+pub(crate) mod hero;
 mod movement;
 mod orbit_camera;
-mod projectile;
 
 use bevy::prelude::*;
 use heron::{CollisionLayers, CollisionShape, RigidBody, Velocity};
 use leafwing_input_manager::prelude::ActionState;
 
 use crate::core::CollisionLayer;
-use ability::Abilities;
-use ability::AbilityPlugin;
-use character_action::CharacterAction;
-use character_action::CharacterActionPlugin;
-use cooldown::CooldownPlugin;
-use despawn_timer::DespawnTimerPlugin;
-use health::Health;
-use health::HealthPlugin;
-use heroes::HeroesPlugin;
+use ability::{Abilities, AbilityPlugin};
+use character_action::{CharacterAction, CharacterActionPlugin};
+use health::{Health, HealthPlugin};
+use hero::HeroesPlugin;
 use movement::MovementPlugin;
 use orbit_camera::OrbitCameraPlugin;
-use projectile::ProjectilePlugin;
 
 pub(super) struct CharactersPlugin;
 
@@ -53,12 +45,9 @@ impl Plugin for CharactersPlugin {
         app.add_plugin(CharacterActionPlugin)
             .add_plugin(MovementPlugin)
             .add_plugin(OrbitCameraPlugin)
-            .add_plugin(CooldownPlugin)
             .add_plugin(HealthPlugin)
-            .add_plugin(DespawnTimerPlugin)
             .add_plugin(AbilityPlugin)
-            .add_plugin(HeroesPlugin)
-            .add_plugin(ProjectilePlugin);
+            .add_plugin(HeroesPlugin);
     }
 }
 

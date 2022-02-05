@@ -29,10 +29,7 @@ use super::{
     ui_state::{UiState, UiStateHistory},
     UI_MARGIN,
 };
-use crate::{
-    characters::heroes::HeroKind,
-    core::{player::Player, AppState, Local},
-};
+use crate::core::{character::hero::HeroKind, player::Player, AppState, Local};
 
 pub struct HeroSelectionPlugin;
 

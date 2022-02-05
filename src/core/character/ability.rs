@@ -22,7 +22,10 @@ use bevy::prelude::*;
 use derive_more::{Deref, DerefMut};
 use leafwing_input_manager::prelude::ActionState;
 
-use super::{character_action::CharacterAction, cooldown::Cooldown};
+use super::{
+    character_action::CharacterAction,
+    cooldown::{Cooldown, CooldownPlugin},
+};
 use crate::core::AppState;
 
 pub(super) struct AbilityPlugin;
@@ -30,6 +33,7 @@ pub(super) struct AbilityPlugin;
 impl Plugin for AbilityPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<ActivationEvent>()
+            .add_plugin(CooldownPlugin)
             .add_system_set(SystemSet::on_update(AppState::InGame).with_system(activation_system));
     }
 }
@@ -73,7 +77,7 @@ mod tests {
     use bevy::{app::Events, input::InputPlugin};
 
     use super::*;
-    use crate::{characters::cooldown::CooldownPlugin, core::Local};
+    use crate::core::Local;
 
     #[test]
     fn ability_ignores_unrelated_action() {

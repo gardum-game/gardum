@@ -21,16 +21,16 @@
 use bevy::{prelude::*, render::camera::Camera};
 use heron::{CollisionShape, Velocity};
 
-use crate::{
-    characters::{
+use crate::core::{
+    character::{
         ability::{Abilities, ActivationEvent},
         character_action::CharacterAction,
         cooldown::Cooldown,
         health::DamageEvent,
-        projectile::{ProjectileBundle, ProjectileHitEvent},
         CharacterBundle, Owner,
     },
-    core::{AppState, IconPath},
+    projectile::{ProjectileBundle, ProjectileHitEvent},
+    AppState, IconPath,
 };
 
 const PROJECTILE_SPEED: f32 = 20.0;
@@ -180,7 +180,7 @@ mod tests {
     use bevy::app::Events;
 
     use super::*;
-    use crate::{characters::projectile::Projectile, test_utils::HeadlessRenderPlugin};
+    use crate::{core::projectile::Projectile, test_utils::HeadlessRenderPlugin};
 
     #[test]
     fn frost_bolt() {
