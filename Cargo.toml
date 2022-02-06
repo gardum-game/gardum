@@ -6,7 +6,7 @@ license = "AGPL-3.0-or-later"
 
 [dependencies]
 bevy = { version = "0.6", default-features = false, features = ["render", "x11"] }
-bevy_egui = { version = "0.10", default-features = false, optional = true }
+bevy_egui = { version = "0.10", default-features = false, features = ["multi_threaded"], optional = true }
 heron = { version = "1.1", features = ["3d"] }
 leafwing-input-manager = { git = "https://github.com/Leafwing-Studios/leafwing-input-manager", rev = "056998c42e778aa75bd5dff4692a34862fabaddb" }
 clap = { version = "3.0", features = ["derive"] }

@@ -1194,6 +1194,7 @@ dependencies = [
  "atomic_refcell",
  "emath",
  "nohash-hasher",
+ "parking_lot",
 ]
 
 [[package]]
