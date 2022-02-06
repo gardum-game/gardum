@@ -34,7 +34,7 @@ use heron::PhysicsPlugin;
 use crate::core::CorePlugin;
 #[cfg(feature = "client")]
 use {
-    crate::core::character::character_action::CharacterAction,
+    crate::core::character_action::CharacterAction,
     leafwing_input_manager::prelude::InputManagerPlugin,
     ui::ui_state::UiState,
     ui::{ui_action::UiAction, UiPlugin},

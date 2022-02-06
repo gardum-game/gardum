@@ -20,7 +20,7 @@
 
 use bevy::prelude::*;
 
-use crate::core::{
+use super::{
     player::{Damage, Deaths, Healing, Kills},
     AppState,
 };

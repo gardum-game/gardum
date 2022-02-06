@@ -25,8 +25,8 @@ use leafwing_input_manager::prelude::ActionState;
 use super::{
     character_action::CharacterAction,
     cooldown::{Cooldown, CooldownPlugin},
+    AppState,
 };
-use crate::core::AppState;
 
 pub(super) struct AbilityPlugin;
 

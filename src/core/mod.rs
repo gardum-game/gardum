@@ -18,10 +18,17 @@
  *
  */
 
+pub(super) mod ability;
 pub(super) mod character;
+pub(super) mod character_action;
 mod cli;
+pub(super) mod cooldown;
 mod despawn_timer;
+mod effect_timer;
+pub(super) mod health;
 pub(super) mod map;
+mod movement;
+mod orbit_camera;
 pub(super) mod player;
 mod projectile;
 pub(super) mod session;
@@ -32,10 +39,16 @@ use heron::PhysicsLayer;
 #[cfg(test)]
 use strum::EnumIter;
 
+use ability::AbilityPlugin;
 use character::CharactersPlugin;
+use character_action::CharacterActionPlugin;
 use cli::CliPlugin;
+use cooldown::CooldownPlugin;
 use despawn_timer::DespawnTimerPlugin;
+use health::HealthPlugin;
 use map::MapsPlugin;
+use movement::MovementPlugin;
+use orbit_camera::OrbitCameraPlugin;
 use player::PlayerPlugin;
 use projectile::ProjectilePlugin;
 use session::SessionPlugin;
@@ -46,7 +59,13 @@ impl Plugin for CorePlugin {
     fn build(&self, app: &mut App) {
         app.add_state(AppState::Menu)
             .init_resource::<ServerSettings>()
+            .add_plugin(HealthPlugin)
             .add_plugin(CharactersPlugin)
+            .add_plugin(CharacterActionPlugin)
+            .add_plugin(AbilityPlugin)
+            .add_plugin(CooldownPlugin)
+            .add_plugin(OrbitCameraPlugin)
+            .add_plugin(MovementPlugin)
             .add_plugin(CliPlugin)
             .add_plugin(MapsPlugin)
             .add_plugin(PlayerPlugin)

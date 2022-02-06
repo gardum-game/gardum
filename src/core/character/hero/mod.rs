@@ -63,10 +63,8 @@ mod tests {
     use super::*;
     use crate::{
         core::{
-            character::{
-                ability::ActivationEvent,
-                health::{DamageEvent, HealEvent},
-            },
+            ability::ActivationEvent,
+            health::{DamageEvent, HealEvent},
             projectile::ProjectileHitEvent,
         },
         test_utils::HeadlessRenderPlugin,

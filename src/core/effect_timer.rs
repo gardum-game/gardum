@@ -22,7 +22,7 @@ use bevy::prelude::*;
 use derive_more::{Deref, DerefMut};
 use std::marker::PhantomData;
 
-use crate::core::AppState;
+use super::AppState;
 
 pub(super) struct EffectTimerPlugin<T: Component, const DURATION: usize>(PhantomData<T>);
 

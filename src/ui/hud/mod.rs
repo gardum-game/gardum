@@ -28,10 +28,7 @@ use bevy_egui::{
 };
 
 use super::{ui_state::UiState, UI_MARGIN};
-use crate::core::{
-    character::{ability::Abilities, cooldown::Cooldown, health::Health},
-    IconPath, Local,
-};
+use crate::core::{ability::Abilities, cooldown::Cooldown, health::Health, IconPath, Local};
 use ability_icon::AbilityIcon;
 use health_bar::HealthBar;
 

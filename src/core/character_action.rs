@@ -22,7 +22,7 @@ use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
 use strum::EnumIter;
 
-use crate::core::{AppState, Local};
+use super::{AppState, Local};
 
 pub(super) struct CharacterActionPlugin;
 

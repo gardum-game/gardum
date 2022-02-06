@@ -18,37 +18,22 @@
  *
  */
 
-pub(crate) mod ability;
-pub(crate) mod character_action;
-pub(crate) mod cooldown;
-mod effect_timer;
-pub(crate) mod health;
 pub(crate) mod hero;
-mod movement;
-mod orbit_camera;
 
 use bevy::prelude::*;
 use heron::{CollisionLayers, CollisionShape, RigidBody, Velocity};
 use leafwing_input_manager::prelude::ActionState;
 
-use crate::core::CollisionLayer;
-use ability::{Abilities, AbilityPlugin};
-use character_action::{CharacterAction, CharacterActionPlugin};
-use health::{Health, HealthPlugin};
+use super::{
+    ability::Abilities, character_action::CharacterAction, health::Health, CollisionLayer,
+};
 use hero::HeroesPlugin;
-use movement::MovementPlugin;
-use orbit_camera::OrbitCameraPlugin;
 
 pub(super) struct CharactersPlugin;
 
 impl Plugin for CharactersPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugin(CharacterActionPlugin)
-            .add_plugin(MovementPlugin)
-            .add_plugin(OrbitCameraPlugin)
-            .add_plugin(HealthPlugin)
-            .add_plugin(AbilityPlugin)
-            .add_plugin(HeroesPlugin);
+        app.add_plugin(HeroesPlugin);
     }
 }
 

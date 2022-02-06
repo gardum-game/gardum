@@ -22,8 +22,7 @@ use bevy::prelude::*;
 use heron::{rapier_plugin::PhysicsWorld, CollisionLayers, CollisionShape, Velocity};
 use leafwing_input_manager::prelude::ActionState;
 
-use super::{character_action::CharacterAction, orbit_camera::CameraTarget};
-use crate::core::AppState;
+use super::{character_action::CharacterAction, orbit_camera::CameraTarget, AppState};
 
 const MOVE_SPEED: f32 = 10.0;
 const GRAVITY: f32 = 9.8;
