@@ -1644,7 +1644,7 @@ checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 [[package]]
 name = "leafwing-input-manager"
 version = "0.2.0"
-source = "git+https://github.com/Leafwing-Studios/leafwing-input-manager#056998c42e778aa75bd5dff4692a34862fabaddb"
+source = "git+https://github.com/Leafwing-Studios/leafwing-input-manager?rev=056998c42e778aa75bd5dff4692a34862fabaddb#056998c42e778aa75bd5dff4692a34862fabaddb"
 dependencies = [
  "bevy",
  "itertools",
