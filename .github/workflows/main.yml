@@ -13,6 +13,8 @@ on:
       - '**.md'
       - '.gitignore'
       - '.github/dependabot.yml'
+env:
+  CARGO_TERM_COLOR: always
 jobs:
   test:
     name: Test
