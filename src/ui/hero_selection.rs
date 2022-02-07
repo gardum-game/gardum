@@ -53,6 +53,17 @@ fn hero_selection_system(
 ) {
     let (player, current_hero_kind) = local_player.single_mut();
 
+    Area::new("Confirm area")
+        .anchor(Align2::CENTER_BOTTOM, (0.0, -UI_MARGIN))
+        .show(egui.ctx(), |ui| {
+            ui.add_enabled_ui(current_hero_kind.is_some(), |ui| {
+                if ui.button("Confirm").clicked() {
+                    ui_state_history.clear();
+                    ui_state_history.push(UiState::Hud);
+                }
+            })
+        });
+
     Window::new("Custom game")
         .anchor(Align2::LEFT_CENTER, (UI_MARGIN, 0.0))
         .collapsible(false)
@@ -80,15 +91,6 @@ fn hero_selection_system(
                         commands.entity(player).insert(hero_kind);
                     };
                 }
-            }
-        });
-
-    Area::new("Confirm area")
-        .anchor(Align2::CENTER_BOTTOM, (0.0, -UI_MARGIN))
-        .show(egui.ctx(), |ui| {
-            if ui.button("Confirm").clicked() {
-                ui_state_history.clear();
-                ui_state_history.push(UiState::Hud);
             }
         });
 }
