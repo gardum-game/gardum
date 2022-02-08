@@ -22,7 +22,7 @@ use bevy::{prelude::*, render::camera::Camera};
 use heron::{CollisionShape, Velocity};
 
 use crate::core::{
-    ability::{Abilities, ActivationEvent, IconPath},
+    ability::{Abilities, Activator, IconPath},
     character::{CharacterBundle, Owner},
     character_action::CharacterAction,
     cooldown::Cooldown,
@@ -49,19 +49,15 @@ impl Plugin for NorthPlugin {
 
 fn frost_bolt_system(
     mut commands: Commands,
-    mut events: EventReader<ActivationEvent>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    frost_bolts: Query<(), With<FrostBoltAbility>>,
+    abilities: Query<(Entity, &Activator), With<FrostBoltAbility>>,
     character_transforms: Query<&Transform>,
     camera_transforms: Query<&Transform, With<Camera>>,
 ) {
-    for event in events
-        .iter()
-        .filter(|event| frost_bolts.get(event.ability).is_ok())
-    {
+    for (ability, activator) in abilities.iter() {
         let camera_transform = camera_transforms.single();
-        let character_transform = character_transforms.get(event.character).unwrap();
+        let character_transform = character_transforms.get(activator.0).unwrap();
 
         commands
             .spawn_bundle(ProjectileBundle::frost_bolt(
@@ -71,7 +67,8 @@ fn frost_bolt_system(
                 &mut materials,
             ))
             .insert(FrostBoltProjectile)
-            .insert(Owner(event.character));
+            .insert(Owner(activator.0));
+        commands.entity(ability).remove::<Activator>();
     }
 }
 
@@ -183,29 +180,22 @@ mod tests {
     #[test]
     fn frost_bolt() {
         let mut app = setup_app();
-        let ability = app
-            .world
-            .spawn()
-            .insert_bundle(FrostBoltBundle::default())
-            .id();
         let character = app
             .world
             .spawn()
             .insert(Transform::from_translation(Vec3::ONE))
+            .id();
+        let ability = app
+            .world
+            .spawn()
+            .insert_bundle(FrostBoltBundle::default())
+            .insert(Activator(character))
             .id();
         app.world
             .spawn()
             .insert_bundle(DummyCameraBundle::default())
             .id();
 
-        let mut events = app
-            .world
-            .get_resource_mut::<Events<ActivationEvent>>()
-            .unwrap();
-
-        events.send(ActivationEvent { character, ability });
-
-        app.update();
         app.update();
 
         let mut character_transforms = app.world.query_filtered::<&Transform, Without<Camera>>();
@@ -238,6 +228,11 @@ mod tests {
             camera_trasnform.rotation * Quat::from_rotation_x(90.0_f32.to_radians()),
             "Spawned projectile must be turned towards the camera."
         );
+
+        assert!(
+            !app.world.entity(ability).contains::<Activator>(),
+            "Activator should be remove from the ability",
+        )
     }
 
     #[test]
@@ -278,8 +273,7 @@ mod tests {
 
     fn setup_app() -> App {
         let mut app = App::new();
-        app.add_event::<ActivationEvent>()
-            .add_event::<ProjectileHitEvent>()
+        app.add_event::<ProjectileHitEvent>()
             .add_event::<DamageEvent>()
             .add_state(AppState::InGame)
             .add_plugin(HeadlessRenderPlugin)

@@ -32,14 +32,13 @@ pub(super) struct AbilityPlugin;
 
 impl Plugin for AbilityPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<ActivationEvent>()
-            .add_plugin(CooldownPlugin)
+        app.add_plugin(CooldownPlugin)
             .add_system_set(SystemSet::on_update(AppState::InGame).with_system(activation_system));
     }
 }
 
 fn activation_system(
-    mut events: EventWriter<ActivationEvent>,
+    mut commands: Commands,
     characters: Query<(Entity, &Abilities, &ActionState<CharacterAction>)>,
     mut abilities: Query<(&CharacterAction, Option<&mut Cooldown>)>,
 ) {
@@ -54,10 +53,7 @@ fn activation_system(
                     cooldown.reset();
                 }
 
-                events.send(ActivationEvent {
-                    character,
-                    ability: *ability,
-                });
+                commands.entity(*ability).insert(Activator(character));
                 break;
             }
         }
@@ -68,17 +64,16 @@ fn activation_system(
 #[derive(Component, From)]
 pub(crate) struct IconPath(pub(crate) &'static str);
 
-pub(super) struct ActivationEvent {
-    pub(super) character: Entity,
-    pub(super) ability: Entity,
-}
+/// Indicates that the ability has been activated and contains the hero that activated it
+#[derive(Component)]
+pub(super) struct Activator(pub(super) Entity);
 
 #[derive(Default, Deref, DerefMut, Component)]
 pub(crate) struct Abilities(pub(crate) Vec<Entity>);
 
 #[cfg(test)]
 mod tests {
-    use bevy::{app::Events, input::InputPlugin};
+    use bevy::input::InputPlugin;
 
     use super::*;
     use crate::core::Local;
@@ -105,13 +100,12 @@ mod tests {
 
         app.update();
 
-        let events = app.world.get_resource::<Events<ActivationEvent>>().unwrap();
-        let mut reader = events.get_reader();
-
-        assert_eq!(
-            reader.iter(&events).count(),
-            0,
-            "Activation event shouldn't be triggered for unrelated key"
+        assert!(
+            !app.world
+                .get_entity(ability)
+                .unwrap()
+                .contains::<Activator>(),
+            "Ability shouldn't be triggered for unrelated action"
         );
     }
 
@@ -137,21 +131,11 @@ mod tests {
 
         app.update();
 
-        let events = app.world.get_resource::<Events<ActivationEvent>>().unwrap();
-        let mut reader = events.get_reader();
-        let event = reader
-            .iter(&events)
-            .next()
-            .expect("Activation event should be triggered");
-
-        assert_eq!(
-            event.character, character,
-            "Activation event should have the same character"
-        );
-        assert_eq!(
-            event.ability, ability,
-            "Activation event should have the same ability"
-        );
+        let activator = app
+            .world
+            .get::<Activator>(ability)
+            .expect("Ability should be activated");
+        assert_eq!(activator.0, character, "Character should become activator");
 
         let cooldown = app.world.get::<Cooldown>(ability).unwrap();
         assert!(!cooldown.finished(), "Cooldown should be triggered");
@@ -182,13 +166,12 @@ mod tests {
 
         app.update();
 
-        let events = app.world.get_resource::<Events<ActivationEvent>>().unwrap();
-        let mut reader = events.get_reader();
-
-        assert_eq!(
-            reader.iter(&events).count(),
-            0,
-            "Activation event shouldn't be triggered because of cooldown"
+        assert!(
+            !app.world
+                .get_entity(ability)
+                .unwrap()
+                .contains::<Activator>(),
+            "Ability shouldn't be triggered because of cooldown"
         );
     }
 

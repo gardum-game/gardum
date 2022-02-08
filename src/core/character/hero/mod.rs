@@ -63,7 +63,6 @@ mod tests {
     use super::*;
     use crate::{
         core::{
-            ability::ActivationEvent,
             health::{DamageEvent, HealEvent},
             projectile::ProjectileHitEvent,
         },
@@ -93,8 +92,7 @@ mod tests {
 
     fn setup_app() -> App {
         let mut app = App::new();
-        app.add_event::<ActivationEvent>()
-            .add_event::<ProjectileHitEvent>()
+        app.add_event::<ProjectileHitEvent>()
             .add_event::<DamageEvent>()
             .add_event::<HealEvent>()
             .add_plugin(HeadlessRenderPlugin)
