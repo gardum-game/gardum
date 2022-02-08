@@ -19,7 +19,7 @@
  */
 
 use bevy::prelude::*;
-use derive_more::{Deref, DerefMut};
+use derive_more::{Deref, DerefMut, From};
 use leafwing_input_manager::prelude::ActionState;
 
 use super::{
@@ -63,6 +63,10 @@ fn activation_system(
         }
     }
 }
+
+/// Path to icon resource.
+#[derive(Component, From)]
+pub(crate) struct IconPath(pub(crate) &'static str);
 
 pub(super) struct ActivationEvent {
     pub(super) character: Entity,

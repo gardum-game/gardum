@@ -34,7 +34,6 @@ mod projectile;
 pub(super) mod session;
 
 use bevy::prelude::*;
-use derive_more::From;
 use heron::PhysicsLayer;
 #[cfg(test)]
 use strum::EnumIter;
@@ -106,7 +105,3 @@ pub(super) enum CollisionLayer {
     Character,
     Projectile,
 }
-
-/// Path to icon resource.
-#[derive(Component, From)]
-pub(super) struct IconPath(pub(super) &'static str);

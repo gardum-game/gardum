@@ -22,13 +22,13 @@ use bevy::{prelude::*, render::camera::Camera};
 use heron::{CollisionShape, Velocity};
 
 use crate::core::{
-    ability::{Abilities, ActivationEvent},
+    ability::{Abilities, ActivationEvent, IconPath},
     character::{CharacterBundle, Owner},
     character_action::CharacterAction,
     cooldown::Cooldown,
     health::DamageEvent,
     projectile::{ProjectileBundle, ProjectileHitEvent},
-    AppState, IconPath,
+    AppState,
 };
 
 const PROJECTILE_SPEED: f32 = 20.0;
