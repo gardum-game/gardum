@@ -22,10 +22,9 @@ use bevy::{prelude::*, render::camera::Camera};
 use heron::{CollisionShape, Velocity};
 
 use crate::core::{
-    ability::{Abilities, Activator, IconPath},
+    ability::{Abilities, Activator, Cooldown, IconPath},
     character::{CharacterBundle, Owner},
     character_action::CharacterAction,
-    cooldown::Cooldown,
     health::DamageEvent,
     projectile::{ProjectileBundle, ProjectileHitEvent},
     AppState,

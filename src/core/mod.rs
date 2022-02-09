@@ -22,7 +22,6 @@ pub(super) mod ability;
 pub(super) mod character;
 pub(super) mod character_action;
 mod cli;
-pub(super) mod cooldown;
 mod despawn_timer;
 mod effect_timer;
 pub(super) mod health;
@@ -42,7 +41,6 @@ use ability::AbilityPlugin;
 use character::CharactersPlugin;
 use character_action::CharacterActionPlugin;
 use cli::CliPlugin;
-use cooldown::CooldownPlugin;
 use despawn_timer::DespawnTimerPlugin;
 use health::HealthPlugin;
 use map::MapsPlugin;
@@ -62,7 +60,6 @@ impl Plugin for CorePlugin {
             .add_plugin(CharactersPlugin)
             .add_plugin(CharacterActionPlugin)
             .add_plugin(AbilityPlugin)
-            .add_plugin(CooldownPlugin)
             .add_plugin(OrbitCameraPlugin)
             .add_plugin(MovementPlugin)
             .add_plugin(CliPlugin)
