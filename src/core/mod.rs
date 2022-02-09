@@ -23,7 +23,7 @@ pub(super) mod character;
 pub(super) mod character_action;
 mod cli;
 mod despawn_timer;
-mod effect_timer;
+mod effect;
 pub(super) mod health;
 pub(super) mod map;
 mod movement;
@@ -42,6 +42,7 @@ use character::CharactersPlugin;
 use character_action::CharacterActionPlugin;
 use cli::CliPlugin;
 use despawn_timer::DespawnTimerPlugin;
+use effect::EffectPlugin;
 use health::HealthPlugin;
 use map::MapsPlugin;
 use movement::MovementPlugin;
@@ -67,6 +68,7 @@ impl Plugin for CorePlugin {
             .add_plugin(PlayerPlugin)
             .add_plugin(SessionPlugin)
             .add_plugin(DespawnTimerPlugin)
+            .add_plugin(EffectPlugin)
             .add_plugin(ProjectilePlugin);
     }
 }
