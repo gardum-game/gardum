@@ -23,7 +23,7 @@ use derive_more::{Deref, DerefMut};
 
 use crate::core::{
     character::{hero::HeroKind, CharacterBundle},
-    player::Deaths,
+    health::Death,
     AppState,
 };
 
@@ -65,14 +65,9 @@ fn spawn_system(
     }
 }
 
-fn assign_respawn_system(
-    mut died_players: Query<(Entity, ChangeTrackers<Deaths>)>,
-    mut commands: Commands,
-) {
-    for (player, deaths_trackers) in died_players.iter_mut() {
-        if deaths_trackers.is_changed() && !deaths_trackers.is_added() {
-            commands.entity(player).insert(RespawnTimer::default());
-        }
+fn assign_respawn_system(mut died_players: Query<Entity, Added<Death>>, mut commands: Commands) {
+    for player in died_players.iter_mut() {
+        commands.entity(player).insert(RespawnTimer::default());
     }
 }
 
@@ -140,7 +135,7 @@ mod tests {
     #[test]
     fn respawn_asigns() {
         let mut app = setup_app();
-        let player = app.world.spawn().insert(Deaths::default()).id();
+        let player = app.world.spawn().id();
 
         app.update();
 
@@ -149,7 +144,7 @@ mod tests {
             "Player shouldn't have respawn timer assigned until first death"
         );
 
-        app.world.entity_mut(player).get_mut::<Deaths>().unwrap().0 += 1;
+        app.world.entity_mut(player).insert(Death);
 
         app.update();
 

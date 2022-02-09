@@ -70,7 +70,7 @@ fn damage_system(
         health.current -= delta;
         if health.current == 0 {
             deaths.0 += 1;
-            commands.entity(event.target).insert(Dead);
+            commands.entity(event.target).insert(Death);
         }
 
         if event.target != event.instigator {
@@ -112,7 +112,7 @@ pub(super) struct DamageEvent {
 }
 
 #[derive(Component)]
-pub(super) struct Dead;
+pub(super) struct Death;
 
 #[cfg(test)]
 mod tests {
@@ -231,8 +231,8 @@ mod tests {
                 );
 
                 app.world
-                    .get::<Dead>(target)
-                    .expect("Target should have a Dead component");
+                    .get::<Death>(target)
+                    .expect("Target should have a Death component");
 
                 // Reset for the next iteration
                 app.world.get_mut::<Kills>(instigator).unwrap().0 = 0;
@@ -282,8 +282,8 @@ mod tests {
         assert_eq!(deaths.0, 1, "Deaths should counted for self-damage");
 
         app.world
-            .get::<Dead>(target)
-            .expect("Target should have a Dead component");
+            .get::<Death>(target)
+            .expect("Target should have a Death component");
     }
 
     fn setup_app() -> App {
