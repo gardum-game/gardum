@@ -45,7 +45,7 @@ fn activation_system(
     for (character, character_abilities, actions) in characters.iter() {
         for ability in character_abilities.iter() {
             let (action, cooldown) = abilities.get_mut(*ability).unwrap();
-            if actions.just_pressed(*action) {
+            if actions.just_pressed(action) {
                 if let Some(mut cooldown) = cooldown {
                     if !cooldown.finished() {
                         break;
@@ -116,7 +116,7 @@ mod tests {
             .world
             .get_mut::<ActionState<CharacterAction>>(character)
             .unwrap();
-        actions.press(CharacterAction::Ability2);
+        actions.press(&CharacterAction::Ability2);
 
         app.update();
 
@@ -147,7 +147,7 @@ mod tests {
             .world
             .get_mut::<ActionState<CharacterAction>>(character)
             .unwrap();
-        actions.press(CharacterAction::Ability1);
+        actions.press(&CharacterAction::Ability1);
 
         app.update();
 
@@ -182,7 +182,7 @@ mod tests {
             .world
             .get_mut::<ActionState<CharacterAction>>(character)
             .unwrap();
-        actions.press(CharacterAction::Ability1);
+        actions.press(&CharacterAction::Ability1);
 
         app.update();
 

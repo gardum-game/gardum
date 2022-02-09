@@ -42,7 +42,7 @@ fn scoreboard_system(
     egui: ResMut<EguiContext>,
     players: Query<(&Nickname, &Kills, &Deaths, &Damage, &Healing)>,
 ) {
-    if !ui_actions.single().pressed(UiAction::Scoreboard) {
+    if !ui_actions.single().pressed(&UiAction::Scoreboard) {
         return;
     }
 

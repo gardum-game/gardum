@@ -56,7 +56,7 @@ fn back_button_system(
     Area::new("Back area")
         .anchor(Align2::LEFT_BOTTOM, (UI_MARGIN, -UI_MARGIN))
         .show(egui.ctx(), |ui| {
-            if ui_actions.single().just_pressed(UiAction::Back) || ui.button("Back").clicked() {
+            if ui_actions.single().just_pressed(&UiAction::Back) || ui.button("Back").clicked() {
                 ui_state_history.pop();
             }
         });
