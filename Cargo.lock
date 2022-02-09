@@ -1304,6 +1304,7 @@ dependencies = [
  "clap",
  "derive_more",
  "heron",
+ "itertools",
  "leafwing-input-manager",
  "strum",
 ]

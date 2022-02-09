@@ -12,6 +12,7 @@ leafwing-input-manager = "0.2"
 clap = { version = "3.0", features = ["derive"] }
 derive_more  = { version = "0.99", default-features = false, features = ["deref", "deref_mut", "from"] }
 strum = { version = "0.23", features = ["derive"] }
+itertools = "0.10"
 
 [dev-dependencies]
 approx = "0.5"

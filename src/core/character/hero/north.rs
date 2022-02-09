@@ -25,7 +25,7 @@ use crate::core::{
     ability::{Abilities, Activator, Cooldown, IconPath},
     character::{CharacterBundle, Owner},
     character_action::CharacterAction,
-    health::DamageEvent,
+    health::{DamageEvent, Health},
     projectile::{ProjectileBundle, ProjectileHitEvent},
     AppState,
 };
@@ -65,7 +65,6 @@ fn frost_bolt_system(
                 &mut meshes,
                 &mut materials,
             ))
-            .insert(FrostBoltProjectile)
             .insert(Owner(activator.0));
         commands.entity(ability).remove::<Activator>();
     }
@@ -74,15 +73,18 @@ fn frost_bolt_system(
 fn frost_bolt_hit_system(
     mut hit_events: EventReader<ProjectileHitEvent>,
     mut damage_events: EventWriter<DamageEvent>,
-    frost_bolt_owners: Query<&Owner, With<FrostBoltProjectile>>,
+    projectiles: Query<&Owner>,
+    characters: Query<(), With<Health>>,
 ) {
     for event in hit_events.iter() {
-        if let Ok(character) = frost_bolt_owners.get(event.projectile) {
-            damage_events.send(DamageEvent {
-                instigator: character.0,
-                target: event.target,
-                damage: FROST_BOLT_DAMAGE,
-            });
+        if characters.get(event.target).is_ok() {
+            if let Ok(owner) = projectiles.get(event.projectile) {
+                damage_events.send(DamageEvent {
+                    instigator: owner.0,
+                    target: event.target,
+                    damage: FROST_BOLT_DAMAGE,
+                });
+            }
         }
     }
 }
@@ -108,9 +110,6 @@ impl Default for FrostBoltBundle {
 
 #[derive(Component)]
 struct FrostBoltAbility;
-
-#[derive(Component)]
-struct FrostBoltProjectile;
 
 impl CharacterBundle {
     pub(super) fn north(
@@ -238,13 +237,8 @@ mod tests {
     fn frost_bolt_hit() {
         let mut app = setup_app();
         let instigator = app.world.spawn().id();
-        let projectile = app
-            .world
-            .spawn()
-            .insert(FrostBoltProjectile)
-            .insert(Owner(instigator))
-            .id();
-        let target = app.world.spawn().id();
+        let projectile = app.world.spawn().insert(Owner(instigator)).id();
+        let target = app.world.spawn().insert(Health::default()).id();
 
         let mut events = app
             .world

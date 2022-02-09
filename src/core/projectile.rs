@@ -19,7 +19,8 @@
  */
 
 use bevy::prelude::*;
-use heron::{CollisionEvent, CollisionLayers, CollisionShape, RigidBody, Velocity};
+use heron::{CollisionEvent, CollisionLayers, CollisionShape, PhysicsLayer, RigidBody, Velocity};
+use itertools::Itertools;
 
 use super::{despawn_timer::DespawnTimer, AppState, CollisionLayer};
 
@@ -37,21 +38,21 @@ fn collision_system(
     mut collision_events: EventReader<CollisionEvent>,
     mut hit_events: EventWriter<ProjectileHitEvent>,
 ) {
-    for (projectile, target) in collision_events.iter().filter_map(|event| {
-        let (layers_1, layers_2) = event.collision_layers();
-        if layers_1.contains_group(CollisionLayer::Projectile)
-            && !layers_1.contains_group(CollisionLayer::Character)
-        {
-            return Some(event.rigid_body_entities());
-        }
-        if layers_2.contains_group(CollisionLayer::Projectile)
-            && !layers_2.contains_group(CollisionLayer::Character)
-        {
-            let (target, projectile) = event.rigid_body_entities();
-            return Some((projectile, target));
-        }
-        None
-    }) {
+    for (projectile, target) in collision_events
+        .iter()
+        .filter_map(|event| {
+            let (layers_1, layers_2) = event.collision_layers();
+            if layers_1.groups_bits() == CollisionLayer::Projectile.to_bits() {
+                return Some(event.rigid_body_entities());
+            }
+            if layers_2.groups_bits() == CollisionLayer::Projectile.to_bits() {
+                let (target, projectile) = event.rigid_body_entities();
+                return Some((projectile, target));
+            }
+            None
+        })
+        .dedup()
+    {
         hit_events.send(ProjectileHitEvent { projectile, target });
         commands.entity(projectile).despawn();
     }
@@ -75,9 +76,9 @@ impl Default for ProjectileBundle {
         Self {
             rigid_body: RigidBody::KinematicVelocityBased,
             shape: CollisionShape::default(),
-            collision_layers: CollisionLayers::new(
-                CollisionLayer::Projectile,
-                CollisionLayer::Character,
+            collision_layers: CollisionLayers::from_bits(
+                CollisionLayer::Projectile.to_bits(),
+                CollisionLayer::all_bits() & !CollisionLayer::Projectile.to_bits(),
             ),
             velocity: Velocity::default(),
             projectile: Projectile,
