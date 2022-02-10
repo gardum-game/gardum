@@ -21,6 +21,7 @@
 use bevy::prelude::*;
 
 use super::{
+    character::{DamageModifier, HealingModifier},
     player::{Damage, Deaths, Healing, Kills},
     AppState,
 };
@@ -42,7 +43,7 @@ impl Plugin for HealthPlugin {
 fn heal_system(
     mut events: EventReader<HealEvent>,
     mut targets: Query<&mut Health>,
-    mut instigators: Query<&mut Healing>,
+    mut instigators: Query<(&mut Healing, &HealingModifier)>,
 ) {
     for event in events.iter() {
         let mut health = targets.get_mut(event.target).unwrap();
@@ -50,10 +51,11 @@ fn heal_system(
             continue;
         }
 
-        let delta = event.heal.min(health.max - health.current);
+        let (mut healing, healing_modifier) = instigators.get_mut(event.instigator).unwrap();
+        let delta = health
+            .missing()
+            .min((event.heal as f32 * healing_modifier.0) as u32);
         health.current += delta;
-
-        let mut healing = instigators.get_mut(event.instigator).unwrap();
         healing.0 += delta;
     }
 }
@@ -61,12 +63,17 @@ fn heal_system(
 fn damage_system(
     mut events: EventReader<DamageEvent>,
     mut targets: Query<(&mut Health, &mut Deaths)>,
-    mut instigators: Query<(&mut Damage, &mut Kills)>,
+    mut instigators: Query<(&mut Damage, &mut Kills, &DamageModifier)>,
     mut commands: Commands,
 ) {
     for event in events.iter() {
         let (mut health, mut deaths) = targets.get_mut(event.target).unwrap();
-        let delta = health.current.min(event.damage);
+        let (mut damage, mut kills, damage_modifier) =
+            instigators.get_mut(event.instigator).unwrap();
+
+        let delta = health
+            .current
+            .min((event.damage as f32 * damage_modifier.0) as u32);
         health.current -= delta;
         if health.current == 0 {
             deaths.0 += 1;
@@ -74,9 +81,7 @@ fn damage_system(
         }
 
         if event.target != event.instigator {
-            let (mut damage, mut kills) = instigators.get_mut(event.instigator).unwrap();
             damage.0 += delta;
-
             if health.current == 0 {
                 kills.0 += 1;
             }
@@ -96,6 +101,12 @@ impl Default for Health {
             current: 100,
             max: 100,
         }
+    }
+}
+
+impl Health {
+    fn missing(&self) -> u32 {
+        self.max - self.current
     }
 }
 
@@ -133,16 +144,19 @@ mod tests {
         let instigator = app
             .world
             .spawn()
+            .insert(HealingModifier::default())
             .insert_bundle(PlayerBundle::default())
             .id();
 
-        for (initial_health, heal, expected_healing, expected_health) in [
-            (90, 5, 5, 95),
-            (90, 20, 10, Health::default().max),
-            (90, 10, 10, Health::default().max),
-            (0, 20, 0, 0),
+        for (initial_health, heal, expected_healing, expected_health, modifier) in [
+            (90, 5, 5, 95, 1.0),
+            (90, 20, 10, Health::default().max, 1.0),
+            (90, 10, 10, Health::default().max, 1.0),
+            (0, 20, 0, 0, 1.0),
+            (85, 5, 10, 95, 2.0),
         ] {
             app.world.get_mut::<Health>(target).unwrap().current = initial_health;
+            app.world.get_mut::<HealingModifier>(instigator).unwrap().0 = modifier;
             app.world.get_mut::<Healing>(instigator).unwrap().0 = 0;
 
             let mut events = app.world.get_resource_mut::<Events<HealEvent>>().unwrap();
@@ -183,16 +197,19 @@ mod tests {
             .world
             .spawn()
             .insert_bundle(PlayerBundle::default())
+            .insert(DamageModifier::default())
             .id();
 
-        for (initial_health, damage, expected_damage, expected_health) in [
-            (90, 5, 5, 85),
-            (90, 95, 90, 0),
-            (90, 90, 90, 0),
-            (0, 20, 0, 0),
+        for (initial_health, damage, expected_damage, expected_health, modifier) in [
+            (90, 5, 5, 85, 1.0),
+            (90, 95, 90, 0, 1.0),
+            (90, 90, 90, 0, 1.0),
+            (0, 20, 0, 0, 1.0),
+            (90, 5, 10, 80, 2.0),
         ] {
             app.world.get_mut::<Health>(target).unwrap().current = initial_health;
             app.world.get_mut::<Damage>(instigator).unwrap().0 = 0;
+            app.world.get_mut::<DamageModifier>(instigator).unwrap().0 = modifier;
 
             let mut events = app.world.get_resource_mut::<Events<DamageEvent>>().unwrap();
             events.send(DamageEvent {
@@ -250,6 +267,7 @@ mod tests {
             .world
             .spawn()
             .insert(Health::default())
+            .insert(DamageModifier::default())
             .insert_bundle(PlayerBundle::default())
             .id();
 

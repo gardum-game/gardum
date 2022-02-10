@@ -22,7 +22,10 @@ use bevy::prelude::*;
 use heron::{rapier_plugin::PhysicsWorld, CollisionLayers, CollisionShape, Velocity};
 use leafwing_input_manager::prelude::ActionState;
 
-use super::{character_action::CharacterAction, orbit_camera::CameraTarget, AppState};
+use super::{
+    character::SpeedModifier, character_action::CharacterAction, orbit_camera::CameraTarget,
+    AppState,
+};
 
 const MOVE_SPEED: f32 = 10.0;
 const GRAVITY: f32 = 9.8;
@@ -44,6 +47,7 @@ fn movement_system(
     cameras: Query<(&Transform, &CameraTarget)>,
     mut characters: Query<(
         Entity,
+        &SpeedModifier,
         &ActionState<CharacterAction>,
         &Transform,
         &CollisionShape,
@@ -51,10 +55,11 @@ fn movement_system(
     )>,
 ) {
     for (camera_transform, camera_target) in cameras.iter() {
-        let (character, actions, transform, shape, mut velocity) =
+        let (character, speed_modifier, actions, transform, shape, mut velocity) =
             characters.get_mut(camera_target.0).unwrap();
 
-        let motion = movement_direction(actions, camera_transform.rotation) * MOVE_SPEED;
+        let motion =
+            movement_direction(actions, camera_transform.rotation) * MOVE_SPEED * speed_modifier.0;
         velocity.linear = velocity
             .linear
             .lerp(motion, VELOCITY_INTERPOLATE_SPEED * time.delta_seconds());
@@ -307,6 +312,40 @@ mod tests {
         }
     }
 
+    #[test]
+    fn speed_modifier_respected() {
+        const SPEED_MODIFIER: f32 = 100.0;
+        let mut app = setup_app();
+        let character = app
+            .world
+            .spawn()
+            .insert_bundle(DummyCharacterBundle {
+                speed_modifier: SpeedModifier(SPEED_MODIFIER),
+                ..Default::default()
+            })
+            .id();
+        app.world
+            .spawn()
+            .insert_bundle(DummyCameraBundle::new(character.into()));
+
+        app.update();
+
+        let mut actions = app
+            .world
+            .get_mut::<ActionState<CharacterAction>>(character)
+            .unwrap();
+        actions.press(&CharacterAction::Forward);
+
+        app.update();
+
+        let time = app.world.get_resource::<Time>().unwrap().delta_seconds();
+        let distance = app.world.get::<Transform>(character).unwrap().translation.z;
+        assert_relative_eq!(
+            distance.abs() / time / MOVE_SPEED / VELOCITY_INTERPOLATE_SPEED / SPEED_MODIFIER,
+            time,
+        )
+    }
+
     fn setup_app() -> App {
         let mut app = App::new();
         app.add_state(AppState::InGame)
@@ -343,6 +382,7 @@ mod tests {
 
     #[derive(Bundle)]
     struct DummyCharacterBundle {
+        speed_modifier: SpeedModifier,
         rigid_body: RigidBody,
         shape: CollisionShape,
         transform: Transform,
@@ -355,6 +395,7 @@ mod tests {
     impl Default for DummyCharacterBundle {
         fn default() -> Self {
             Self {
+                speed_modifier: SpeedModifier::default(),
                 rigid_body: RigidBody::KinematicVelocityBased,
                 shape: CollisionShape::Capsule {
                     half_segment: 0.5,

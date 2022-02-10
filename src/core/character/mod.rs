@@ -41,6 +41,9 @@ impl Plugin for CharactersPlugin {
 pub(super) struct CharacterBundle {
     health: Health,
     abilities: Abilities,
+    speed_modifier: SpeedModifier,
+    damage_modifier: DamageModifier,
+    healing_modifier: HealingModifier,
     rigid_body: RigidBody,
     shape: CollisionShape,
     collision_layers: CollisionLayers,
@@ -51,11 +54,44 @@ pub(super) struct CharacterBundle {
     pbr: PbrBundle,
 }
 
+/// Movement speed modifier
+#[derive(Component)]
+pub(super) struct SpeedModifier(pub(super) f32);
+
+impl Default for SpeedModifier {
+    fn default() -> Self {
+        Self(1.0)
+    }
+}
+
+/// Outgoing damage modifier
+#[derive(Component)]
+pub(super) struct DamageModifier(pub(super) f32);
+
+impl Default for DamageModifier {
+    fn default() -> Self {
+        Self(1.0)
+    }
+}
+
+/// Outgoing healing modifier
+#[derive(Component)]
+pub(super) struct HealingModifier(pub(super) f32);
+
+impl Default for HealingModifier {
+    fn default() -> Self {
+        Self(1.0)
+    }
+}
+
 impl Default for CharacterBundle {
     fn default() -> Self {
         Self {
             health: Health::default(),
             abilities: Abilities::default(),
+            speed_modifier: SpeedModifier::default(),
+            damage_modifier: DamageModifier::default(),
+            healing_modifier: HealingModifier::default(),
             rigid_body: RigidBody::KinematicVelocityBased,
             shape: CollisionShape::default(),
             collision_layers: CollisionLayers::from_bits(
