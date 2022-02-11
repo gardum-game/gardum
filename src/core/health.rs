@@ -171,15 +171,13 @@ mod tests {
             let health = app.world.get::<Health>(target).unwrap();
             assert_eq!(
                 health.current, expected_health,
-                "Healing from {} for {} points should set health to {}",
-                initial_health, heal, expected_health
+                "Healing from {initial_health} for {heal} points should set health to {expected_health}",
             );
 
             let healing = app.world.get::<Healing>(instigator).unwrap();
             assert_eq!(
                 healing.0, expected_healing,
-                "Healing from {} for {} points should set amount of healing to {}",
-                initial_health, heal, expected_healing
+                "Healing from {initial_health} for {heal} points should set amount of healing to {expected_healing}",
             );
         }
     }
@@ -223,15 +221,13 @@ mod tests {
             let health = app.world.get::<Health>(target).unwrap();
             assert_eq!(
                 health.current, expected_health,
-                "Damaging from {} for {} points should set health to {}",
-                initial_health, damage, expected_health
+                "Damaging from {initial_health} for {damage} points should set health to {expected_health}",
             );
 
             let damaging = app.world.get::<Damage>(instigator).unwrap();
             assert_eq!(
                 damaging.0, expected_damage,
-                "Damaging from {} for {} points should set amount of damage to {}",
-                initial_health, damage, expected_damage
+                "Damaging from {initial_health} for {damage} points should set amount of damage to {expected_damage}",
             );
 
             if health.current == 0 {

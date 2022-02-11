@@ -67,7 +67,7 @@ impl Widget for AbilityIcon<'_> {
                     Color32::from_black_alpha(150),
                     Stroke::none(),
                 );
-                let text: WidgetText = format!("{}", display_sec).into();
+                let text: WidgetText = display_sec.to_string().into();
                 let galley = text.into_galley(ui, Some(false), f32::INFINITY, TextStyle::Heading);
                 let text_pos = rect.center() - galley.size() / 2.0;
                 let text_color = Color32::DARK_GRAY;

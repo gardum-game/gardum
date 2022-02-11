@@ -61,7 +61,7 @@ impl Widget for HealthBar {
         ui.painter()
             .rect(inner_rect, 0.0, Color32::DARK_GREEN, Stroke::none());
 
-        let text: WidgetText = format!("{} / {}", current, max).into();
+        let text: WidgetText = format!("{current} / {max}").into();
         let galley = text.into_galley(ui, Some(false), f32::INFINITY, TextStyle::Button);
         let text_pos = outer_rect.left_center() - Vec2::new(0.0, galley.size().y / 2.0)
             + vec2(ui.spacing().item_spacing.x, 0.0);
