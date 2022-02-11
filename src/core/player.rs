@@ -91,11 +91,13 @@ mod tests {
         let mut app = setup_app_in_lobby();
         app.update();
 
-        let mut locals = app.world.query_filtered::<(), With<Local>>();
+        let mut locals = app
+            .world
+            .query_filtered::<(), (With<Local>, With<Player>)>();
         locals
             .iter(&app.world)
             .next()
-            .expect("Player should be created"); // TODO 0.7: Use single
+            .expect("Local player should be created"); // TODO 0.7: Use single
     }
 
     #[test]
@@ -103,11 +105,13 @@ mod tests {
         let mut app = setup_app_with_host_command();
         app.update();
 
-        let mut locals = app.world.query_filtered::<(), With<Local>>();
+        let mut locals = app
+            .world
+            .query_filtered::<(), (With<Local>, With<Player>)>();
         locals
             .iter(&app.world)
             .next()
-            .expect("Player should be created"); // TODO 0.7: Use single
+            .expect("Local player should be created"); // TODO 0.7: Use single
     }
 
     fn setup_app_in_lobby() -> App {
