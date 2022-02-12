@@ -18,24 +18,44 @@
  *
  */
 
+mod modifier_effect;
+
 use bevy::prelude::*;
 use derive_more::{Deref, DerefMut};
 
-use super::{health::Death, AppState};
+use super::{
+    character::{DamageModifier, HealingModifier, SpeedModifier},
+    health::Death,
+    AppState,
+};
+use modifier_effect::ModifierEffectPlugin;
 
 pub(super) struct EffectPlugin;
 
 impl Plugin for EffectPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(
-            SystemSet::on_update(AppState::InGame)
-                .with_system(cleanup_effects_system)
-                .with_system(effect_timer_system),
-        );
+        app.add_plugin(ModifierEffectPlugin::<SpeedModifier>::default())
+            .add_plugin(ModifierEffectPlugin::<DamageModifier>::default())
+            .add_plugin(ModifierEffectPlugin::<HealingModifier>::default())
+            .add_system_set(
+                SystemSet::on_update(AppState::InGame)
+                    .with_system(dispell_on_death_system)
+                    .with_system(effect_timer_system)
+                    .with_system(effect_removal_system),
+            );
     }
 }
 
-fn cleanup_effects_system(
+fn effect_removal_system(
+    mut commands: Commands,
+    dispelled_effects: Query<Entity, Added<Dispelled>>,
+) {
+    for effect in dispelled_effects.iter() {
+        commands.entity(effect).despawn();
+    }
+}
+
+fn dispell_on_death_system(
     mut commands: Commands,
     died_characters: Query<Entity, Added<Death>>,
     effects: Query<(Entity, &EffectTarget)>,
@@ -43,7 +63,7 @@ fn cleanup_effects_system(
     for character in died_characters.iter() {
         for (effect, target) in effects.iter() {
             if character == target.0 {
-                commands.entity(effect).despawn();
+                commands.entity(effect).insert(Dispelled);
             }
         }
     }
@@ -68,6 +88,10 @@ struct EffectTarget(Entity);
 #[derive(Component, Deref, DerefMut)]
 struct EffectTimer(Timer);
 
+/// Indticates that the effect is queued for removal
+#[derive(Component)]
+struct Dispelled;
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -78,6 +102,7 @@ mod tests {
         let character = app.world.spawn().insert(Death).id();
         let effect = app.world.spawn().insert(EffectTarget(character)).id();
 
+        app.update();
         app.update();
 
         assert!(

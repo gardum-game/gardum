@@ -21,6 +21,7 @@
 pub(crate) mod hero;
 
 use bevy::prelude::*;
+use derive_more::{AddAssign, SubAssign};
 use heron::{CollisionLayers, CollisionShape, PhysicsLayer, RigidBody, Velocity};
 use leafwing_input_manager::prelude::ActionState;
 
@@ -55,7 +56,7 @@ pub(super) struct CharacterBundle {
 }
 
 /// Movement speed modifier
-#[derive(Component)]
+#[derive(Component, AddAssign, SubAssign, Clone, Copy)]
 pub(super) struct SpeedModifier(pub(super) f32);
 
 impl Default for SpeedModifier {
@@ -65,7 +66,7 @@ impl Default for SpeedModifier {
 }
 
 /// Outgoing damage modifier
-#[derive(Component)]
+#[derive(Component, AddAssign, SubAssign, Clone, Copy)]
 pub(super) struct DamageModifier(pub(super) f32);
 
 impl Default for DamageModifier {
@@ -75,7 +76,7 @@ impl Default for DamageModifier {
 }
 
 /// Outgoing healing modifier
-#[derive(Component)]
+#[derive(Component, AddAssign, SubAssign, Clone, Copy)]
 pub(super) struct HealingModifier(pub(super) f32);
 
 impl Default for HealingModifier {
