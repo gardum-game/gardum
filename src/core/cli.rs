@@ -21,7 +21,7 @@
 use bevy::prelude::*;
 use clap::{Parser, Subcommand};
 
-use super::AppState;
+use super::{character::hero::HeroKind, AppState};
 
 pub(super) struct CliPlugin;
 
@@ -45,13 +45,17 @@ fn start_session_system(opts: Res<Opts>, mut app_state: ResMut<State<AppState>>)
 
 #[derive(Default, Parser)]
 #[clap(author, version, about)]
-pub(super) struct Opts {
+pub(crate) struct Opts {
     #[clap(subcommand)]
-    pub(super) subcommand: Option<SubCommand>,
+    pub(crate) subcommand: Option<SubCommand>,
+
+    /// Automatically preselect the specified hero
+    #[clap(long, short)]
+    pub(crate) preselect_hero: Option<HeroKind>,
 }
 
 #[derive(Subcommand)]
-pub(super) enum SubCommand {
+pub(crate) enum SubCommand {
     Connect,
     Host,
 }

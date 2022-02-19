@@ -21,7 +21,7 @@
 pub(super) mod ability;
 pub(super) mod character;
 pub(super) mod character_action;
-mod cli;
+pub(super) mod cli;
 mod despawn_timer;
 mod effect;
 pub(super) mod health;

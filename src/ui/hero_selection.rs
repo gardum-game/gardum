@@ -29,7 +29,7 @@ use super::{
     ui_state::{UiState, UiStateHistory},
     UI_MARGIN,
 };
-use crate::core::{character::hero::HeroKind, player::Player, AppState, Local};
+use crate::core::{character::hero::HeroKind, cli::Opts, player::Player, AppState, Local};
 
 pub struct HeroSelectionPlugin;
 
@@ -95,7 +95,12 @@ fn hero_selection_system(
         });
 }
 
-fn show_hero_selection_system(mut ui_state_history: ResMut<UiStateHistory>) {
+fn show_hero_selection_system(mut ui_state_history: ResMut<UiStateHistory>, opts: Res<Opts>) {
     ui_state_history.clear();
-    ui_state_history.push(UiState::HeroSelection);
+    if opts.preselect_hero.is_none() {
+        ui_state_history.push(UiState::HeroSelection);
+    } else {
+        // Hero is already selected via CLI, skip hero selection UI
+        ui_state_history.push(UiState::Hud);
+    }
 }

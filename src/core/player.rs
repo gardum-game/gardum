@@ -32,19 +32,18 @@ impl Plugin for PlayerPlugin {
     }
 }
 
-fn create_server_player_from_opts(commands: Commands, opts: Res<Opts>) {
+fn create_server_player_from_opts(mut commands: Commands, opts: Res<Opts>) {
     if opts.subcommand.is_some() {
-        create_server_player(commands);
+        let mut player = commands.spawn_bundle(PlayerBundle::default());
+        player.insert(Local);
+        if let Some(hero_kind) = opts.preselect_hero {
+            player.insert(hero_kind);
+        }
     }
 }
 
 fn create_server_player(mut commands: Commands) {
-    commands
-        .spawn_bundle(PlayerBundle {
-            nickname: Nickname("New player".to_string()),
-            ..Default::default()
-        })
-        .insert(Local);
+    commands.spawn_bundle(PlayerBundle::default()).insert(Local);
 }
 
 #[derive(Default, Bundle)]
@@ -62,8 +61,14 @@ pub(crate) struct PlayerBundle {
 pub(crate) struct Player;
 
 /// Stores player name
-#[derive(Component, Default)]
+#[derive(Component)]
 pub(crate) struct Nickname(pub(crate) String);
+
+impl Default for Nickname {
+    fn default() -> Self {
+        Self("New player".to_string())
+    }
+}
 
 /// Used to keep statistics of the number of kills
 #[derive(Component, Default, Debug, PartialEq, Deref)]
@@ -83,52 +88,55 @@ pub(crate) struct Healing(pub(crate) u32);
 
 #[cfg(test)]
 mod tests {
+    use strum::IntoEnumIterator;
+
     use super::*;
-    use crate::core::cli::SubCommand;
+    use crate::core::{character::hero::HeroKind, cli::SubCommand};
 
     #[test]
     fn server_player_spawns_in_lobby() {
-        let mut app = setup_app_in_lobby();
+        let mut app = setup_app();
+        app.add_state(AppState::Lobby).init_resource::<Opts>();
+
         app.update();
 
         let mut locals = app
             .world
-            .query_filtered::<(), (With<Local>, With<Player>)>();
+            .query_filtered::<(), (With<Local>, With<Player>, Without<HeroKind>)>();
         locals
             .iter(&app.world)
             .next()
-            .expect("Local player should be created"); // TODO 0.7: Use single
+            .expect("Local player should be created without preselected hero"); // TODO 0.7: Use single
     }
 
     #[test]
     fn server_player_spawns_with_host_command() {
-        let mut app = setup_app_with_host_command();
+        let mut app = setup_app();
+        app.insert_resource(Opts {
+            subcommand: Some(SubCommand::Host),
+            preselect_hero: Some(HeroKind::iter().next().unwrap()),
+        })
+        .add_state(AppState::Menu);
+
         app.update();
 
         let mut locals = app
             .world
-            .query_filtered::<(), (With<Local>, With<Player>)>();
-        locals
+            .query_filtered::<&HeroKind, (With<Local>, With<Player>)>();
+        let hero_kind = locals
             .iter(&app.world)
             .next()
-            .expect("Local player should be created"); // TODO 0.7: Use single
+            .expect("Local player should be created with preselected hero"); // TODO 0.7: Use single
+        assert_eq!(
+            *hero_kind,
+            HeroKind::iter().next().unwrap(),
+            "Player should have the specified preselected hero"
+        );
     }
 
-    fn setup_app_in_lobby() -> App {
+    fn setup_app() -> App {
         let mut app = App::new();
-        app.init_resource::<Opts>()
-            .add_state(AppState::Lobby)
-            .add_plugin(PlayerPlugin);
-        app
-    }
-
-    fn setup_app_with_host_command() -> App {
-        let mut app = App::new();
-        app.insert_resource(Opts {
-            subcommand: Some(SubCommand::Host),
-        })
-        .add_state(AppState::Menu)
-        .add_plugin(PlayerPlugin);
+        app.add_plugin(PlayerPlugin);
         app
     }
 }

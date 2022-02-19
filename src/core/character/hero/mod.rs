@@ -21,7 +21,7 @@
 mod north;
 
 use bevy::prelude::*;
-use strum::EnumIter;
+use strum::{EnumIter, EnumString};
 
 use super::CharacterBundle;
 use north::NorthPlugin;
@@ -50,7 +50,7 @@ impl CharacterBundle {
     }
 }
 
-#[derive(Clone, Copy, PartialEq, EnumIter, Debug, Component)]
+#[derive(Clone, Copy, PartialEq, EnumIter, EnumString, Debug, Component)]
 pub(crate) enum HeroKind {
     North,
 }
