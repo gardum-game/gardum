@@ -18,11 +18,13 @@
  *
  */
 
-mod plane;
+mod sky_roof;
 
 use bevy::prelude::*;
+
 use strum::EnumIter;
 
+use super::AssetCommands;
 use crate::core::AppState;
 
 pub(super) struct MapsPlugin;
@@ -34,13 +36,10 @@ impl Plugin for MapsPlugin {
     }
 }
 
-fn load_map_system(
-    map: Res<Map>,
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-) {
-    map.setup(&mut commands, &mut meshes, &mut materials);
+fn load_map_system(map: Res<Map>, mut asset_commans: AssetCommands) {
+    match *map {
+        Map::Plane => asset_commans.spawn_sky_roof(),
+    };
 }
 
 #[derive(Clone, Copy, Debug, EnumIter, PartialEq)]
@@ -48,24 +47,9 @@ pub(crate) enum Map {
     Plane,
 }
 
-impl Map {
-    fn setup(
-        self,
-        commands: &mut Commands,
-        meshes: &mut Assets<Mesh>,
-        materials: &mut Assets<StandardMaterial>,
-    ) {
-        let setup_fn = match self {
-            Map::Plane => Self::plane,
-        };
-
-        setup_fn(commands, meshes, materials);
-    }
-}
-
 #[cfg(test)]
 mod tests {
-    use bevy::ecs::system::SystemState;
+    use bevy::{gltf::GltfPlugin, scene::ScenePlugin};
     use strum::IntoEnumIterator;
 
     use super::*;
@@ -76,36 +60,34 @@ mod tests {
         let mut app = setup_app();
         app.add_state(AppState::InGame);
 
-        assert_eq!(
-            app.world.entities().len(),
-            0,
-            "Should be zero entities before update"
-        );
-        app.update();
-        assert!(
-            app.world.entities().len() > 0,
-            "Map should be initialized after first update"
-        );
-    }
-
-    #[test]
-    fn setup() {
-        let mut app = setup_app();
-        let mut system_state: SystemState<(
-            Commands,
-            ResMut<Assets<Mesh>>,
-            ResMut<Assets<StandardMaterial>>,
-        )> = SystemState::new(&mut app.world);
-        let (mut commands, mut meshes, mut materials) = system_state.get_mut(&mut app.world);
-
+        let mut meshes_query = app.world.query::<&Handle<Mesh>>();
         for map in Map::iter() {
-            map.setup(&mut commands, &mut meshes, &mut materials);
+            let mut current_map = app.world.get_resource_mut::<Map>().unwrap();
+            *current_map = map;
+
+            const MAX_UPDATES: u8 = 25;
+            let mut updates_count = 1;
+            loop {
+                app.update();
+                if meshes_query.iter(&app.world).count() > 0 || updates_count == MAX_UPDATES {
+                    break;
+                }
+                updates_count += 1;
+            }
+
+            assert_ne!(updates_count, MAX_UPDATES, "Map meshes should be loaded");
+
+            app.world.clear_entities();
         }
     }
 
     fn setup_app() -> App {
         let mut app = App::new();
-        app.add_plugin(HeadlessRenderPlugin).add_plugin(MapsPlugin);
+        app.add_plugin(HeadlessRenderPlugin)
+            .add_plugin(ScenePlugin)
+            .add_plugin(GltfPlugin)
+            .add_plugin(TransformPlugin)
+            .add_plugin(MapsPlugin);
         app
     }
 }

@@ -32,7 +32,7 @@ pub(super) mod player;
 mod projectile;
 pub(super) mod session;
 
-use bevy::prelude::*;
+use bevy::{ecs::system::SystemParam, prelude::*};
 use heron::PhysicsLayer;
 #[cfg(test)]
 use strum::EnumIter;
@@ -103,4 +103,18 @@ pub(super) enum AppState {
 pub(super) enum CollisionLayer {
     Character,
     Projectile,
+}
+
+/// TODO 0.7: Replace with built-in
+#[derive(Bundle, Clone, Copy, Debug, Default)]
+struct TransformBundle {
+    pub local: Transform,
+    pub global: GlobalTransform,
+}
+
+/// Helper for easier asset spawning
+#[derive(SystemParam)]
+struct AssetCommands<'w, 's> {
+    commands: Commands<'w, 's>,
+    asset_server: Res<'w, AssetServer>,
 }

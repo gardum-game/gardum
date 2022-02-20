@@ -19,38 +19,29 @@
  */
 
 use bevy::prelude::*;
-use heron::{CollisionShape, RigidBody};
+use heron::{PendingConvexCollision, RigidBody};
 
-use super::Map;
-use crate::core::session::spawn::SpawnPoint;
+use crate::core::{session::spawn::SpawnPoint, AssetCommands, TransformBundle};
 
-impl Map {
-    pub(super) fn plane(
-        commands: &mut Commands,
-        meshes: &mut Assets<Mesh>,
-        materials: &mut Assets<StandardMaterial>,
-    ) {
-        // Plane
-        commands
-            .spawn_bundle(PbrBundle {
-                mesh: meshes.add(Mesh::from(shape::Plane { size: 20.0 })),
-                material: materials.add(Color::rgb(1.0, 0.9, 0.9).into()),
-                ..Default::default()
-            })
-            .insert(Transform::from_translation(Vec3::new(4.0, 0.0, 4.0)))
-            .insert(RigidBody::Static)
-            .insert(CollisionShape::Cuboid {
-                half_extends: Vec3::new(10.0, 0.1, 10.0),
-                border_radius: None,
-            });
-
-        commands.spawn_bundle(PointLightBundle {
+impl AssetCommands<'_, '_> {
+    pub(super) fn spawn_sky_roof(&mut self) {
+        self.commands.spawn_bundle(PointLightBundle {
             transform: Transform::from_translation(Vec3::new(4.0, 8.0, 4.0)),
             ..Default::default()
         });
 
-        commands
+        self.commands
             .spawn()
             .insert(SpawnPoint(Vec3::new(0.0, 5.0, 0.0)));
+
+        self.commands
+            .spawn_bundle(TransformBundle::default())
+            .insert(PendingConvexCollision {
+                body_type: RigidBody::Static,
+                border_radius: None,
+            })
+            .with_children(|parent| {
+                parent.spawn_scene(self.asset_server.load("maps/sky_roof.glb#Scene0"));
+            });
     }
 }

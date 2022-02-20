@@ -63,7 +63,7 @@ fn main() {
 
 #[cfg(test)]
 mod tests {
-    use bevy::input::InputPlugin;
+    use bevy::{input::InputPlugin, scene::ScenePlugin};
     use strum::IntoEnumIterator;
     use test_utils::HeadlessRenderPlugin;
 
@@ -87,6 +87,7 @@ mod tests {
         app.add_plugin(HeadlessRenderPlugin)
             .add_plugin(InputPlugin)
             .add_plugin(PhysicsPlugin::default())
+            .add_plugin(ScenePlugin)
             .add_plugin(CorePlugin);
 
         app
