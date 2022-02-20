@@ -67,8 +67,6 @@ fn movement_system(
         if is_on_floor(&physics_world, character, shape, transform) {
             if actions.pressed(&CharacterAction::Jump) {
                 velocity.linear.y += JUMP_IMPULSE;
-            } else {
-                velocity.linear.y = 0.0;
             }
         } else {
             velocity.linear.y -= GRAVITY * VELOCITY_INTERPOLATE_SPEED * time.delta_seconds();

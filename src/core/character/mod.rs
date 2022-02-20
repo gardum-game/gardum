@@ -22,7 +22,9 @@ pub(crate) mod hero;
 
 use bevy::prelude::*;
 use derive_more::{AddAssign, SubAssign};
-use heron::{CollisionLayers, CollisionShape, PhysicsLayer, RigidBody, Velocity};
+use heron::{
+    CollisionLayers, CollisionShape, PhysicsLayer, RigidBody, RotationConstraints, Velocity,
+};
 use leafwing_input_manager::prelude::ActionState;
 
 use super::{
@@ -46,6 +48,7 @@ pub(super) struct CharacterBundle {
     damage_modifier: DamageModifier,
     healing_modifier: HealingModifier,
     rigid_body: RigidBody,
+    rotation_constraints: RotationConstraints,
     shape: CollisionShape,
     collision_layers: CollisionLayers,
     velocity: Velocity,
@@ -93,7 +96,8 @@ impl Default for CharacterBundle {
             speed_modifier: SpeedModifier::default(),
             damage_modifier: DamageModifier::default(),
             healing_modifier: HealingModifier::default(),
-            rigid_body: RigidBody::KinematicVelocityBased,
+            rigid_body: RigidBody::Dynamic,
+            rotation_constraints: RotationConstraints::lock(),
             shape: CollisionShape::default(),
             collision_layers: CollisionLayers::from_bits(
                 CollisionLayer::Character.to_bits(),
