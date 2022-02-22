@@ -19,6 +19,7 @@
  */
 
 mod modifier_effect;
+mod periodic_effect;
 
 use bevy::prelude::*;
 use derive_more::{Deref, DerefMut};
@@ -29,6 +30,7 @@ use super::{
     AppState,
 };
 use modifier_effect::ModifierEffectPlugin;
+use periodic_effect::PeriodicEffectPlugin;
 
 pub(super) struct EffectPlugin;
 
@@ -37,6 +39,7 @@ impl Plugin for EffectPlugin {
         app.add_plugin(ModifierEffectPlugin::<SpeedModifier>::default())
             .add_plugin(ModifierEffectPlugin::<DamageModifier>::default())
             .add_plugin(ModifierEffectPlugin::<HealingModifier>::default())
+            .add_plugin(PeriodicEffectPlugin)
             .add_system_set(
                 SystemSet::on_update(AppState::InGame)
                     .with_system(dispell_on_death_system)
@@ -94,6 +97,8 @@ struct Dispelled;
 
 #[cfg(test)]
 mod tests {
+    use crate::core::health::HealthChangeEvent;
+
     use super::*;
 
     #[test]
@@ -141,6 +146,7 @@ mod tests {
     fn setup_app() -> App {
         let mut app = App::new();
         app.add_state(AppState::InGame)
+            .add_event::<HealthChangeEvent>()
             .add_plugins(MinimalPlugins)
             .add_plugin(EffectPlugin);
         app

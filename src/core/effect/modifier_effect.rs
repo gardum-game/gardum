@@ -65,7 +65,7 @@ mod tests {
     use derive_more::{AddAssign, SubAssign};
 
     use super::*;
-    use crate::core::{effect::EffectPlugin, AppState};
+    use crate::core::AppState;
 
     #[test]
     fn player_modifier_changes() {
@@ -101,7 +101,6 @@ mod tests {
         let mut app = App::new();
         app.add_state(AppState::InGame)
             .add_plugins(MinimalPlugins)
-            .add_plugin(EffectPlugin)
             .add_plugin(ModifierEffectPlugin::<DummyModifier>::default());
         app
     }
