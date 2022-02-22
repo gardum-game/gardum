@@ -30,22 +30,20 @@ pub(super) struct HealthPlugin;
 
 impl Plugin for HealthPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<DamageEvent>()
-            .add_event::<HealEvent>()
-            .add_system_set(
-                SystemSet::on_update(AppState::InGame)
-                    .with_system(heal_system)
-                    .with_system(damage_system),
-            );
+        app.add_event::<HealthChangeEvent>().add_system_set(
+            SystemSet::on_update(AppState::InGame)
+                .with_system(heal_system)
+                .with_system(damage_system),
+        );
     }
 }
 
 fn heal_system(
-    mut events: EventReader<HealEvent>,
+    mut health_events: EventReader<HealthChangeEvent>,
     mut targets: Query<&mut Health>,
     mut instigators: Query<(&mut Healing, &HealingModifier)>,
 ) {
-    for event in events.iter() {
+    for event in health_events.iter().filter(|event| event.delta > 0) {
         let mut health = targets.get_mut(event.target).unwrap();
         if health.current == 0 {
             continue;
@@ -54,26 +52,26 @@ fn heal_system(
         let (mut healing, healing_modifier) = instigators.get_mut(event.instigator).unwrap();
         let delta = health
             .missing()
-            .min((event.heal as f32 * healing_modifier.0) as u32);
+            .min((event.delta as f32 * healing_modifier.0) as u32);
         health.current += delta;
         healing.0 += delta;
     }
 }
 
 fn damage_system(
-    mut events: EventReader<DamageEvent>,
+    mut health_events: EventReader<HealthChangeEvent>,
     mut targets: Query<(&mut Health, &mut Deaths)>,
     mut instigators: Query<(&mut Damage, &mut Kills, &DamageModifier)>,
     mut commands: Commands,
 ) {
-    for event in events.iter() {
+    for event in health_events.iter().filter(|event| event.delta < 0) {
         let (mut health, mut deaths) = targets.get_mut(event.target).unwrap();
         let (mut damage, mut kills, damage_modifier) =
             instigators.get_mut(event.instigator).unwrap();
 
         let delta = health
             .current
-            .min((event.damage as f32 * damage_modifier.0) as u32);
+            .min((event.delta.abs() as f32 * damage_modifier.0) as u32);
         health.current -= delta;
         if health.current == 0 {
             deaths.0 += 1;
@@ -110,16 +108,10 @@ impl Health {
     }
 }
 
-pub(super) struct HealEvent {
+pub(super) struct HealthChangeEvent {
     pub(super) instigator: Entity,
     pub(super) target: Entity,
-    pub(super) heal: u32,
-}
-
-pub(super) struct DamageEvent {
-    pub(super) instigator: Entity,
-    pub(super) target: Entity,
-    pub(super) damage: u32,
+    pub(super) delta: i32,
 }
 
 #[derive(Component)]
@@ -148,7 +140,7 @@ mod tests {
             .insert_bundle(PlayerBundle::default())
             .id();
 
-        for (initial_health, heal, expected_healing, expected_health, modifier) in [
+        for (initial_health, delta, expected_healing, expected_health, modifier) in [
             (90, 5, 5, 95, 1.0),
             (90, 20, 10, Health::default().max, 1.0),
             (90, 10, 10, Health::default().max, 1.0),
@@ -159,11 +151,14 @@ mod tests {
             app.world.get_mut::<HealingModifier>(instigator).unwrap().0 = modifier;
             app.world.get_mut::<Healing>(instigator).unwrap().0 = 0;
 
-            let mut events = app.world.get_resource_mut::<Events<HealEvent>>().unwrap();
-            events.send(HealEvent {
+            let mut health_events = app
+                .world
+                .get_resource_mut::<Events<HealthChangeEvent>>()
+                .unwrap();
+            health_events.send(HealthChangeEvent {
                 instigator,
                 target,
-                heal,
+                delta,
             });
 
             app.update();
@@ -171,13 +166,13 @@ mod tests {
             let health = app.world.get::<Health>(target).unwrap();
             assert_eq!(
                 health.current, expected_health,
-                "Healing from {initial_health} for {heal} points should set health to {expected_health}",
+                "Healing from {initial_health} for {delta} points should set health to {expected_health}",
             );
 
             let healing = app.world.get::<Healing>(instigator).unwrap();
             assert_eq!(
                 healing.0, expected_healing,
-                "Healing from {initial_health} for {heal} points should set amount of healing to {expected_healing}",
+                "Healing from {initial_health} for {delta} points should set amount of healing to {expected_healing}",
             );
         }
     }
@@ -198,22 +193,25 @@ mod tests {
             .insert(DamageModifier::default())
             .id();
 
-        for (initial_health, damage, expected_damage, expected_health, modifier) in [
-            (90, 5, 5, 85, 1.0),
-            (90, 95, 90, 0, 1.0),
-            (90, 90, 90, 0, 1.0),
-            (0, 20, 0, 0, 1.0),
-            (90, 5, 10, 80, 2.0),
+        for (initial_health, delta, expected_damage, expected_health, modifier) in [
+            (90, -5, 5, 85, 1.0),
+            (90, -95, 90, 0, 1.0),
+            (90, -90, 90, 0, 1.0),
+            (0, -20, 0, 0, 1.0),
+            (90, -5, 10, 80, 2.0),
         ] {
             app.world.get_mut::<Health>(target).unwrap().current = initial_health;
             app.world.get_mut::<Damage>(instigator).unwrap().0 = 0;
             app.world.get_mut::<DamageModifier>(instigator).unwrap().0 = modifier;
 
-            let mut events = app.world.get_resource_mut::<Events<DamageEvent>>().unwrap();
-            events.send(DamageEvent {
+            let mut health_events = app
+                .world
+                .get_resource_mut::<Events<HealthChangeEvent>>()
+                .unwrap();
+            health_events.send(HealthChangeEvent {
                 instigator,
                 target,
-                damage,
+                delta,
             });
 
             app.update();
@@ -221,13 +219,13 @@ mod tests {
             let health = app.world.get::<Health>(target).unwrap();
             assert_eq!(
                 health.current, expected_health,
-                "Damaging from {initial_health} for {damage} points should set health to {expected_health}",
+                "Damaging from {initial_health} for {delta} points should set health to {expected_health}",
             );
 
             let damaging = app.world.get::<Damage>(instigator).unwrap();
             assert_eq!(
                 damaging.0, expected_damage,
-                "Damaging from {initial_health} for {damage} points should set amount of damage to {expected_damage}",
+                "Damaging from {initial_health} for {delta} points should set amount of damage to {expected_damage}",
             );
 
             if health.current == 0 {
@@ -256,8 +254,6 @@ mod tests {
 
     #[test]
     fn self_damaging() {
-        let damage = Health::default().max;
-
         let mut app = setup_app();
         let target = app
             .world
@@ -267,11 +263,15 @@ mod tests {
             .insert_bundle(PlayerBundle::default())
             .id();
 
-        let mut events = app.world.get_resource_mut::<Events<DamageEvent>>().unwrap();
-        events.send(DamageEvent {
+        let delta = -(Health::default().max as i32);
+        let mut health_events = app
+            .world
+            .get_resource_mut::<Events<HealthChangeEvent>>()
+            .unwrap();
+        health_events.send(HealthChangeEvent {
             instigator: target,
             target,
-            damage,
+            delta,
         });
 
         app.update();
@@ -279,7 +279,7 @@ mod tests {
         let health = app.world.get::<Health>(target).unwrap();
         assert_eq!(
             health.current,
-            Health::default().current - damage,
+            health.max - delta.abs() as u32,
             "Health should decrease by the amount of damage"
         );
 

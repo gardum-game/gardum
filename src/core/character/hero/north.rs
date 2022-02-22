@@ -25,14 +25,14 @@ use crate::core::{
     ability::{Abilities, Activator, Cooldown, IconPath},
     character::{CharacterBundle, Owner},
     character_action::CharacterAction,
-    health::{DamageEvent, Health},
+    health::{Health, HealthChangeEvent},
     projectile::{ProjectileBundle, ProjectileHitEvent},
     AppState,
 };
 
 const PROJECTILE_SPEED: f32 = 20.0;
 const FROST_BOLT_SPAWN_OFFSET: f32 = 4.0;
-const FROST_BOLT_DAMAGE: u32 = 20;
+const FROST_BOLT_DAMAGE: i32 = -20;
 
 pub(super) struct NorthPlugin;
 
@@ -72,17 +72,17 @@ fn frost_bolt_system(
 
 fn frost_bolt_hit_system(
     mut hit_events: EventReader<ProjectileHitEvent>,
-    mut damage_events: EventWriter<DamageEvent>,
+    mut health_events: EventWriter<HealthChangeEvent>,
     projectiles: Query<&Owner>,
     characters: Query<(), With<Health>>,
 ) {
     for event in hit_events.iter() {
         if characters.get(event.target).is_ok() {
             if let Ok(owner) = projectiles.get(event.projectile) {
-                damage_events.send(DamageEvent {
+                health_events.send(HealthChangeEvent {
                     instigator: owner.0,
                     target: event.target,
-                    damage: FROST_BOLT_DAMAGE,
+                    delta: FROST_BOLT_DAMAGE,
                 });
             }
         }
@@ -249,7 +249,10 @@ mod tests {
 
         app.update();
 
-        let events = app.world.get_resource::<Events<DamageEvent>>().unwrap();
+        let events = app
+            .world
+            .get_resource::<Events<HealthChangeEvent>>()
+            .unwrap();
         let mut reader = events.get_reader();
         let event = reader.iter(&events).next().unwrap();
 
@@ -259,7 +262,7 @@ mod tests {
         );
         assert_eq!(event.target, target, "Target should be equal to specified");
         assert_eq!(
-            event.damage, FROST_BOLT_DAMAGE,
+            event.delta, FROST_BOLT_DAMAGE,
             "Damage should be equal to frost bolt damage"
         );
     }
@@ -267,7 +270,7 @@ mod tests {
     fn setup_app() -> App {
         let mut app = App::new();
         app.add_event::<ProjectileHitEvent>()
-            .add_event::<DamageEvent>()
+            .add_event::<HealthChangeEvent>()
             .add_state(AppState::InGame)
             .add_plugin(HeadlessRenderPlugin)
             .add_plugin(NorthPlugin);
