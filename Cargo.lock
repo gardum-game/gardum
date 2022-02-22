@@ -224,6 +224,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_atmosphere"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "73ee886bb884435a52f0cfc93e690374180e84c663e0d42c383b4ab12790633e"
+dependencies = [
+ "bevy",
+ "naga",
+]
+
+[[package]]
 name = "bevy_core"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1300,6 +1310,7 @@ version = "0.1.0"
 dependencies = [
  "approx",
  "bevy",
+ "bevy_atmosphere",
  "bevy_egui",
  "clap",
  "derive_more",

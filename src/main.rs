@@ -35,6 +35,7 @@ use crate::core::CorePlugin;
 #[cfg(feature = "client")]
 use {
     crate::core::character_action::CharacterAction,
+    bevy_atmosphere::AtmospherePlugin,
     leafwing_input_manager::prelude::InputManagerPlugin,
     ui::ui_state::UiState,
     ui::{ui_action::UiAction, UiPlugin},
@@ -54,6 +55,7 @@ fn main() {
 
     #[cfg(feature = "client")]
     app.add_plugin(EguiPlugin)
+        .add_plugin(AtmospherePlugin::default())
         .add_plugin(InputManagerPlugin::<CharacterAction, UiState>::run_in_state(UiState::Hud))
         .add_plugin(InputManagerPlugin::<UiAction>::default())
         .add_plugin(UiPlugin);
