@@ -22,7 +22,7 @@ mod modifier_effect;
 mod periodic_effect;
 
 use bevy::prelude::*;
-use derive_more::{Deref, DerefMut};
+use derive_more::{Deref, DerefMut, From};
 
 use super::{
     character::{DamageModifier, HealingModifier, SpeedModifier},
@@ -85,7 +85,7 @@ fn effect_timer_system(
     }
 }
 
-#[derive(Component)]
+#[derive(Component, From)]
 struct EffectTarget(Entity);
 
 #[derive(Component, Deref, DerefMut)]

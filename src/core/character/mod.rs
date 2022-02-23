@@ -21,7 +21,7 @@
 pub(crate) mod hero;
 
 use bevy::prelude::*;
-use derive_more::{AddAssign, SubAssign};
+use derive_more::{AddAssign, From, SubAssign};
 use heron::{
     CollisionLayers, CollisionShape, PhysicsLayer, RigidBody, RotationConstraints, Velocity,
 };
@@ -59,7 +59,7 @@ pub(super) struct CharacterBundle {
 }
 
 /// Movement speed modifier
-#[derive(Component, AddAssign, SubAssign, Clone, Copy)]
+#[derive(Component, AddAssign, SubAssign, Clone, Copy, From)]
 pub(super) struct SpeedModifier(pub(super) f32);
 
 impl Default for SpeedModifier {
@@ -111,5 +111,5 @@ impl Default for CharacterBundle {
 }
 
 /// Used to store reference to the owner
-#[derive(Component)]
+#[derive(Component, From)]
 pub(super) struct Owner(pub(crate) Entity);

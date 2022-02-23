@@ -19,7 +19,7 @@
  */
 
 use bevy::prelude::*;
-use derive_more::{Deref, DerefMut};
+use derive_more::{Deref, DerefMut, From};
 
 use super::EffectTarget;
 use crate::core::{character::Owner, health::HealthChangeEvent, AppState};
@@ -71,7 +71,7 @@ impl Default for PeriodicEffectTimer {
     }
 }
 
-#[derive(Component)]
+#[derive(Component, From)]
 struct PeriodicHealthChange(i32);
 
 #[cfg(test)]
@@ -118,10 +118,10 @@ mod tests {
 
         const DELTA: i32 = 10;
         app.world.spawn().insert_bundle(DummyPeriodicHealBundle {
-            effect: PeriodicHealthChange(DELTA),
+            health_change: DELTA.into(),
             periodic_timer: timer,
-            owner: Owner(instigator),
-            target: EffectTarget(target),
+            owner: instigator.into(),
+            target: target.into(),
         });
 
         app.update();
@@ -158,7 +158,7 @@ mod tests {
 
     #[derive(Bundle)]
     struct DummyPeriodicHealBundle {
-        effect: PeriodicHealthChange,
+        health_change: PeriodicHealthChange,
         periodic_timer: PeriodicEffectTimer,
         owner: Owner,
         target: EffectTarget,

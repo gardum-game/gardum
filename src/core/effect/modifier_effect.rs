@@ -62,7 +62,7 @@ fn effect_modifier_removal_system<T: Component + SubAssign + Copy>(
 
 #[cfg(test)]
 mod tests {
-    use derive_more::{AddAssign, SubAssign};
+    use derive_more::{AddAssign, From, SubAssign};
 
     use super::*;
     use crate::core::AppState;
@@ -75,8 +75,10 @@ mod tests {
         let effect = app
             .world
             .spawn()
-            .insert(EffectTarget(player))
-            .insert(DummyModifier(MODIFIER_VALUE))
+            .insert_bundle(DummyModifierBundle {
+                target: player.into(),
+                modifier: MODIFIER_VALUE.into(),
+            })
             .id();
 
         app.update();
@@ -105,7 +107,13 @@ mod tests {
         app
     }
 
-    #[derive(Component, Clone, Copy, SubAssign, AddAssign)]
+    #[derive(Bundle)]
+    struct DummyModifierBundle {
+        target: EffectTarget,
+        modifier: DummyModifier,
+    }
+
+    #[derive(Component, Clone, Copy, SubAssign, AddAssign, From)]
     struct DummyModifier(f32);
 
     impl Default for DummyModifier {

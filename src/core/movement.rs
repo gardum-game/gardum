@@ -318,7 +318,7 @@ mod tests {
             .world
             .spawn()
             .insert_bundle(DummyCharacterBundle {
-                speed_modifier: SpeedModifier(SPEED_MODIFIER),
+                speed_modifier: SPEED_MODIFIER.into(),
                 ..Default::default()
             })
             .id();
