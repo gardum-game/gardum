@@ -126,6 +126,7 @@ mod tests {
 
         app.update();
         app.update();
+        app.update();
 
         let health_events = app
             .world
