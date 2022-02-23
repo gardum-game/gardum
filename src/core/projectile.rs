@@ -141,14 +141,14 @@ mod tests {
             "Projectiles shouldn't be destroyed when colliding with each other"
         );
 
-        let events = app
+        let hit_events = app
             .world
             .get_resource::<Events<ProjectileHitEvent>>()
             .unwrap();
-        let mut reader = events.get_reader();
+        let mut reader = hit_events.get_reader();
 
         assert_eq!(
-            reader.iter(&events).count(),
+            reader.iter(&hit_events).count(),
             0,
             "Hit event shouldn't be triggered for collision between two projectiles"
         );
@@ -170,14 +170,14 @@ mod tests {
             "Objects shouldn't be destroyed when colliding with each other"
         );
 
-        let events = app
+        let hit_events = app
             .world
             .get_resource::<Events<ProjectileHitEvent>>()
             .unwrap();
-        let mut reader = events.get_reader();
+        let mut reader = hit_events.get_reader();
 
         assert_eq!(
-            reader.iter(&events).count(),
+            reader.iter(&hit_events).count(),
             0,
             "Hit event shouldn't be triggered for collision between two objects"
         );
@@ -202,13 +202,13 @@ mod tests {
             "Projectiles are destroyed when colliding with other objects"
         );
 
-        let events = app
+        let hit_events = app
             .world
             .get_resource::<Events<ProjectileHitEvent>>()
             .unwrap();
-        let mut reader = events.get_reader();
+        let mut reader = hit_events.get_reader();
         let event = reader
-            .iter(&events)
+            .iter(&hit_events)
             .next()
             .expect("Hit event should be triggered");
 
@@ -221,7 +221,7 @@ mod tests {
             "Hit event should have the same target"
         );
         assert!(
-            reader.iter(&events).next().is_none(),
+            reader.iter(&hit_events).next().is_none(),
             "There should be no more collision events"
         );
     }
@@ -246,13 +246,13 @@ mod tests {
             "Projectiles are destroyed when colliding with other objects"
         );
 
-        let events = app
+        let hit_events = app
             .world
             .get_resource::<Events<ProjectileHitEvent>>()
             .unwrap();
-        let mut reader = events.get_reader();
+        let mut reader = hit_events.get_reader();
         let event = reader
-            .iter(&events)
+            .iter(&hit_events)
             .next()
             .expect("Hit event should be triggered");
 
@@ -265,7 +265,7 @@ mod tests {
             "Hit event should have the same target"
         );
         assert!(
-            reader.iter(&events).next().is_none(),
+            reader.iter(&hit_events).next().is_none(),
             "There should be no more collision events"
         );
     }

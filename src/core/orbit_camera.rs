@@ -66,7 +66,7 @@ fn spawn_camera_system(
 fn camera_input_system(
     time: Res<Time>,
     #[cfg(not(test))] windows: ResMut<Windows>,
-    mut motion_reader: EventReader<MouseMotion>,
+    mut motion_events: EventReader<MouseMotion>,
     mut orbit_rotations: Query<&mut OrbitRotation, With<Local>>,
 ) {
     #[cfg(not(test))] // Can't run tests with windows, ignore.
@@ -75,7 +75,7 @@ fn camera_input_system(
     }
 
     if let Ok(mut orbit_rotation) = orbit_rotations.get_single_mut() {
-        for event in motion_reader.iter() {
+        for event in motion_events.iter() {
             orbit_rotation.0 -= event.delta * CAMERA_SENSETIVITY * time.delta_seconds();
         }
 
@@ -207,8 +207,8 @@ mod tests {
 
         app.update();
 
-        let mut events = app.world.get_resource_mut::<Events<MouseMotion>>().unwrap();
-        events.send(MouseMotion { delta: Vec2::ONE });
+        let mut motion_events = app.world.get_resource_mut::<Events<MouseMotion>>().unwrap();
+        motion_events.send(MouseMotion { delta: Vec2::ONE });
 
         app.update();
 

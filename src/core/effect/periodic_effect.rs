@@ -127,13 +127,13 @@ mod tests {
         app.update();
         app.update();
 
-        let events = app
+        let health_events = app
             .world
             .get_resource_mut::<Events<HealthChangeEvent>>()
             .unwrap();
-        let mut event_reader = events.get_reader();
+        let mut event_reader = health_events.get_reader();
         let event = event_reader
-            .iter(&events)
+            .iter(&health_events)
             .next()
             .expect("Health change event should be triggered");
         assert_eq!(

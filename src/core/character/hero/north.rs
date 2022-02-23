@@ -240,21 +240,21 @@ mod tests {
         let projectile = app.world.spawn().insert(Owner(instigator)).id();
         let target = app.world.spawn().insert(Health::default()).id();
 
-        let mut events = app
+        let mut hit_events = app
             .world
             .get_resource_mut::<Events<ProjectileHitEvent>>()
             .unwrap();
 
-        events.send(ProjectileHitEvent { projectile, target });
+        hit_events.send(ProjectileHitEvent { projectile, target });
 
         app.update();
 
-        let events = app
+        let health_events = app
             .world
             .get_resource::<Events<HealthChangeEvent>>()
             .unwrap();
-        let mut reader = events.get_reader();
-        let event = reader.iter(&events).next().unwrap();
+        let mut reader = health_events.get_reader();
+        let event = reader.iter(&health_events).next().unwrap();
 
         assert_eq!(
             event.instigator, instigator,
