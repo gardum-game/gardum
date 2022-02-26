@@ -55,11 +55,7 @@ impl Widget for AbilityIcon<'_> {
             if display_sec != 0.0 {
                 let fade_rect = Rect::from_min_size(
                     rect.min,
-                    vec2(
-                        rect.size().x,
-                        rect.size().y
-                            * (1.0 - cooldown.elapsed_secs() / cooldown.duration().as_secs_f32()),
-                    ),
+                    vec2(rect.size().x, rect.size().y * cooldown.percent_left()),
                 );
                 ui.painter().rect(
                     fade_rect,
