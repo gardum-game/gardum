@@ -111,18 +111,10 @@ mod tests {
         let target = app.world.spawn().id();
         let instigator = app.world.spawn().id();
 
-        // Create a timer that almost finished
-        let mut timer = PeriodicEffectTimer::default();
-        let time = timer.duration() - Duration::from_nanos(1);
-        timer.tick(time);
-
-        const DELTA: i32 = 10;
-        app.world.spawn().insert_bundle(DummyPeriodicHealBundle {
-            health_change: DELTA.into(),
-            periodic_timer: timer,
-            owner: instigator.into(),
-            target: target.into(),
-        });
+        let mut heal_bundle = DummyPeriodicHealBundle::new(instigator.into(), target.into());
+        let time = heal_bundle.periodic_timer.duration() - Duration::from_nanos(1);
+        heal_bundle.periodic_timer.tick(time); // Advance timer to almost full duration
+        app.world.spawn().insert_bundle(heal_bundle);
 
         app.update();
         app.update();
@@ -142,7 +134,8 @@ mod tests {
             "Event instigator should be equal to effect owner"
         );
         assert_eq!(
-            event.delta, DELTA,
+            event.delta,
+            DummyPeriodicHealBundle::DELTA,
             "Event delta should be equal to the effect delta"
         );
     }
@@ -162,5 +155,18 @@ mod tests {
         periodic_timer: PeriodicEffectTimer,
         owner: Owner,
         target: EffectTarget,
+    }
+
+    impl DummyPeriodicHealBundle {
+        const DELTA: i32 = 10;
+
+        fn new(owner: Owner, target: EffectTarget) -> Self {
+            Self {
+                health_change: DummyPeriodicHealBundle::DELTA.into(),
+                periodic_timer: PeriodicEffectTimer::default(),
+                owner,
+                target,
+            }
+        }
     }
 }
