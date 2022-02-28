@@ -13,7 +13,7 @@ heron = { version = "2.0", features = ["3d"] }
 leafwing-input-manager = "0.2"
 clap = { version = "3.0", features = ["derive"] }
 derive_more  = { version = "0.99", default-features = false, features = ["deref", "deref_mut", "from", "add_assign"] }
-strum = { version = "0.23", features = ["derive"] }
+strum = { version = "0.24", features = ["derive"] }
 itertools = "0.10"
 
 [dev-dependencies]
