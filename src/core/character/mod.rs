@@ -109,7 +109,3 @@ impl Default for CharacterBundle {
         }
     }
 }
-
-/// Used to store reference to the owner
-#[derive(Component, From)]
-pub(super) struct Owner(pub(crate) Entity);

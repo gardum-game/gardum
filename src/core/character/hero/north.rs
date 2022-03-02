@@ -23,12 +23,12 @@ use heron::{CollisionShape, Velocity};
 
 use crate::core::{
     ability::{Abilities, Activator, IconPath},
-    character::{CharacterBundle, Owner},
+    character::CharacterBundle,
     character_action::CharacterAction,
     cooldown::Cooldown,
     health::{Health, HealthChangeEvent},
     projectile::{ProjectileBundle, ProjectileHitEvent},
-    AppState,
+    AppState, Owner,
 };
 
 const PROJECTILE_SPEED: f32 = 20.0;

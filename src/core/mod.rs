@@ -34,6 +34,7 @@ mod projectile;
 pub(super) mod session;
 
 use bevy::{ecs::system::SystemParam, prelude::*};
+use derive_more::From;
 use heron::PhysicsLayer;
 #[cfg(test)]
 use strum::EnumIter;
@@ -107,6 +108,10 @@ pub(super) enum CollisionLayer {
     Character,
     Projectile,
 }
+
+/// Used to store reference to the owner
+#[derive(Component, From)]
+struct Owner(Entity);
 
 /// TODO 0.7: Replace with built-in
 #[derive(Bundle, Clone, Copy, Debug, Default)]
