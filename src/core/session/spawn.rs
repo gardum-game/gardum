@@ -79,7 +79,7 @@ fn respawn_system(
 ) {
     for (player, mut transform, mut respawn_timer) in dead_players.iter_mut() {
         respawn_timer.tick(time.delta());
-        if respawn_timer.finished() {
+        if respawn_timer.just_finished() {
             commands.entity(player).remove::<RespawnTimer>();
             // TODO: determine best spawn position based on other characters location
             let spawn_point = spawn_points
@@ -106,6 +106,7 @@ pub(crate) struct SpawnPoint(pub(crate) Vec3);
 
 #[cfg(test)]
 mod tests {
+    use std::time::Duration;
     use strum::IntoEnumIterator;
 
     use super::*;
@@ -178,11 +179,13 @@ mod tests {
             "Respawn timer should tick"
         );
 
-        app.world
+        let mut respawn_timer = app
+            .world
             .entity_mut(player)
             .get_mut::<RespawnTimer>()
-            .unwrap()
-            .tick(RespawnTimer::default().duration());
+            .unwrap();
+        let duration_left = respawn_timer.duration() - respawn_timer.elapsed();
+        respawn_timer.tick(duration_left - Duration::from_nanos(1)); // Tick to almost end to trigger just_finished inside the system
         app.update();
 
         assert!(
