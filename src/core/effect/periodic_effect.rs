@@ -63,7 +63,7 @@ fn periodic_timer_system(time: Res<Time>, mut effects: Query<&mut PeriodicEffect
 }
 
 #[derive(Component, Deref, DerefMut)]
-struct PeriodicEffectTimer(Timer);
+pub(crate) struct PeriodicEffectTimer(Timer);
 
 impl Default for PeriodicEffectTimer {
     fn default() -> Self {
@@ -72,7 +72,7 @@ impl Default for PeriodicEffectTimer {
 }
 
 #[derive(Component, From)]
-struct PeriodicHealthChange(i32);
+pub(crate) struct PeriodicHealthChange(i32);
 
 #[cfg(test)]
 mod tests {

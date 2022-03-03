@@ -69,7 +69,7 @@ impl Default for SpeedModifier {
 }
 
 /// Outgoing damage modifier
-#[derive(Component, AddAssign, SubAssign, Clone, Copy)]
+#[derive(Component, AddAssign, SubAssign, Clone, Copy, From)]
 pub(super) struct DamageModifier(pub(super) f32);
 
 impl Default for DamageModifier {
@@ -79,7 +79,7 @@ impl Default for DamageModifier {
 }
 
 /// Outgoing healing modifier
-#[derive(Component, AddAssign, SubAssign, Clone, Copy)]
+#[derive(Component, AddAssign, SubAssign, Clone, Copy, From)]
 pub(super) struct HealingModifier(pub(super) f32);
 
 impl Default for HealingModifier {

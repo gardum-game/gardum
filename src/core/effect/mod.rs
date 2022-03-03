@@ -18,8 +18,8 @@
  *
  */
 
-mod modifier_effect;
-mod periodic_effect;
+pub(super) mod modifier_effect;
+pub(super) mod periodic_effect;
 
 use bevy::prelude::*;
 use derive_more::{Deref, DerefMut, From};
@@ -86,10 +86,10 @@ fn effect_timer_system(
 }
 
 #[derive(Component, From)]
-struct EffectTarget(Entity);
+pub(super) struct EffectTarget(Entity);
 
-#[derive(Component, Deref, DerefMut)]
-struct EffectTimer(Timer);
+#[derive(Component, Deref, DerefMut, From)]
+pub(super) struct EffectTimer(Timer);
 
 /// Indticates that the effect is queued for removal
 #[derive(Component)]

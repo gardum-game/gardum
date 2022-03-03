@@ -21,7 +21,7 @@
 use bevy::prelude::*;
 use heron::{PendingConvexCollision, RigidBody};
 
-use crate::core::{session::spawn::SpawnPoint, AssetCommands, TransformBundle};
+use crate::core::{pickup::PickupKind, session::spawn::SpawnPoint, AssetCommands, TransformBundle};
 
 impl AssetCommands<'_, '_> {
     pub(super) fn spawn_sky_roof(&mut self) {
@@ -43,5 +43,9 @@ impl AssetCommands<'_, '_> {
             .with_children(|parent| {
                 parent.spawn_scene(self.asset_server.load("maps/sky_roof.glb#Scene0"));
             });
+
+        self.spawn_pickup(PickupKind::Healing, Vec3::new(4.0, 0.1, -1.0));
+        self.spawn_pickup(PickupKind::Speed, Vec3::new(4.0, 0.1, 0.0));
+        self.spawn_pickup(PickupKind::Rage, Vec3::new(4.0, 0.1, 1.0));
     }
 }

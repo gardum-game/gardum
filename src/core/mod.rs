@@ -29,6 +29,7 @@ pub(super) mod health;
 pub(super) mod map;
 mod movement;
 mod orbit_camera;
+mod pickup;
 pub(super) mod player;
 mod projectile;
 pub(super) mod session;
@@ -49,6 +50,7 @@ use health::HealthPlugin;
 use map::MapsPlugin;
 use movement::MovementPlugin;
 use orbit_camera::OrbitCameraPlugin;
+use pickup::PickupPlugin;
 use player::PlayerPlugin;
 use projectile::ProjectilePlugin;
 use session::SessionPlugin;
@@ -64,6 +66,7 @@ impl Plugin for CorePlugin {
             .add_plugin(CharacterActionPlugin)
             .add_plugin(AbilityPlugin)
             .add_plugin(OrbitCameraPlugin)
+            .add_plugin(PickupPlugin)
             .add_plugin(MovementPlugin)
             .add_plugin(CliPlugin)
             .add_plugin(MapsPlugin)
@@ -105,6 +108,7 @@ pub(super) enum AppState {
 pub(super) enum CollisionLayer {
     Character,
     Projectile,
+    Pickup,
 }
 
 /// Used to store reference to the owner
@@ -116,6 +120,20 @@ struct Owner(Entity);
 struct TransformBundle {
     pub local: Transform,
     pub global: GlobalTransform,
+}
+
+impl TransformBundle {
+    /// Creates a new [`TransformBundle`] from a [`Transform`].
+    ///
+    /// This initializes [`GlobalTransform`] as identity, to be updated later by the
+    /// [`CoreStage::PostUpdate`](crate::CoreStage::PostUpdate) stage.
+    #[inline]
+    pub fn from_transform(transform: Transform) -> Self {
+        TransformBundle {
+            local: transform,
+            ..Self::default()
+        }
+    }
 }
 
 /// Helper for easier asset spawning
