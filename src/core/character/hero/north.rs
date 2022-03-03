@@ -102,7 +102,7 @@ impl Default for FrostBoltBundle {
     fn default() -> Self {
         Self {
             frost_bolt_ability: FrostBoltAbility,
-            icon: "charater/hero/north/frost_bolt.png".into(),
+            icon: "character/hero/north/frost_bolt.png".into(),
             action: CharacterAction::BaseAttack,
             cooldown: Cooldown::from_secs(4),
         }
