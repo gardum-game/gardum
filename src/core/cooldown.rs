@@ -22,22 +22,6 @@ use bevy::prelude::*;
 use derive_more::{Deref, DerefMut};
 use std::time::Duration;
 
-use super::AppState;
-
-pub(super) struct CooldownPlugin;
-
-impl Plugin for CooldownPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_system_set(SystemSet::on_update(AppState::InGame).with_system(cooldown_system));
-    }
-}
-
-fn cooldown_system(time: Res<Time>, mut cooldowns: Query<&mut Cooldown>) {
-    for mut cooldown in cooldowns.iter_mut() {
-        cooldown.tick(time.delta());
-    }
-}
-
 #[derive(Deref, DerefMut, Component)]
 pub(crate) struct Cooldown(Timer);
 
@@ -66,30 +50,5 @@ mod tests {
             cooldown.finished(),
             "Cooldown shouldn't tick after creation"
         );
-    }
-
-    #[test]
-    fn cooldown_ticks() {
-        let mut app = setup_app();
-
-        let mut cooldown = Cooldown::from_secs(1);
-        cooldown.reset(); // Activate cooldown
-        let cooldown_entity = app.world.spawn().insert(cooldown).id();
-
-        app.update();
-        app.update();
-        let cooldown = app.world.get::<Cooldown>(cooldown_entity).unwrap();
-        assert!(
-            cooldown.elapsed() > Duration::default(),
-            "Cooldown should tick"
-        );
-    }
-
-    fn setup_app() -> App {
-        let mut app = App::new();
-        app.add_state(AppState::InGame)
-            .add_plugins(MinimalPlugins)
-            .add_plugin(CooldownPlugin);
-        app
     }
 }

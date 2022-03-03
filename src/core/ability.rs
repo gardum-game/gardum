@@ -34,20 +34,25 @@ impl Plugin for AbilityPlugin {
 
 fn activation_system(
     mut commands: Commands,
+    time: Res<Time>,
     characters: Query<(Entity, &Abilities, &ActionState<CharacterAction>)>,
     mut abilities: Query<(&CharacterAction, Option<&mut Cooldown>)>,
 ) {
     for (character, character_abilities, actions) in characters.iter() {
         for ability in character_abilities.iter() {
             let (action, cooldown) = abilities.get_mut(*ability).unwrap();
-            if actions.just_pressed(action) {
-                if let Some(mut cooldown) = cooldown {
+
+            if let Some(mut cooldown) = cooldown {
+                cooldown.tick(time.delta());
+                if actions.just_pressed(action) {
                     if !cooldown.finished() {
                         break;
                     }
                     cooldown.reset();
                 }
+            }
 
+            if actions.just_pressed(action) {
                 commands.entity(*ability).insert(Activator(character));
                 break;
             }
@@ -69,9 +74,10 @@ pub(crate) struct Abilities(pub(crate) Vec<Entity>);
 #[cfg(test)]
 mod tests {
     use bevy::input::InputPlugin;
+    use std::time::Duration;
 
     use super::*;
-    use crate::core::{cooldown::CooldownPlugin, Local};
+    use crate::core::Local;
 
     #[test]
     fn ability_ignores_unrelated_action() {
@@ -134,6 +140,19 @@ mod tests {
 
         let cooldown = app.world.get::<Cooldown>(ability).unwrap();
         assert!(!cooldown.finished(), "Cooldown should be triggered");
+        assert_eq!(
+            cooldown.elapsed(),
+            Duration::default(),
+            "Cooldown shouldn't have elapsed right after activation time"
+        );
+
+        app.update();
+
+        let cooldown = app.world.get::<Cooldown>(ability).unwrap();
+        assert!(
+            cooldown.elapsed() > Duration::default(),
+            "Cooldown should tick"
+        );
     }
 
     #[test]
@@ -175,7 +194,6 @@ mod tests {
         app.add_state(AppState::InGame)
             .add_plugins(MinimalPlugins)
             .add_plugin(InputPlugin)
-            .add_plugin(CooldownPlugin)
             .add_plugin(AbilityPlugin);
         app
     }
