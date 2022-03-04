@@ -41,6 +41,9 @@ use {
     ui::{ui_action::UiAction, UiPlugin},
 };
 
+#[cfg(feature = "inspector")]
+use bevy_inspector_egui::WorldInspectorPlugin;
+
 #[cfg(not(tarpaulin_include))]
 fn main() {
     let mut app = App::new();
@@ -59,6 +62,9 @@ fn main() {
         .add_plugin(InputManagerPlugin::<CharacterAction, UiState>::run_in_state(UiState::Hud))
         .add_plugin(InputManagerPlugin::<UiAction>::default())
         .add_plugin(UiPlugin);
+
+    #[cfg(feature = "inspector")]
+    app.add_plugin(WorldInspectorPlugin::new());
 
     app.run();
 }
