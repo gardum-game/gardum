@@ -20,13 +20,33 @@
 
 use bevy::prelude::*;
 use heron::{PendingConvexCollision, RigidBody};
+use std::f32::consts::PI;
 
 use crate::core::{pickup::PickupKind, session::spawn::SpawnPoint, AssetCommands, TransformBundle};
 
 impl AssetCommands<'_, '_> {
     pub(super) fn spawn_sky_roof(&mut self) {
-        self.commands.spawn_bundle(PointLightBundle {
-            transform: Transform::from_translation(Vec3::new(4.0, 8.0, 4.0)),
+        const PROJECTION: f32 = 5.0;
+        self.commands.spawn_bundle(DirectionalLightBundle {
+            directional_light: DirectionalLight {
+                illuminance: 10000.0,
+                shadow_projection: OrthographicProjection {
+                    left: -PROJECTION,
+                    right: PROJECTION,
+                    bottom: -PROJECTION,
+                    top: PROJECTION,
+                    near: -10.0 * PROJECTION,
+                    far: 10.0 * PROJECTION,
+                    ..Default::default()
+                },
+                shadows_enabled: true,
+                ..Default::default()
+            },
+            transform: Transform {
+                translation: Vec3::Y * 5.0,
+                rotation: Quat::from_euler(EulerRot::XYZ, -PI / 8.0, -PI / 4.0, 0.0),
+                ..Default::default()
+            },
             ..Default::default()
         });
 
