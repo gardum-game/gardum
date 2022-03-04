@@ -36,9 +36,9 @@ impl Plugin for MapsPlugin {
     }
 }
 
-fn load_map_system(map: Res<Map>, mut asset_commans: AssetCommands) {
+fn load_map_system(map: Res<Map>, mut asset_commands: AssetCommands) {
     match *map {
-        Map::Plane => asset_commans.spawn_sky_roof(),
+        Map::Plane => asset_commands.spawn_sky_roof(),
     };
 }
 

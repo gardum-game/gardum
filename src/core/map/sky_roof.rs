@@ -29,7 +29,7 @@ impl AssetCommands<'_, '_> {
         const PROJECTION: f32 = 5.0;
         self.commands.spawn_bundle(DirectionalLightBundle {
             directional_light: DirectionalLight {
-                illuminance: 10000.0,
+                illuminance: 100000.0,
                 shadow_projection: OrthographicProjection {
                     left: -PROJECTION,
                     right: PROJECTION,
