@@ -46,29 +46,32 @@ fn create_server_player(mut commands: Commands) {
     commands.spawn_bundle(PlayerBundle::default()).insert(Local);
 }
 
-#[derive(Default, Bundle)]
+#[derive(Bundle)]
 pub(crate) struct PlayerBundle {
+    name: Name,
     player: Player,
-    nickname: Nickname,
     kills: Kills,
     deaths: Deaths,
     damage: Damage,
     healing: Healing,
 }
 
+impl Default for PlayerBundle {
+    fn default() -> Self {
+        Self {
+            name: "New player".into(),
+            player: Player::default(),
+            kills: Kills::default(),
+            deaths: Deaths::default(),
+            damage: Damage::default(),
+            healing: Healing::default(),
+        }
+    }
+}
+
 /// Indicates that the entity is a player
 #[derive(Component, Default)]
 pub(crate) struct Player;
-
-/// Stores player name
-#[derive(Component)]
-pub(crate) struct Nickname(pub(crate) String);
-
-impl Default for Nickname {
-    fn default() -> Self {
-        Self("New player".to_string())
-    }
-}
 
 /// Used to keep statistics of the number of kills
 #[derive(Component, Default, Debug, PartialEq, Deref)]
