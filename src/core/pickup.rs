@@ -201,22 +201,27 @@ pub(super) enum PickupKind {
     Healing,
 }
 
+impl PickupKind {
+    fn asset(&self) -> &str {
+        match self {
+            PickupKind::Speed => "pickup/lightning.glb#Scene0",
+            PickupKind::Rage => "pickup/blood_drop.glb#Scene0",
+            PickupKind::Healing => "pickup/cross.glb#Scene0",
+        }
+    }
+}
+
 impl AssetCommands<'_, '_> {
     pub(super) fn spawn_pickup(&mut self, pickup_kind: PickupKind, translation: Vec3) {
         self.commands
             .spawn_bundle(PickupBundle::new(pickup_kind, translation))
             .with_children(|parent| {
-                let path = match pickup_kind {
-                    PickupKind::Speed => "pickup/lightning.glb#Scene0",
-                    PickupKind::Rage => "pickup/blood_drop.glb#Scene0",
-                    PickupKind::Healing => "pickup/cross.glb#Scene0",
-                };
                 parent
                     .spawn_bundle(TransformBundle::from_transform(
                         Transform::from_translation(Vec3::Y / 2.0),
                     ))
                     .with_children(|parent| {
-                        parent.spawn_scene(self.asset_server.load(path));
+                        parent.spawn_scene(self.asset_server.load(pickup_kind.asset()));
                     });
                 parent.spawn_scene(self.asset_server.load("pickup/platform.glb#Scene0"));
             });
