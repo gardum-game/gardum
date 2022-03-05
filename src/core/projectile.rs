@@ -60,6 +60,7 @@ fn collision_system(
 
 #[derive(Bundle)]
 pub(super) struct ProjectileBundle {
+    pub(super) name: Name,
     pub(super) rigid_body: RigidBody,
     pub(super) shape: CollisionShape,
     pub(super) collision_layers: CollisionLayers,
@@ -74,6 +75,7 @@ pub(super) struct ProjectileBundle {
 impl Default for ProjectileBundle {
     fn default() -> Self {
         Self {
+            name: "Projectile".into(),
             rigid_body: RigidBody::KinematicVelocityBased,
             shape: CollisionShape::default(),
             collision_layers: CollisionLayers::from_bits(

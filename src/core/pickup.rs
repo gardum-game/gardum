@@ -113,6 +113,7 @@ fn pickup_child_mesh(pickup: Entity, children: &Query<&Children>) -> Entity {
 
 #[derive(Bundle)]
 struct PickupBundle {
+    name: Name,
     pickup_kind: PickupKind,
     cooldown: Cooldown,
     rigid_body: RigidBody,
@@ -125,6 +126,7 @@ struct PickupBundle {
 impl PickupBundle {
     fn new(pickup_kind: PickupKind, translation: Vec3) -> Self {
         Self {
+            name: "Pickup".into(),
             pickup_kind,
             cooldown: Cooldown::from_secs(10),
             rigid_body: RigidBody::Sensor,
@@ -141,6 +143,7 @@ impl PickupBundle {
 
 #[derive(Bundle)]
 struct HealingEffectBundle {
+    name: Name,
     health_change: PeriodicHealthChange,
     periodic_timer: PeriodicEffectTimer,
     timer: EffectTimer,
@@ -150,6 +153,7 @@ struct HealingEffectBundle {
 impl HealingEffectBundle {
     fn new(target: EffectTarget) -> Self {
         Self {
+            name: "Healing Effect".into(),
             health_change: 10.into(),
             target,
             timer: Timer::from_seconds(4.0, false).into(),
@@ -160,6 +164,7 @@ impl HealingEffectBundle {
 
 #[derive(Bundle)]
 struct RageEffectBundle {
+    name: Name,
     damage_modifier: DamageModifier,
     healing_modifier: HealingModifier,
     timer: EffectTimer,
@@ -169,6 +174,7 @@ struct RageEffectBundle {
 impl RageEffectBundle {
     fn new(target: EffectTarget) -> Self {
         Self {
+            name: "Rage Effect".into(),
             damage_modifier: 0.2.into(),
             healing_modifier: 0.2.into(),
             timer: Timer::from_seconds(10.0, false).into(),
@@ -179,6 +185,7 @@ impl RageEffectBundle {
 
 #[derive(Bundle)]
 struct SpeedEffectBundle {
+    name: Name,
     speed_modifier: HealingModifier,
     timer: EffectTimer,
     target: EffectTarget,
@@ -187,6 +194,7 @@ struct SpeedEffectBundle {
 impl SpeedEffectBundle {
     fn new(target: EffectTarget) -> Self {
         Self {
+            name: "Speed Effect".into(),
             speed_modifier: 0.2.into(),
             timer: Timer::from_seconds(10.0, false).into(),
             target,
