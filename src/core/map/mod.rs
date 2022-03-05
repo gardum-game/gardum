@@ -53,29 +53,17 @@ mod tests {
     use strum::IntoEnumIterator;
 
     use super::*;
-    use crate::test_utils::HeadlessRenderPlugin;
+    use crate::test_utils::{wait_for_asset_loading, HeadlessRenderPlugin};
 
     #[test]
-    fn initialization_on_start() {
+    fn loading_on_start() {
         let mut app = setup_app();
-        app.add_state(AppState::InGame);
 
-        let mut meshes_query = app.world.query::<&Handle<Mesh>>();
         for map in Map::iter() {
             let mut current_map = app.world.get_resource_mut::<Map>().unwrap();
             *current_map = map;
 
-            const MAX_UPDATES: u8 = 25;
-            let mut updates_count = 1;
-            loop {
-                app.update();
-                if meshes_query.iter(&app.world).count() > 0 || updates_count == MAX_UPDATES {
-                    break;
-                }
-                updates_count += 1;
-            }
-
-            assert_ne!(updates_count, MAX_UPDATES, "Map meshes should be loaded");
+            wait_for_asset_loading(&mut app, "maps/sky_roof.glb#Scene0", 25);
 
             app.world.clear_entities();
         }
@@ -83,7 +71,8 @@ mod tests {
 
     fn setup_app() -> App {
         let mut app = App::new();
-        app.add_plugin(HeadlessRenderPlugin)
+        app.add_state(AppState::InGame)
+            .add_plugin(HeadlessRenderPlugin)
             .add_plugin(ScenePlugin)
             .add_plugin(GltfPlugin)
             .add_plugin(TransformPlugin)
