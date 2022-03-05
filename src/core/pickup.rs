@@ -18,7 +18,7 @@
  *
  */
 
-use bevy::prelude::*;
+use bevy::{ecs::system::EntityCommands, prelude::*};
 use heron::{CollisionEvent, CollisionLayers, CollisionShape, PhysicsLayer, RigidBody};
 
 use super::{
@@ -211,19 +211,27 @@ impl PickupKind {
     }
 }
 
-impl AssetCommands<'_, '_> {
-    pub(super) fn spawn_pickup(&mut self, pickup_kind: PickupKind, translation: Vec3) {
-        self.commands
-            .spawn_bundle(PickupBundle::new(pickup_kind, translation))
-            .with_children(|parent| {
-                parent
-                    .spawn_bundle(TransformBundle::from_transform(
-                        Transform::from_translation(Vec3::Y / 2.0),
-                    ))
-                    .with_children(|parent| {
-                        parent.spawn_scene(self.asset_server.load(pickup_kind.asset()));
-                    });
-                parent.spawn_scene(self.asset_server.load("pickup/platform.glb#Scene0"));
-            });
+impl<'w, 's> AssetCommands<'w, 's> {
+    pub(super) fn spawn_pickup<'a>(
+        &'a mut self,
+        pickup_kind: PickupKind,
+        translation: Vec3,
+    ) -> EntityCommands<'w, 's, 'a> {
+        let mut entity_commands = self
+            .commands
+            .spawn_bundle(PickupBundle::new(pickup_kind, translation));
+
+        entity_commands.with_children(|parent| {
+            parent
+                .spawn_bundle(TransformBundle::from_transform(
+                    Transform::from_translation(Vec3::Y / 2.0),
+                ))
+                .with_children(|parent| {
+                    parent.spawn_scene(self.asset_server.load(pickup_kind.asset()));
+                });
+            parent.spawn_scene(self.asset_server.load("pickup/platform.glb#Scene0"));
+        });
+
+        entity_commands
     }
 }
