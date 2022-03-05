@@ -19,7 +19,7 @@
  */
 
 use bevy::{
-    asset::AssetPlugin,
+    asset::{AssetPlugin, LoadState},
     core::CorePlugin,
     pbr::PbrPlugin,
     prelude::*,
@@ -42,4 +42,20 @@ impl Plugin for HeadlessRenderPlugin {
         .add_plugin(RenderPlugin::default())
         .add_plugin(PbrPlugin::default());
     }
+}
+
+pub(super) fn wait_for_asset_loading(app: &mut App, path: &str, max_updates: u8) {
+    let asset_server = app.world.get_resource::<AssetServer>().unwrap();
+    let handle: Handle<Scene> = asset_server.load(path);
+
+    for _ in 0..max_updates {
+        app.update();
+        let asset_server = app.world.get_resource::<AssetServer>().unwrap();
+        match asset_server.get_load_state(handle.clone()) {
+            LoadState::Loaded => return,
+            LoadState::Failed => panic!("Unable to load {path}"),
+            _ => {}
+        }
+    }
+    panic!("Unable to load asset {path} with {max_updates} app updates");
 }
