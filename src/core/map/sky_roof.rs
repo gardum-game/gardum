@@ -22,7 +22,10 @@ use bevy::{ecs::system::EntityCommands, prelude::*};
 use heron::{PendingConvexCollision, RigidBody};
 use std::f32::consts::PI;
 
-use crate::core::{pickup::PickupKind, session::spawn::SpawnPoint, AssetCommands, TransformBundle};
+use super::Map;
+use crate::core::{
+    pickup::PickupKind, session::spawn::SpawnPoint, AssetCommands, AssociatedAsset, TransformBundle,
+};
 
 impl<'w, 's> AssetCommands<'w, 's> {
     pub(super) fn spawn_sky_roof<'a>(&'a mut self) -> EntityCommands<'w, 's, 'a> {
@@ -65,7 +68,7 @@ impl<'w, 's> AssetCommands<'w, 's> {
                 border_radius: None,
             })
             .with_children(|parent| {
-                parent.spawn_scene(self.asset_server.load("maps/sky_roof.glb#Scene0"));
+                parent.spawn_scene(self.asset_server.load(Map::SkyRoof.asset_path()));
             });
         scene_commands
     }

@@ -142,3 +142,9 @@ struct AssetCommands<'w, 's> {
     commands: Commands<'w, 's>,
     asset_server: Res<'w, AssetServer>,
 }
+
+/// Trait to map enumerations with associated assets
+trait AssociatedAsset {
+    /// Returns path to associated asset
+    fn asset_path(&self) -> &str;
+}

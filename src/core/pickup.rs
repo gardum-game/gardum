@@ -28,7 +28,7 @@ use super::{
         periodic_effect::{PeriodicEffectTimer, PeriodicHealthChange},
         EffectTarget, EffectTimer,
     },
-    AppState, AssetCommands, CollisionLayer, TransformBundle,
+    AppState, AssetCommands, AssociatedAsset, CollisionLayer, TransformBundle,
 };
 
 pub(super) struct PickupPlugin;
@@ -209,8 +209,8 @@ pub(super) enum PickupKind {
     Healing,
 }
 
-impl PickupKind {
-    const fn asset_path(&self) -> &str {
+impl AssociatedAsset for PickupKind {
+    fn asset_path(&self) -> &str {
         match self {
             PickupKind::Speed => "pickup/lightning.glb#Scene0",
             PickupKind::Rage => "pickup/blood_drop.glb#Scene0",

@@ -24,27 +24,35 @@ use bevy::prelude::*;
 
 use strum::EnumIter;
 
-use super::AssetCommands;
+use super::{AssetCommands, AssociatedAsset};
 use crate::core::AppState;
 
 pub(super) struct MapsPlugin;
 
 impl Plugin for MapsPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(Map::Plane)
+        app.insert_resource(Map::SkyRoof)
             .add_system_set(SystemSet::on_enter(AppState::InGame).with_system(load_map_system));
     }
 }
 
 fn load_map_system(map: Res<Map>, mut asset_commands: AssetCommands) {
     match *map {
-        Map::Plane => asset_commands.spawn_sky_roof(),
+        Map::SkyRoof => asset_commands.spawn_sky_roof(),
     };
 }
 
 #[derive(Clone, Copy, Debug, EnumIter, PartialEq)]
 pub(crate) enum Map {
-    Plane,
+    SkyRoof,
+}
+
+impl AssociatedAsset for Map {
+    fn asset_path(&self) -> &str {
+        match self {
+            Map::SkyRoof => "maps/sky_roof.glb#Scene0",
+        }
+    }
 }
 
 #[cfg(test)]
