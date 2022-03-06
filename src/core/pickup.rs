@@ -22,7 +22,7 @@ use bevy::{ecs::system::EntityCommands, prelude::*};
 use heron::{CollisionEvent, CollisionLayers, CollisionShape, PhysicsLayer, RigidBody};
 
 use super::{
-    character::{DamageModifier, HealingModifier},
+    character::{DamageModifier, HealingModifier, SpeedModifier},
     cooldown::Cooldown,
     effect::{
         periodic_effect::{PeriodicEffectTimer, PeriodicHealthChange},
@@ -186,7 +186,7 @@ impl RageEffectBundle {
 #[derive(Bundle)]
 struct SpeedEffectBundle {
     name: Name,
-    speed_modifier: HealingModifier,
+    speed_modifier: SpeedModifier,
     timer: EffectTimer,
     target: EffectTarget,
 }
