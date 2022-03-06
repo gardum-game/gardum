@@ -210,7 +210,7 @@ pub(super) enum PickupKind {
 }
 
 impl PickupKind {
-    fn asset(&self) -> &str {
+    const fn asset_path(&self) -> &str {
         match self {
             PickupKind::Speed => "pickup/lightning.glb#Scene0",
             PickupKind::Rage => "pickup/blood_drop.glb#Scene0",
@@ -218,6 +218,8 @@ impl PickupKind {
         }
     }
 }
+
+const PLATFORM_PATH: &str = "pickup/platform.glb#Scene0";
 
 impl<'w, 's> AssetCommands<'w, 's> {
     pub(super) fn spawn_pickup<'a>(
@@ -235,9 +237,9 @@ impl<'w, 's> AssetCommands<'w, 's> {
                     Transform::from_translation(Vec3::Y / 2.0),
                 ))
                 .with_children(|parent| {
-                    parent.spawn_scene(self.asset_server.load(pickup_kind.asset()));
+                    parent.spawn_scene(self.asset_server.load(pickup_kind.asset_path()));
                 });
-            parent.spawn_scene(self.asset_server.load("pickup/platform.glb#Scene0"));
+            parent.spawn_scene(self.asset_server.load(PLATFORM_PATH));
         });
 
         entity_commands
