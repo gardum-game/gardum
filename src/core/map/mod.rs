@@ -58,7 +58,6 @@ impl AssociatedAsset for Map {
 #[cfg(test)]
 mod tests {
     use bevy::{gltf::GltfPlugin, scene::ScenePlugin};
-    use strum::IntoEnumIterator;
 
     use super::*;
     use crate::test_utils::{wait_for_asset_loading, HeadlessRenderPlugin};
@@ -66,15 +65,11 @@ mod tests {
     #[test]
     fn loading_on_start() {
         let mut app = setup_app();
+        let map = *app.world.get_resource::<Map>().unwrap();
 
-        for map in Map::iter() {
-            let mut current_map = app.world.get_resource_mut::<Map>().unwrap();
-            *current_map = map;
+        wait_for_asset_loading(&mut app, map.asset_path(), 25);
 
-            wait_for_asset_loading(&mut app, "maps/sky_roof.glb#Scene0", 25);
-
-            app.world.clear_entities();
-        }
+        app.world.clear_entities();
     }
 
     fn setup_app() -> App {
