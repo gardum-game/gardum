@@ -73,9 +73,9 @@ dependencies = [
 
 [[package]]
 name = "anyhow"
-version = "1.0.55"
+version = "1.0.56"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "159bb86af3a200e19a068f4224eae4c8bb2d0fa054c7e5d1cacd5cef95e684cd"
+checksum = "4361135be9122e0870de935d7c439aef945b9f9ddd4199a553b5270b49c82a27"
 
 [[package]]
 name = "approx"
@@ -842,9 +842,9 @@ checksum = "fd16c4719339c4530435d38e511904438d07cce7950afa3718a84ac36c10e89e"
 
 [[package]]
 name = "clap"
-version = "3.1.5"
+version = "3.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ced1892c55c910c1219e98d6fc8d71f6bddba7905866ce740066d8bfea859312"
+checksum = "d8c93436c21e4698bacadf42917db28b23017027a4deccb35dbe47a7e7840123"
 dependencies = [
  "atty",
  "bitflags",
@@ -1514,9 +1514,9 @@ dependencies = [
 
 [[package]]
 name = "heron"
-version = "2.1.0"
+version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ad7a3dc79b05f75d91cf236f94c832bdcd95067dc0207738fbc7876932b92077"
+checksum = "f4cee56d499ba5c64613ef1c254b715114bc77fa727302b5274c7714d891e10b"
 dependencies = [
  "bevy",
  "cfg_aliases",
@@ -1527,9 +1527,9 @@ dependencies = [
 
 [[package]]
 name = "heron_core"
-version = "2.1.0"
+version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1631c221c721c8b88e7171b4593ca2c17d9a58ea8587131730fbe9240d4ea612"
+checksum = "440bacbfad89b0f18e28ed427ddd1d16c060432b9d8d8e4fce3bea3119c9df98"
 dependencies = [
  "bevy",
  "cfg_aliases",
@@ -1539,9 +1539,9 @@ dependencies = [
 
 [[package]]
 name = "heron_macros"
-version = "2.1.0"
+version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f4ac94ca826d6a7e3699cadab2abcaa1df3f3f74cc37489fdf02a7d56db03213"
+checksum = "445b54f035a07d78b780105b39a91157b37d509cee30dcb7b480a2692051527d"
 dependencies = [
  "quote",
  "syn",
@@ -1549,9 +1549,9 @@ dependencies = [
 
 [[package]]
 name = "heron_rapier"
-version = "2.1.0"
+version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d689ac702fde38e2c93ce91d541beab97e03aa1181f08470ae678e815c0db711"
+checksum = "6ef1cb79e397dbc00046a79b70d83ab9169b9039c58bdcd4343906507a4bf96e"
 dependencies = [
  "bevy",
  "cfg_aliases",
@@ -2378,9 +2378,9 @@ dependencies = [
 
 [[package]]
 name = "regex"
-version = "1.5.4"
+version = "1.5.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d07a8629359eb56f1e2fb1652bb04212c072a87ba68546a04065d525673ac461"
+checksum = "1a11647b6b25ff05a515cb92c365cec08801e83423a235b51e231e1808747286"
 dependencies = [
  "aho-corasick",
  "memchr",
