@@ -86,7 +86,7 @@ fn effect_timer_system(
 }
 
 #[derive(Component, From)]
-pub(super) struct EffectTarget(Entity);
+pub(super) struct EffectTarget(pub(super) Entity);
 
 #[derive(Component, Deref, DerefMut, From)]
 pub(super) struct EffectTimer(Timer);

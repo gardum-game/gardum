@@ -20,6 +20,8 @@
 
 use bevy::{ecs::system::EntityCommands, prelude::*};
 use heron::{CollisionEvent, CollisionLayers, CollisionShape, PhysicsLayer, RigidBody};
+#[cfg(test)]
+use strum::EnumIter;
 
 use super::{
     character::{DamageModifier, HealingModifier, SpeedModifier},
@@ -203,10 +205,11 @@ impl SpeedEffectBundle {
 }
 
 #[derive(Component, Clone, Copy)]
+#[cfg_attr(test, derive(EnumIter))]
 pub(super) enum PickupKind {
-    Speed,
-    Rage,
     Healing,
+    Rage,
+    Speed,
 }
 
 impl AssociatedAsset for PickupKind {
@@ -243,5 +246,146 @@ impl<'w, 's> AssetCommands<'w, 's> {
         });
 
         entity_commands
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::time::Duration;
+
+    use bevy::{ecs::system::SystemState, gltf::GltfPlugin, scene::ScenePlugin};
+    use heron::PhysicsPlugin;
+    use strum::IntoEnumIterator;
+
+    use super::*;
+    use crate::{
+        core::character::CharacterBundle,
+        test_utils::{wait_for_asset_loading, HeadlessRenderPlugin},
+    };
+
+    #[test]
+    fn pickup_applies_effect() {
+        let mut app = setup_app();
+
+        for pickup_kind in PickupKind::iter() {
+            let mut system_state: SystemState<AssetCommands> = SystemState::new(&mut app.world);
+            let mut asset_commands = system_state.get_mut(&mut app.world);
+            let pickup = asset_commands
+                .spawn_pickup(pickup_kind, Vec3::default())
+                .id();
+            system_state.apply(&mut app.world);
+
+            wait_for_asset_loading(&mut app, pickup_kind.asset_path(), 5);
+            wait_for_asset_loading(&mut app, PLATFORM_PATH, 5);
+
+            let character = app
+                .world
+                .spawn()
+                .insert_bundle(CharacterBundle::default())
+                .id();
+
+            app.update();
+            app.update();
+
+            let (effect, target) = match pickup_kind {
+                PickupKind::Healing => {
+                    let mut effects = app
+                        .world
+                        .query_filtered::<(Entity, &EffectTarget), With<PeriodicHealthChange>>();
+
+                    effects
+                        .iter(&app.world)
+                        .next()
+                        .expect("An effect with periodic health change effect should be created")
+                }
+                PickupKind::Rage => {
+                    let mut effects = app
+                        .world
+                        .query_filtered::<(Entity, &EffectTarget), (With<DamageModifier>, With<HealingModifier>)>();
+                    effects
+                        .iter(&app.world)
+                        .next()
+                        .expect("An effect with damage and healing modifiers should be created")
+                }
+                PickupKind::Speed => {
+                    let mut effects = app
+                        .world
+                        .query_filtered::<(Entity, &EffectTarget), With<SpeedModifier>>();
+                    effects
+                        .iter(&app.world)
+                        .next()
+                        .expect("An effect with speed modifier should be created")
+                }
+            };
+
+            assert_eq!(
+                target.0, character,
+                "Effect should be applied to the colliding character"
+            );
+
+            app.world.entity_mut(character).despawn();
+            app.world.entity_mut(effect).despawn();
+            app.world.entity_mut(pickup).despawn();
+        }
+    }
+
+    #[test]
+    fn pickup_cooldown() {
+        let mut app = setup_app();
+        const PICKUP_KIND: PickupKind = PickupKind::Healing;
+        let mut system_state: SystemState<AssetCommands> = SystemState::new(&mut app.world);
+        let mut asset_commands = system_state.get_mut(&mut app.world);
+        let pickup = asset_commands
+            .spawn_pickup(PICKUP_KIND, Vec3::default())
+            .id();
+        system_state.apply(&mut app.world);
+
+        wait_for_asset_loading(&mut app, PICKUP_KIND.asset_path(), 5);
+        wait_for_asset_loading(&mut app, PLATFORM_PATH, 5);
+
+        let mut system_state: SystemState<Query<&Children>> = SystemState::new(&mut app.world);
+        let children = system_state.get(&mut app.world);
+        let mesh = pickup_child_mesh(pickup, &children);
+
+        app.world
+            .entity_mut(mesh)
+            .insert(Visibility { is_visible: false });
+
+        let mut cooldown = app.world.entity_mut(pickup).get_mut::<Cooldown>().unwrap();
+        cooldown.reset();
+
+        app.world.spawn().insert_bundle(CharacterBundle::default());
+
+        app.update();
+        app.update();
+
+        let mut effects = app.world.query::<&EffectTarget>();
+
+        assert_eq!(
+            effects.iter(&app.world).len(),
+            0,
+            "Effect shouldn't be applied because of cooldown"
+        );
+
+        let mut cooldown = app.world.entity_mut(pickup).get_mut::<Cooldown>().unwrap();
+        let duration_left = cooldown.duration() - cooldown.elapsed();
+        cooldown.tick(duration_left - Duration::from_nanos(1)); // Tick to almost end to trigger just_finished inside the system
+
+        app.update();
+
+        let visibility = app.world.entity(mesh).get::<Visibility>().unwrap();
+        assert!(visibility.is_visible, "Pickup mesh should become visible");
+    }
+
+    fn setup_app() -> App {
+        let mut app = App::new();
+        app.add_state(AppState::InGame)
+            .add_plugin(HeadlessRenderPlugin)
+            .add_plugin(ScenePlugin)
+            .add_plugin(GltfPlugin)
+            .add_plugin(TransformPlugin)
+            .add_plugin(PhysicsPlugin::default())
+            .add_plugin(PickupPlugin);
+        app
     }
 }
