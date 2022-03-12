@@ -22,7 +22,7 @@ use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
 use strum::EnumIter;
 
-use super::{AppState, Local};
+use super::{AppState, Authority};
 
 pub(super) struct CharacterActionPlugin;
 
@@ -33,7 +33,7 @@ impl Plugin for CharacterActionPlugin {
 }
 
 /// Setup player input on game start
-fn setup_actions(mut commands: Commands, local_player: Query<Entity, With<Local>>) {
+fn setup_actions(mut commands: Commands, local_player: Query<Entity, With<Authority>>) {
     let local_player = local_player.single();
     let mut input_map = InputMap::default();
     input_map
@@ -74,7 +74,7 @@ mod tests {
     #[test]
     fn mappings_setup() {
         let mut app = setup_app();
-        let player = app.world.spawn().insert(Local).id();
+        let player = app.world.spawn().insert(Authority).id();
 
         app.update();
 

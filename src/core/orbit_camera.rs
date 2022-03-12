@@ -29,7 +29,7 @@ use bevy_hikari::Volume;
 use derive_more::{Deref, DerefMut, From};
 use heron::PhysicsSystem;
 
-use super::{character::hero::HeroKind, AppState, Local};
+use super::{character::hero::HeroKind, AppState, Authority};
 
 const CAMERA_DISTANCE: f32 = 10.0;
 const CAMERA_SENSETIVITY: f32 = 0.2;
@@ -51,10 +51,10 @@ impl Plugin for OrbitCameraPlugin {
 
 fn spawn_camera_system(
     mut commands: Commands,
-    spawned_heroes: Query<(Entity, Option<&Local>), Added<HeroKind>>,
+    spawned_heroes: Query<(Entity, Option<&Authority>), Added<HeroKind>>,
     mut active_cameras: ResMut<ActiveCameras>,
 ) {
-    for (hero, local) in spawned_heroes.iter() {
+    for (hero, authority) in spawned_heroes.iter() {
         let mut entity_commands = commands.spawn_bundle(OrbitCameraBundle::new(hero.into()));
         #[cfg(feature = "gi")]
         entity_commands.insert(Volume::new(
@@ -62,8 +62,8 @@ fn spawn_camera_system(
             Vec3::new(15.0, 25.0, 15.0),
         ));
 
-        if local.is_some() {
-            entity_commands.insert(Local);
+        if authority.is_some() {
+            entity_commands.insert(Authority);
             let active_camera = active_cameras.get_mut(CameraPlugin::CAMERA_3D).unwrap();
             active_camera.entity = Some(entity_commands.id());
         }
@@ -74,7 +74,7 @@ fn camera_input_system(
     time: Res<Time>,
     #[cfg(not(test))] windows: ResMut<Windows>,
     mut motion_events: EventReader<MouseMotion>,
-    mut orbit_rotations: Query<&mut OrbitRotation, With<Local>>,
+    mut orbit_rotations: Query<&mut OrbitRotation, With<Authority>>,
 ) {
     #[cfg(not(test))] // Can't run tests with windows, ignore.
     if !windows.get_primary().unwrap().cursor_locked() {
@@ -184,7 +184,7 @@ mod tests {
         app.world
             .spawn()
             .insert_bundle(DummyCharacterBundle::default())
-            .remove::<Local>();
+            .remove::<Authority>();
 
         app.update();
 
@@ -289,7 +289,7 @@ mod tests {
     #[derive(Bundle)]
     struct DummyCharacterBundle {
         transform: Transform,
-        local: Local,
+        authority: Authority,
         hero_kind: HeroKind,
     }
 
@@ -297,7 +297,7 @@ mod tests {
         fn default() -> Self {
             Self {
                 transform: Transform::default(),
-                local: Local::default(),
+                authority: Authority,
                 hero_kind: HeroKind::North,
             }
         }

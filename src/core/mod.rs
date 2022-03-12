@@ -79,8 +79,8 @@ impl Plugin for CorePlugin {
 }
 
 /// Indicates that the local player have authority on the entity
-#[derive(Default, Component)]
-pub(super) struct Local;
+#[derive(Component)]
+pub(super) struct Authority;
 
 pub(super) struct ServerSettings {
     pub(super) game_name: String,

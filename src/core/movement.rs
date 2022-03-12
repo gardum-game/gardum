@@ -121,7 +121,7 @@ mod tests {
     use leafwing_input_manager::prelude::InputManagerPlugin;
 
     use super::*;
-    use crate::core::Local;
+    use crate::core::Authority;
 
     #[test]
     fn movement_direction_normalization() {
@@ -387,7 +387,7 @@ mod tests {
         global_transform: GlobalTransform,
         velocity: Velocity,
         action_state: ActionState<CharacterAction>,
-        local: Local,
+        authority: Authority,
     }
 
     impl Default for DummyCharacterBundle {
@@ -403,7 +403,7 @@ mod tests {
                 global_transform: GlobalTransform::default(),
                 velocity: Velocity::default(),
                 action_state: ActionState::default(),
-                local: Local,
+                authority: Authority,
             }
         }
     }
@@ -412,7 +412,7 @@ mod tests {
     struct DummyCameraBundle {
         camera_target: CameraTarget,
         transform: Transform,
-        local: Local,
+        authority: Authority,
     }
 
     impl DummyCameraBundle {
@@ -420,7 +420,7 @@ mod tests {
             Self {
                 camera_target,
                 transform: Transform::default(),
-                local: Local::default(),
+                authority: Authority,
             }
         }
     }
