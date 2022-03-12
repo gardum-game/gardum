@@ -60,6 +60,7 @@ fn collision_system(
 
 #[derive(Bundle)]
 pub(super) struct ProjectileBundle {
+    pub(super) name: Name,
     pub(super) rigid_body: RigidBody,
     pub(super) shape: CollisionShape,
     pub(super) collision_layers: CollisionLayers,
@@ -74,12 +75,12 @@ pub(super) struct ProjectileBundle {
 impl Default for ProjectileBundle {
     fn default() -> Self {
         Self {
+            name: "Projectile".into(),
             rigid_body: RigidBody::KinematicVelocityBased,
             shape: CollisionShape::default(),
-            collision_layers: CollisionLayers::from_bits(
-                CollisionLayer::Projectile.to_bits(),
-                CollisionLayer::all_bits() & !CollisionLayer::Projectile.to_bits(),
-            ),
+            collision_layers: CollisionLayers::all_masks::<CollisionLayer>()
+                .without_mask(CollisionLayer::Projectile)
+                .with_group(CollisionLayer::Projectile),
             velocity: Velocity::default(),
             projectile: Projectile,
             despawn_timer: DespawnTimer::from_secs(4),

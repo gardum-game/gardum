@@ -18,14 +18,17 @@
  *
  */
 
-use bevy::prelude::*;
+use bevy::{ecs::system::EntityCommands, prelude::*};
 use heron::{PendingConvexCollision, RigidBody};
 use std::f32::consts::PI;
 
-use crate::core::{pickup::PickupKind, session::spawn::SpawnPoint, AssetCommands, TransformBundle};
+use super::Map;
+use crate::core::{
+    pickup::PickupKind, session::spawn::SpawnPoint, AssetCommands, AssociatedAsset, TransformBundle,
+};
 
-impl AssetCommands<'_, '_> {
-    pub(super) fn spawn_sky_roof(&mut self) {
+impl<'w, 's> AssetCommands<'w, 's> {
+    pub(super) fn spawn_sky_roof<'a>(&'a mut self) -> EntityCommands<'w, 's, 'a> {
         const PROJECTION: f32 = 5.0;
         self.commands.spawn_bundle(DirectionalLightBundle {
             directional_light: DirectionalLight {
@@ -54,18 +57,19 @@ impl AssetCommands<'_, '_> {
             .spawn()
             .insert(SpawnPoint(Vec3::new(0.0, 5.0, 0.0)));
 
-        self.commands
-            .spawn_bundle(TransformBundle::default())
+        self.spawn_pickup(PickupKind::Healing, Vec3::new(4.0, 0.1, -1.0));
+        self.spawn_pickup(PickupKind::Speed, Vec3::new(4.0, 0.1, 0.0));
+        self.spawn_pickup(PickupKind::Rage, Vec3::new(4.0, 0.1, 1.0));
+
+        let mut scene_commands = self.commands.spawn_bundle(TransformBundle::default());
+        scene_commands
             .insert(PendingConvexCollision {
                 body_type: RigidBody::Static,
                 border_radius: None,
             })
             .with_children(|parent| {
-                parent.spawn_scene(self.asset_server.load("maps/sky_roof.glb#Scene0"));
+                parent.spawn_scene(self.asset_server.load(Map::SkyRoof.asset_path()));
             });
-
-        self.spawn_pickup(PickupKind::Healing, Vec3::new(4.0, 0.1, -1.0));
-        self.spawn_pickup(PickupKind::Speed, Vec3::new(4.0, 0.1, 0.0));
-        self.spawn_pickup(PickupKind::Rage, Vec3::new(4.0, 0.1, 1.0));
+        scene_commands
     }
 }

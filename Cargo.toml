@@ -11,11 +11,10 @@ bevy = { version = "0.6", default-features = false, features = [
     "x11"
 ] }
 bevy_atmosphere = { version = "0.2", optional = true }
-bevy_egui = { version = "0.11", default-features = false, features = [
-    "multi_threaded"
-], optional = true }
-bevy-hikari = "0.1"
-heron = { version = "2.0", features = ["3d"] }
+bevy_egui = { version = "0.11", default-features = false, features = ["multi_threaded"], optional = true }
+bevy-inspector-egui = { version = "0.8", default-features = false, optional = true }
+bevy-hikari = {git = "https://github.com/cryscan/bevy-hikari" }
+heron = { version = "2.1", features = ["3d"] }
 leafwing-input-manager = "0.2"
 clap = { version = "3.1", features = ["derive"] }
 derive_more = { version = "0.99", default-features = false, features = [
@@ -33,3 +32,4 @@ approx = "0.5"
 [features]
 default = ["client"]
 client = ["bevy/png", "bevy_atmosphere", "bevy_egui"]
+inspector = ["client", "bevy-inspector-egui"]

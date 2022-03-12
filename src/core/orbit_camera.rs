@@ -109,6 +109,7 @@ fn camera_position_system(
 
 #[derive(Bundle)]
 struct OrbitCameraBundle {
+    name: Name,
     camera_target: CameraTarget,
     orbit_rotation: OrbitRotation,
 
@@ -119,6 +120,7 @@ struct OrbitCameraBundle {
 impl OrbitCameraBundle {
     fn new(camera_target: CameraTarget) -> Self {
         Self {
+            name: "Orbit Camera".into(),
             camera_target,
             orbit_rotation: OrbitRotation::default(),
             camera: PerspectiveCameraBundle::default(),

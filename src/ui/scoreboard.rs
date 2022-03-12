@@ -25,7 +25,7 @@ use bevy_egui::{
 };
 use leafwing_input_manager::prelude::ActionState;
 
-use crate::core::player::{Damage, Deaths, Healing, Kills, Nickname};
+use crate::core::player::{Damage, Deaths, Healing, Kills};
 
 use super::{ui_action::UiAction, ui_state::UiState};
 
@@ -40,7 +40,7 @@ impl Plugin for ScoreboardPlugin {
 fn scoreboard_system(
     ui_actions: Query<&ActionState<UiAction>>,
     egui: ResMut<EguiContext>,
-    players: Query<(&Nickname, &Kills, &Deaths, &Damage, &Healing)>,
+    players: Query<(&Name, &Kills, &Deaths, &Damage, &Healing)>,
 ) {
     if !ui_actions.single().pressed(&UiAction::Scoreboard) {
         return;
@@ -59,8 +59,8 @@ fn scoreboard_system(
                 ui.label("Healing");
                 ui.end_row();
 
-                for (nickname, kills, deaths, damage, healing) in players.iter() {
-                    ui.label(nickname.0.clone());
+                for (name, kills, deaths, damage, healing) in players.iter() {
+                    ui.label(name.as_str());
                     ui.label(kills.to_string());
                     ui.label(deaths.to_string());
                     ui.label(damage.to_string());

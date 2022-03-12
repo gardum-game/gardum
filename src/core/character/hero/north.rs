@@ -92,6 +92,7 @@ fn frost_bolt_hit_system(
 
 #[derive(Bundle)]
 struct FrostBoltBundle {
+    name: Name,
     frost_bolt_ability: FrostBoltAbility,
     icon: IconPath,
     action: CharacterAction,
@@ -101,6 +102,7 @@ struct FrostBoltBundle {
 impl Default for FrostBoltBundle {
     fn default() -> Self {
         Self {
+            name: "Frost Bolt Ability".into(),
             frost_bolt_ability: FrostBoltAbility,
             icon: "character/hero/north/frost_bolt.png".into(),
             action: CharacterAction::BaseAttack,
