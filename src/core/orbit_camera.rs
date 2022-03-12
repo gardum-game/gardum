@@ -24,6 +24,7 @@ use bevy::{
     render::camera::{ActiveCameras, CameraPlugin},
     transform::TransformSystem,
 };
+#[cfg(feature = "gi")]
 use bevy_hikari::Volume;
 use derive_more::{Deref, DerefMut, From};
 use heron::PhysicsSystem;
@@ -55,6 +56,7 @@ fn spawn_camera_system(
 ) {
     for (hero, local) in spawned_heroes.iter() {
         let mut entity_commands = commands.spawn_bundle(OrbitCameraBundle::new(hero.into()));
+        #[cfg(feature = "gi")]
         entity_commands.insert(Volume::new(
             Vec3::new(-50.0, -50.0, -50.0),
             Vec3::new(50.0, 50.0, 50.0),
