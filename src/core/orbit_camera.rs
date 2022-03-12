@@ -58,8 +58,8 @@ fn spawn_camera_system(
         let mut entity_commands = commands.spawn_bundle(OrbitCameraBundle::new(hero.into()));
         #[cfg(feature = "gi")]
         entity_commands.insert(Volume::new(
-            Vec3::new(-50.0, -50.0, -50.0),
-            Vec3::new(50.0, 50.0, 50.0),
+            Vec3::new(-15.0, -5.0, -15.0),
+            Vec3::new(15.0, 25.0, 15.0),
         ));
 
         if local.is_some() {
