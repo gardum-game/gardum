@@ -61,7 +61,10 @@ fn main() {
 
     #[cfg(feature = "client")]
     app.add_plugin(EguiPlugin)
-        .add_plugin(AtmospherePlugin::default())
+        .add_plugin(AtmospherePlugin {
+            dynamic: false,
+            sky_radius: 100.0,
+        })
         .add_plugin(InputManagerPlugin::<CharacterAction, UiState>::run_in_state(UiState::Hud))
         .add_plugin(InputManagerPlugin::<UiAction>::default())
         .add_plugin(UiPlugin);
