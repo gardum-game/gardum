@@ -52,12 +52,12 @@ fn frost_bolt_system(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     abilities: Query<(Entity, &Activator), With<FrostBoltAbility>>,
-    character_transforms: Query<&Transform>,
-    camera_transforms: Query<&Transform, With<Camera>>,
+    characters: Query<&Transform>,
+    cameras: Query<&Transform, With<Camera>>,
 ) {
     for (ability, activator) in abilities.iter() {
-        let camera_transform = camera_transforms.single();
-        let character_transform = character_transforms.get(activator.0).unwrap();
+        let camera_transform = cameras.single();
+        let character_transform = characters.get(activator.0).unwrap();
 
         commands
             .spawn_bundle(ProjectileBundle::frost_bolt(
@@ -192,19 +192,17 @@ mod tests {
             .insert_bundle(FrostBoltBundle::default())
             .insert(Activator(character))
             .id();
-        app.world
+        let camera = app
+            .world
             .spawn()
             .insert_bundle(DummyCameraBundle::default())
             .id();
 
         app.update();
 
-        let mut character_transforms = app.world.query_filtered::<&Transform, Without<Camera>>();
-        let mut projectile_transforms = app.world.query_filtered::<&Transform, With<Projectile>>();
-        let mut camera_transforms = app.world.query_filtered::<&Transform, With<Camera>>();
-
-        let character_transform = character_transforms.iter(&app.world).next().unwrap(); // TODO 0.7: Use single
-        let projectile_transform = projectile_transforms.iter(&app.world).next().unwrap(); // TODO 0.7: Use single
+        let mut projectiles = app.world.query_filtered::<&Transform, With<Projectile>>();
+        let projectile_transform = projectiles.iter(&app.world).next().unwrap(); // TODO 0.7: Use single
+        let character_transform = app.world.get::<Transform>(character).unwrap();
 
         assert_relative_eq!(
             character_transform.translation.x,
@@ -223,7 +221,7 @@ mod tests {
             "Spawned projectile must be of the same scale as the character"
         );
 
-        let camera_trasnform = camera_transforms.iter(&app.world).next().unwrap(); // TODO 0.7: Use single
+        let camera_trasnform = app.world.get::<Transform>(camera).unwrap();
         assert_eq!(
             projectile_transform.rotation,
             camera_trasnform.rotation * Quat::from_rotation_x(90.0_f32.to_radians()),
