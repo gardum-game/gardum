@@ -56,6 +56,26 @@ pub(super) struct CharacterBundle {
     pbr: PbrBundle,
 }
 
+impl Default for CharacterBundle {
+    fn default() -> Self {
+        Self {
+            health: Health::default(),
+            abilities: Abilities::default(),
+            speed_modifier: SpeedModifier::default(),
+            damage_modifier: DamageModifier::default(),
+            healing_modifier: HealingModifier::default(),
+            rigid_body: RigidBody::Dynamic,
+            rotation_constraints: RotationConstraints::lock(),
+            shape: CollisionShape::default(),
+            collision_layers: CollisionLayers::all_masks::<CollisionLayer>()
+                .with_group(CollisionLayer::Character),
+            velocity: Velocity::default(),
+            action_state: ActionState::default(),
+            pbr: PbrBundle::default(),
+        }
+    }
+}
+
 /// Movement speed modifier
 #[derive(Component, AddAssign, SubAssign, Clone, Copy, From)]
 pub(super) struct SpeedModifier(pub(super) f32);
@@ -83,25 +103,5 @@ pub(super) struct HealingModifier(pub(super) f32);
 impl Default for HealingModifier {
     fn default() -> Self {
         Self(1.0)
-    }
-}
-
-impl Default for CharacterBundle {
-    fn default() -> Self {
-        Self {
-            health: Health::default(),
-            abilities: Abilities::default(),
-            speed_modifier: SpeedModifier::default(),
-            damage_modifier: DamageModifier::default(),
-            healing_modifier: HealingModifier::default(),
-            rigid_body: RigidBody::Dynamic,
-            rotation_constraints: RotationConstraints::lock(),
-            shape: CollisionShape::default(),
-            collision_layers: CollisionLayers::all_masks::<CollisionLayer>()
-                .with_group(CollisionLayer::Character),
-            velocity: Velocity::default(),
-            action_state: ActionState::default(),
-            pbr: PbrBundle::default(),
-        }
     }
 }
