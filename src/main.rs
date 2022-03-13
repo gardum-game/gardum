@@ -29,7 +29,7 @@ mod ui;
 use bevy::{prelude::*, winit::WinitPlugin};
 #[cfg(feature = "client")]
 use bevy_egui::EguiPlugin;
-use heron::PhysicsPlugin;
+use heron::{Gravity, PhysicsPlugin};
 
 use crate::core::CorePlugin;
 #[cfg(feature = "client")]
@@ -56,7 +56,8 @@ fn main() {
         app.add_plugins_with(DefaultPlugins, |group| group.disable::<WinitPlugin>());
     }
 
-    app.add_plugin(PhysicsPlugin::default())
+    app.insert_resource(Gravity::from(Vec3::Y * -9.81))
+        .add_plugin(PhysicsPlugin::default())
         .add_plugin(CorePlugin);
 
     #[cfg(feature = "client")]
