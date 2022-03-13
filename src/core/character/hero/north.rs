@@ -23,7 +23,7 @@ use heron::{CollisionShape, Velocity};
 
 use crate::core::{
     ability::{Abilities, Activator, IconPath},
-    character::CharacterBundle,
+    character::{character_direction, CharacterBundle},
     character_action::CharacterAction,
     cooldown::Cooldown,
     health::{Health, HealthChangeEvent},
@@ -34,6 +34,7 @@ use crate::core::{
 const PROJECTILE_SPEED: f32 = 20.0;
 const FROST_BOLT_SPAWN_OFFSET: f32 = 4.0;
 const FROST_BOLT_DAMAGE: i32 = -20;
+const FROST_PATH_IMPULSE: f32 = 130.0;
 
 pub(super) struct NorthPlugin;
 
@@ -42,7 +43,8 @@ impl Plugin for NorthPlugin {
         app.add_system_set(
             SystemSet::on_update(AppState::InGame)
                 .with_system(frost_bolt_system)
-                .with_system(frost_bolt_hit_system),
+                .with_system(frost_bolt_hit_system)
+                .with_system(frost_path_system),
         );
     }
 }
@@ -90,6 +92,21 @@ fn frost_bolt_hit_system(
     }
 }
 
+fn frost_path_system(
+    mut commands: Commands,
+    abilities: Query<(Entity, &Activator), With<FrostPathAbility>>,
+    mut characters: Query<&mut Velocity>,
+    cameras: Query<&Transform, With<Camera>>,
+) {
+    for (ability, activator) in abilities.iter() {
+        let camera_transform = cameras.single();
+        let mut velocity = characters.get_mut(activator.0).unwrap();
+        velocity.linear += character_direction(camera_transform.rotation) * FROST_PATH_IMPULSE;
+
+        commands.entity(ability).remove::<Activator>();
+    }
+}
+
 #[derive(Bundle)]
 struct FrostBoltBundle {
     name: Name,
@@ -114,6 +131,30 @@ impl Default for FrostBoltBundle {
 #[derive(Component)]
 struct FrostBoltAbility;
 
+#[derive(Bundle)]
+struct FrostPathBundle {
+    name: Name,
+    frost_path_ability: FrostPathAbility,
+    icon: IconPath,
+    action: CharacterAction,
+    cooldown: Cooldown,
+}
+
+impl Default for FrostPathBundle {
+    fn default() -> Self {
+        Self {
+            name: "Frost Path Ability".into(),
+            frost_path_ability: FrostPathAbility,
+            icon: "character/hero/north/frost_path.png".into(),
+            action: CharacterAction::Ability1,
+            cooldown: Cooldown::from_secs(4),
+        }
+    }
+}
+
+#[derive(Component)]
+struct FrostPathAbility;
+
 impl CharacterBundle {
     pub(super) fn north(
         transform: Transform,
@@ -122,7 +163,10 @@ impl CharacterBundle {
         materials: &mut Assets<StandardMaterial>,
     ) -> Self {
         Self {
-            abilities: Abilities(vec![commands.spawn_bundle(FrostBoltBundle::default()).id()]),
+            abilities: Abilities(vec![
+                commands.spawn_bundle(FrostBoltBundle::default()).id(),
+                commands.spawn_bundle(FrostPathBundle::default()).id(),
+            ]),
             pbr: PbrBundle {
                 mesh: meshes.add(Mesh::from(shape::Capsule::default())),
                 material: materials.add(Color::rgb(0.3, 0.3, 0.3).into()),
@@ -230,7 +274,45 @@ mod tests {
 
         assert!(
             !app.world.entity(ability).contains::<Activator>(),
-            "Activator should be remove from the ability",
+            "Activator component should be removed from the ability",
+        )
+    }
+
+    #[test]
+    fn frost_path() {
+        let mut app = setup_app();
+        let character = app
+            .world
+            .spawn()
+            .insert(Transform::default())
+            .insert(Velocity::from_linear(Vec3::ZERO))
+            .id();
+        let ability = app
+            .world
+            .spawn()
+            .insert_bundle(FrostPathBundle::default())
+            .insert(Activator(character))
+            .id();
+        let camera = app
+            .world
+            .spawn()
+            .insert_bundle(DummyCameraBundle::default())
+            .id();
+
+        app.update();
+
+        let velocity = app.world.get::<Velocity>(character).unwrap();
+        let camera_transform = app.world.get::<Transform>(camera).unwrap();
+
+        assert_eq!(
+            velocity.linear,
+            character_direction(camera_transform.rotation) * FROST_PATH_IMPULSE,
+            "Character should recieve impulse in camera direction"
+        );
+
+        assert!(
+            !app.world.entity(ability).contains::<Activator>(),
+            "Activator component should be removed from the ability",
         )
     }
 
