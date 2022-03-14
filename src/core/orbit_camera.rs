@@ -56,8 +56,8 @@ fn spawn_camera_system(
     for (hero, local) in spawned_heroes.iter() {
         let mut entity_commands = commands.spawn_bundle(OrbitCameraBundle::new(hero.into()));
         entity_commands.insert(Volume::new(
-            Vec3::new(-50.0, -50.0, -50.0),
-            Vec3::new(50.0, 50.0, 50.0),
+            Vec3::new(0.0, -25.0, -25.0),
+            Vec3::new(50.0, 25.0, 25.0),
         ));
 
         if local.is_some() {
