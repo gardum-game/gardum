@@ -19,6 +19,8 @@
  */
 
 use bevy::prelude::*;
+#[cfg(feature = "gi")]
+use bevy_hikari::NotGiCaster;
 use derive_more::Deref;
 
 use super::{cli::Opts, AppState, Authority};
@@ -29,6 +31,9 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_startup_system(create_server_player_from_opts)
             .add_system_set(SystemSet::on_enter(AppState::Lobby).with_system(create_server_player));
+
+        #[cfg(feature = "gi")]
+        app.add_system(player_not_cast_gi);
     }
 }
 
@@ -46,6 +51,16 @@ fn create_server_player(mut commands: Commands) {
     commands
         .spawn_bundle(PlayerBundle::default())
         .insert(Authority);
+}
+
+#[cfg(feature = "gi")]
+fn player_not_cast_gi(
+    mut commands: Commands,
+    players: Query<(Entity, &Player), Without<NotGiCaster>>,
+) {
+    for (entity, _) in players.iter() {
+        commands.entity(entity).insert(NotGiCaster);
+    }
 }
 
 #[derive(Bundle)]

@@ -180,9 +180,9 @@ mod tests {
         app.update();
         app.update();
 
-        // Clone collision and transform because PhysicsWorld is a mutable SystemParam
+        // Clone collision because PhysicsWorld is a mutable SystemParam
         let collision_shape = app.world.get::<CollisionShape>(character).unwrap().clone();
-        let transform = app.world.get::<Transform>(character).unwrap().clone();
+        let transform = *app.world.get::<Transform>(character).unwrap();
         let mut system_state: SystemState<PhysicsWorld> = SystemState::new(&mut app.world);
         let physics_world = system_state.get_mut(&mut app.world);
 
@@ -234,9 +234,9 @@ mod tests {
 
         app.update();
 
-        // Clone collision and transform because PhysicsWorld is a mutable SystemParam
+        // Clone collision because PhysicsWorld is a mutable SystemParam
         let collision_shape = app.world.get::<CollisionShape>(character).unwrap().clone();
-        let transform = app.world.get::<Transform>(character).unwrap().clone();
+        let transform = *app.world.get::<Transform>(character).unwrap();
         let mut system_state: SystemState<PhysicsWorld> = SystemState::new(&mut app.world);
         let physics_world = system_state.get_mut(&mut app.world);
 
@@ -293,12 +293,7 @@ mod tests {
             actions.release_all();
             actions.press(key);
 
-            let previous_translation = app
-                .world
-                .get::<Transform>(character)
-                .unwrap()
-                .translation
-                .clone();
+            let previous_translation = app.world.get::<Transform>(character).unwrap().translation;
 
             // Clean previous velocity to avoid interpolation
             app.world.get_mut::<Velocity>(character).unwrap().linear = Vec3::ZERO;
