@@ -293,11 +293,7 @@ mod tests {
             actions.release_all();
             actions.press(key);
 
-            let previous_translation = app
-                .world
-                .get::<Transform>(character)
-                .unwrap()
-                .translation;
+            let previous_translation = app.world.get::<Transform>(character).unwrap().translation;
 
             // Clean previous velocity to avoid interpolation
             app.world.get_mut::<Velocity>(character).unwrap().linear = Vec3::ZERO;
