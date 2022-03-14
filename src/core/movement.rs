@@ -180,7 +180,7 @@ mod tests {
         app.update();
         app.update();
 
-        // Clone collision and transform because PhysicsWorld is a mutable SystemParam
+        // Clone collision because PhysicsWorld is a mutable SystemParam
         let collision_shape = app.world.get::<CollisionShape>(character).unwrap().clone();
         let transform = *app.world.get::<Transform>(character).unwrap();
         let mut system_state: SystemState<PhysicsWorld> = SystemState::new(&mut app.world);
@@ -234,7 +234,7 @@ mod tests {
 
         app.update();
 
-        // Clone collision and transform because PhysicsWorld is a mutable SystemParam
+        // Clone collision because PhysicsWorld is a mutable SystemParam
         let collision_shape = app.world.get::<CollisionShape>(character).unwrap().clone();
         let transform = *app.world.get::<Transform>(character).unwrap();
         let mut system_state: SystemState<PhysicsWorld> = SystemState::new(&mut app.world);
