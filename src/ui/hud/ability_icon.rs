@@ -24,20 +24,27 @@ use crate::core::cooldown::Cooldown;
 
 /// Displays ability icon and its cooldown.
 pub(super) struct AbilityIcon<'a> {
-    image: Image,
+    texture_id: TextureId,
     cooldown: Option<&'a Cooldown>,
 }
 
 impl<'a> AbilityIcon<'a> {
     /// `current` shouldn't be bigger then `max`
-    pub(super) fn new(image: Image, cooldown: Option<&'a Cooldown>) -> Self {
-        Self { cooldown, image }
+    pub(super) fn new(texture_id: TextureId, cooldown: Option<&'a Cooldown>) -> Self {
+        Self {
+            cooldown,
+            texture_id,
+        }
     }
 }
 
 impl Widget for AbilityIcon<'_> {
     fn ui(self, ui: &mut Ui) -> Response {
-        let AbilityIcon { image, cooldown } = self;
+        let AbilityIcon {
+            texture_id,
+            cooldown,
+        } = self;
+        let image = Image::new(texture_id, [64.0, 64.0]);
 
         let (rect, response) = ui.allocate_at_least(
             image.size(),

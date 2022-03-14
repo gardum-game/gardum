@@ -73,7 +73,7 @@ fn hero_selection_system(
                 for kind in HeroKind::iter() {
                     let selected = *current_hero_kind == kind;
                     // TODO: Add hero icon
-                    let button = ImageButton::new(TextureId::Egui, vec2(32.0, 32.0))
+                    let button = ImageButton::new(TextureId::Managed(0), vec2(32.0, 32.0))
                         .uv(Rect::from_two_pos(WHITE_UV, WHITE_UV))
                         .selected(selected);
 
@@ -84,7 +84,7 @@ fn hero_selection_system(
             } else {
                 for hero_kind in HeroKind::iter() {
                     // TODO: Add hero icon
-                    let button = ImageButton::new(TextureId::Egui, vec2(32.0, 32.0))
+                    let button = ImageButton::new(TextureId::Managed(0), vec2(32.0, 32.0))
                         .uv(Rect::from_two_pos(WHITE_UV, WHITE_UV));
 
                     if ui.add(button).clicked() {
