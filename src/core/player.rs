@@ -19,6 +19,7 @@
  */
 
 use bevy::prelude::*;
+use bevy_hikari::NotGiCaster;
 use derive_more::Deref;
 
 use super::{cli::Opts, AppState, Local};
@@ -54,6 +55,7 @@ pub(crate) struct PlayerBundle {
     deaths: Deaths,
     damage: Damage,
     healing: Healing,
+    not_gi_caster: NotGiCaster,
 }
 
 impl Default for PlayerBundle {
@@ -65,6 +67,7 @@ impl Default for PlayerBundle {
             deaths: Deaths::default(),
             damage: Damage::default(),
             healing: Healing::default(),
+            not_gi_caster: NotGiCaster,
         }
     }
 }
