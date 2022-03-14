@@ -29,7 +29,7 @@ use crate::core::{
 
 impl<'w, 's> AssetCommands<'w, 's> {
     pub(super) fn spawn_sky_roof<'a>(&'a mut self) -> EntityCommands<'w, 's, 'a> {
-        const PROJECTION: f32 = 40.0;
+        const PROJECTION: f32 = 45.0;
         self.commands.spawn_bundle(DirectionalLightBundle {
             directional_light: DirectionalLight {
                 illuminance: 30000.0,
