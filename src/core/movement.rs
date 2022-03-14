@@ -28,9 +28,8 @@ use super::{
 };
 
 const MOVE_SPEED: f32 = 10.0;
-const GRAVITY: f32 = 9.8;
 const VELOCITY_INTERPOLATE_SPEED: f32 = 6.0;
-const JUMP_IMPULSE: f32 = 25.0;
+const JUMP_IMPULSE: f32 = 5.0;
 const FLOOR_THRESHOLD: f32 = 0.01;
 
 pub(super) struct MovementPlugin;
@@ -58,18 +57,18 @@ fn movement_system(
         let (character, speed_modifier, actions, transform, shape, mut velocity) =
             characters.get_mut(camera_target.0).unwrap();
 
+        let falling_velocity = velocity.linear.y; // Save Y velocity to avoid it interpolation
         let motion =
             movement_direction(actions, camera_transform.rotation) * MOVE_SPEED * speed_modifier.0;
         velocity.linear = velocity
             .linear
             .lerp(motion, VELOCITY_INTERPOLATE_SPEED * time.delta_seconds());
+        velocity.linear.y = falling_velocity;
 
-        if is_on_floor(&physics_world, character, shape, transform) {
-            if actions.pressed(&CharacterAction::Jump) {
-                velocity.linear.y += JUMP_IMPULSE;
-            }
-        } else {
-            velocity.linear.y -= GRAVITY * VELOCITY_INTERPOLATE_SPEED * time.delta_seconds();
+        if actions.pressed(&CharacterAction::Jump)
+            && is_on_floor(&physics_world, character, shape, transform)
+        {
+            velocity.linear.y += JUMP_IMPULSE;
         }
     }
 }
@@ -117,11 +116,11 @@ fn is_on_floor(
 mod tests {
     use approx::assert_relative_eq;
     use bevy::{ecs::system::SystemState, input::InputPlugin};
-    use heron::{PhysicsPlugin, RigidBody};
+    use heron::{Gravity, PhysicsPlugin, RigidBody};
     use leafwing_input_manager::prelude::InputManagerPlugin;
 
     use super::*;
-    use crate::core::Local;
+    use crate::core::Authority;
 
     #[test]
     fn movement_direction_normalization() {
@@ -179,6 +178,7 @@ mod tests {
 
         app.update();
         app.update();
+        app.update();
 
         // Clone collision and transform because PhysicsWorld is a mutable SystemParam
         let collision_shape = app.world.get::<CollisionShape>(character).unwrap().clone();
@@ -216,13 +216,18 @@ mod tests {
         let character = app
             .world
             .spawn()
-            .insert_bundle(DummyCharacterBundle::default())
+            .insert_bundle(DummyCharacterBundle {
+                transform: Transform::from_translation(Vec3::Y * 2.0),
+                ..Default::default()
+            })
             .id();
         app.world
             .spawn()
             .insert_bundle(DummyCameraBundle::new(character.into()));
         app.world.spawn().insert_bundle(DummyPlainBundle::default());
 
+        app.update();
+        app.update();
         app.update();
 
         let previous_translation = app.world.get::<Transform>(character).unwrap().translation;
@@ -346,6 +351,7 @@ mod tests {
     fn setup_app() -> App {
         let mut app = App::new();
         app.add_state(AppState::InGame)
+            .insert_resource(Gravity::from(Vec3::Y * -9.81))
             .add_plugins(MinimalPlugins)
             .add_plugin(InputPlugin)
             .add_plugin(InputManagerPlugin::<CharacterAction>::default())
@@ -368,7 +374,7 @@ mod tests {
             Self {
                 rigid_body: RigidBody::Static,
                 shape: CollisionShape::Cuboid {
-                    half_extends: Vec3::new(10.0, 0.1, 10.0),
+                    half_extends: Vec3::new(10.0, 1.0, 10.0),
                     border_radius: None,
                 },
                 transform: Transform::default(),
@@ -386,14 +392,14 @@ mod tests {
         global_transform: GlobalTransform,
         velocity: Velocity,
         action_state: ActionState<CharacterAction>,
-        local: Local,
+        authority: Authority,
     }
 
     impl Default for DummyCharacterBundle {
         fn default() -> Self {
             Self {
                 speed_modifier: SpeedModifier::default(),
-                rigid_body: RigidBody::KinematicVelocityBased,
+                rigid_body: RigidBody::Dynamic,
                 shape: CollisionShape::Capsule {
                     half_segment: 0.5,
                     radius: 0.5,
@@ -402,7 +408,7 @@ mod tests {
                 global_transform: GlobalTransform::default(),
                 velocity: Velocity::default(),
                 action_state: ActionState::default(),
-                local: Local,
+                authority: Authority,
             }
         }
     }
@@ -411,7 +417,7 @@ mod tests {
     struct DummyCameraBundle {
         camera_target: CameraTarget,
         transform: Transform,
-        local: Local,
+        authority: Authority,
     }
 
     impl DummyCameraBundle {
@@ -419,7 +425,7 @@ mod tests {
             Self {
                 camera_target,
                 transform: Transform::default(),
-                local: Local::default(),
+                authority: Authority,
             }
         }
     }

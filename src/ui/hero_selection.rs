@@ -29,7 +29,7 @@ use super::{
     ui_state::{UiState, UiStateHistory},
     UI_MARGIN,
 };
-use crate::core::{character::hero::HeroKind, cli::Opts, player::Player, AppState, Local};
+use crate::core::{character::hero::HeroKind, cli::Opts, player::Player, AppState, Authority};
 
 pub struct HeroSelectionPlugin;
 
@@ -48,7 +48,7 @@ impl Plugin for HeroSelectionPlugin {
 fn hero_selection_system(
     mut commands: Commands,
     egui: ResMut<EguiContext>,
-    mut local_player: Query<(Entity, Option<&mut HeroKind>), (With<Local>, With<Player>)>,
+    mut local_player: Query<(Entity, Option<&mut HeroKind>), (With<Authority>, With<Player>)>,
     mut ui_state_history: ResMut<UiStateHistory>,
 ) {
     let (player, current_hero_kind) = local_player.single_mut();

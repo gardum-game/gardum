@@ -56,6 +56,26 @@ pub(super) struct CharacterBundle {
     pbr: PbrBundle,
 }
 
+impl Default for CharacterBundle {
+    fn default() -> Self {
+        Self {
+            health: Health::default(),
+            abilities: Abilities::default(),
+            speed_modifier: SpeedModifier::default(),
+            damage_modifier: DamageModifier::default(),
+            healing_modifier: HealingModifier::default(),
+            rigid_body: RigidBody::Dynamic,
+            rotation_constraints: RotationConstraints::lock(),
+            shape: CollisionShape::default(),
+            collision_layers: CollisionLayers::all_masks::<CollisionLayer>()
+                .with_group(CollisionLayer::Character),
+            velocity: Velocity::default(),
+            action_state: ActionState::default(),
+            pbr: PbrBundle::default(),
+        }
+    }
+}
+
 /// Movement speed modifier
 #[derive(Component, AddAssign, SubAssign, Clone, Copy, From)]
 pub(super) struct SpeedModifier(pub(super) f32);
@@ -86,22 +106,33 @@ impl Default for HealingModifier {
     }
 }
 
-impl Default for CharacterBundle {
-    fn default() -> Self {
-        Self {
-            health: Health::default(),
-            abilities: Abilities::default(),
-            speed_modifier: SpeedModifier::default(),
-            damage_modifier: DamageModifier::default(),
-            healing_modifier: HealingModifier::default(),
-            rigid_body: RigidBody::Dynamic,
-            rotation_constraints: RotationConstraints::lock(),
-            shape: CollisionShape::default(),
-            collision_layers: CollisionLayers::all_masks::<CollisionLayer>()
-                .with_group(CollisionLayer::Character),
-            velocity: Velocity::default(),
-            action_state: ActionState::default(),
-            pbr: PbrBundle::default(),
+/// Returns normalized direction (without Y coordinate).
+/// Returns `-Vec3::Z` if the camera rotation is facing down
+fn character_direction(camera_rotation: Quat) -> Vec3 {
+    let mut direction = camera_rotation * -Vec3::Z;
+    direction.y = 0.0;
+    direction.try_normalize().unwrap_or(-Vec3::Z)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn character_direction_from_camera() {
+        for (rotation, expected_direction) in [
+            (Quat::from_rotation_x(90_f32.to_radians()), -Vec3::Z),
+            (Quat::from_rotation_y(90_f32.to_radians()), -Vec3::X),
+            (Quat::from_rotation_z(90_f32.to_radians()), -Vec3::Z),
+            (Quat::from_rotation_x(-90_f32.to_radians()), -Vec3::Z),
+            (Quat::from_rotation_y(-90_f32.to_radians()), Vec3::X),
+            (Quat::from_rotation_z(-90_f32.to_radians()), -Vec3::Z),
+        ] {
+            assert_eq!(
+                character_direction(rotation),
+                expected_direction,
+                "Character direction from {rotation} should be equal to {expected_direction}"
+            );
         }
     }
 }

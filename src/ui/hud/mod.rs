@@ -32,7 +32,7 @@ use crate::core::{
     ability::{Abilities, IconPath},
     cooldown::Cooldown,
     health::Health,
-    Local,
+    Authority,
 };
 use ability_icon::AbilityIcon;
 use health_bar::HealthBar;
@@ -50,7 +50,7 @@ impl Plugin for HudPlugin {
 }
 
 fn health_and_abilities_system(
-    local_character: Query<(&Abilities, &Health), With<Local>>,
+    local_character: Query<(&Abilities, &Health), With<Authority>>,
     ability_cooldowns: Query<&Cooldown>,
     egui: ResMut<EguiContext>,
 ) {
@@ -75,7 +75,7 @@ fn health_and_abilities_system(
 }
 
 fn ability_icons_texture_system(
-    new_local_abilities: Query<&Abilities, Added<Local>>,
+    new_local_abilities: Query<&Abilities, Added<Authority>>,
     icons: Query<&IconPath>,
     assets: Res<AssetServer>,
     mut egui: ResMut<EguiContext>,

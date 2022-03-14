@@ -19,10 +19,11 @@
  */
 
 use bevy::prelude::*;
+#[cfg(feature = "gi")]
 use bevy_hikari::NotGiCaster;
 use derive_more::Deref;
 
-use super::{cli::Opts, AppState, Local};
+use super::{cli::Opts, AppState, Authority};
 
 pub(super) struct PlayerPlugin;
 
@@ -30,13 +31,16 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_startup_system(create_server_player_from_opts)
             .add_system_set(SystemSet::on_enter(AppState::Lobby).with_system(create_server_player));
+
+        #[cfg(feature = "gi")]
+        app.add_system(player_not_cast_gi);
     }
 }
 
 fn create_server_player_from_opts(mut commands: Commands, opts: Res<Opts>) {
     if opts.subcommand.is_some() {
         let mut player = commands.spawn_bundle(PlayerBundle::default());
-        player.insert(Local);
+        player.insert(Authority);
         if let Some(hero_kind) = opts.preselect_hero {
             player.insert(hero_kind);
         }
@@ -44,7 +48,19 @@ fn create_server_player_from_opts(mut commands: Commands, opts: Res<Opts>) {
 }
 
 fn create_server_player(mut commands: Commands) {
-    commands.spawn_bundle(PlayerBundle::default()).insert(Local);
+    commands
+        .spawn_bundle(PlayerBundle::default())
+        .insert(Authority);
+}
+
+#[cfg(feature = "gi")]
+fn player_not_cast_gi(
+    mut commands: Commands,
+    players: Query<(Entity, &Player), Without<NotGiCaster>>,
+) {
+    for (entity, _) in players.iter() {
+        commands.entity(entity).insert(NotGiCaster);
+    }
 }
 
 #[derive(Bundle)]
@@ -55,7 +71,6 @@ pub(crate) struct PlayerBundle {
     deaths: Deaths,
     damage: Damage,
     healing: Healing,
-    not_gi_caster: NotGiCaster,
 }
 
 impl Default for PlayerBundle {
@@ -67,7 +82,6 @@ impl Default for PlayerBundle {
             deaths: Deaths::default(),
             damage: Damage::default(),
             healing: Healing::default(),
-            not_gi_caster: NotGiCaster,
         }
     }
 }
@@ -106,10 +120,10 @@ mod tests {
 
         app.update();
 
-        let mut locals = app
+        let mut local_player = app
             .world
-            .query_filtered::<(), (With<Local>, With<Player>, Without<HeroKind>)>();
-        locals
+            .query_filtered::<(), (With<Authority>, With<Player>, Without<HeroKind>)>();
+        local_player
             .iter(&app.world)
             .next()
             .expect("Local player should be created without preselected hero"); // TODO 0.7: Use single
@@ -126,10 +140,10 @@ mod tests {
 
         app.update();
 
-        let mut locals = app
+        let mut local_hero_kind = app
             .world
-            .query_filtered::<&HeroKind, (With<Local>, With<Player>)>();
-        let hero_kind = locals
+            .query_filtered::<&HeroKind, (With<Authority>, With<Player>)>();
+        let hero_kind = local_hero_kind
             .iter(&app.world)
             .next()
             .expect("Local player should be created with preselected hero"); // TODO 0.7: Use single

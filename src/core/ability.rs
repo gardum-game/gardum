@@ -77,7 +77,7 @@ mod tests {
     use std::time::Duration;
 
     use super::*;
-    use crate::core::Local;
+    use crate::core::Authority;
 
     #[test]
     fn ability_ignores_unrelated_action() {
@@ -202,7 +202,7 @@ mod tests {
     struct DummyCharacterBundle {
         abilities: Abilities,
         action_state: ActionState<CharacterAction>,
-        local: Local,
+        authority: Authority,
     }
 
     impl DummyCharacterBundle {
@@ -210,7 +210,7 @@ mod tests {
             Self {
                 abilities: Abilities(vec![dummy_ability]),
                 action_state: ActionState::default(),
-                local: Local,
+                authority: Authority,
             }
         }
     }
