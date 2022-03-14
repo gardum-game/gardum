@@ -11,8 +11,8 @@ bevy = { version = "0.6", default-features = false, features = [
     "x11"
 ] }
 bevy_atmosphere = { version = "0.2", optional = true }
-bevy_egui = { version = "0.11", default-features = false, features = ["multi_threaded"], optional = true }
-bevy-inspector-egui = { version = "0.8", default-features = false, optional = true }
+bevy_egui = { version = "0.12", features = ["multi_threaded"], optional = true }
+bevy-inspector-egui = { version = "0.9", optional = true }
 bevy-hikari = { version = "0.1", optional = true }
 heron = { version = "2.1", features = ["3d"] }
 leafwing-input-manager = "0.2"

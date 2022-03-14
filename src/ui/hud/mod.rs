@@ -23,7 +23,7 @@ mod health_bar;
 
 use bevy::prelude::*;
 use bevy_egui::{
-    egui::{Align2, Area, Image, TextureId},
+    egui::{Align2, Area},
     EguiContext,
 };
 
@@ -42,22 +42,37 @@ pub(super) struct HudPlugin;
 impl Plugin for HudPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
-            SystemSet::on_update(UiState::Hud)
-                .with_system(ability_icons_texture_system)
-                .with_system(health_and_abilities_system),
+            SystemSet::on_update(UiState::Hud).with_system(health_and_abilities_system),
         );
     }
 }
 
 fn health_and_abilities_system(
     local_character: Query<(&Abilities, &Health), With<Authority>>,
-    ability_cooldowns: Query<&Cooldown>,
-    egui: ResMut<EguiContext>,
+    cooldowns: Query<&Cooldown>,
+    icon_paths: Query<&IconPath>,
+    mut ability_images: Local<Vec<Handle<Image>>>,
+    asset_server: Res<AssetServer>,
+    mut egui: ResMut<EguiContext>,
 ) {
     let (abilities, health) = match local_character.get_single() {
         Ok(result) => result,
         Err(_) => return,
     };
+
+    for (i, ability) in abilities.iter().enumerate() {
+        let icon_path = icon_paths.get(*ability).unwrap();
+        let image = asset_server.load(icon_path.0);
+        if let Some(current_image) = ability_images.get_mut(i) {
+            if image != *current_image {
+                egui.add_image(current_image.as_weak());
+                *current_image = image;
+            }
+        } else {
+            egui.add_image(image.as_weak());
+            ability_images.push(image);
+        }
+    }
 
     Area::new("Health and abilities")
         .anchor(Align2::CENTER_BOTTOM, (0.0, -UI_MARGIN))
@@ -65,31 +80,11 @@ fn health_and_abilities_system(
             ui.set_width(300.0);
             ui.add(HealthBar::new(health.current, health.max));
             ui.horizontal(|ui| {
-                for (slot, ability) in abilities.iter().enumerate() {
-                    let image = Image::new(TextureId::User(slot as u64), [64.0, 64.0]);
-                    let cooldown = ability_cooldowns.get(*ability).ok();
-                    ui.add(AbilityIcon::new(image, cooldown));
+                for (ability, image) in abilities.iter().zip(ability_images.iter().by_ref()) {
+                    let cooldown = cooldowns.get(*ability).ok();
+                    let image_id = egui.image_id(image).unwrap();
+                    ui.add(AbilityIcon::new(image_id, cooldown));
                 }
             })
         });
-}
-
-fn ability_icons_texture_system(
-    new_local_abilities: Query<&Abilities, Added<Authority>>,
-    icons: Query<&IconPath>,
-    assets: Res<AssetServer>,
-    mut egui: ResMut<EguiContext>,
-) {
-    let abilities = match new_local_abilities.get_single() {
-        Ok(abilities) => abilities,
-        Err(_) => return,
-    };
-
-    for (i, ability) in abilities.iter().enumerate() {
-        if let Ok(icon) = icons.get(*ability) {
-            egui.set_egui_texture(i as u64, assets.load(icon.0));
-        } else {
-            egui.remove_egui_texture(i as u64);
-        }
-    }
 }
