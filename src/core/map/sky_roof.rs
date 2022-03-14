@@ -46,7 +46,6 @@ impl<'w, 's> AssetCommands<'w, 's> {
                 ..Default::default()
             },
             transform: Transform {
-                translation: Vec3::new(25.0, 0.0, 0.0),
                 rotation: Quat::from_euler(EulerRot::XYZ, -PI / 4.0, -PI / 4.0, 0.0),
                 ..Default::default()
             },
