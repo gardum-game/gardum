@@ -31,8 +31,13 @@ impl Plugin for UiStatePlugin {
     }
 }
 
-fn update_ui_state(ui_state_history: Res<UiStateHistory>, mut ui_state: ResMut<State<UiState>>) {
-    if ui_state_history.is_changed() && !ui_state_history.is_added() {
+fn update_ui_state(
+    mut ui_state_history: ResMut<UiStateHistory>,
+    mut ui_state: ResMut<State<UiState>>,
+) {
+    if ui_state_history.is_added() {
+        ui_state_history.push(*ui_state.current());
+    } else if ui_state_history.is_changed() {
         let last_state = *ui_state_history
             .last()
             .expect("State history should always contain at least one element");
@@ -40,14 +45,8 @@ fn update_ui_state(ui_state_history: Res<UiStateHistory>, mut ui_state: ResMut<S
     }
 }
 
-#[derive(Deref, DerefMut)]
+#[derive(Default, Deref, DerefMut)]
 pub(super) struct UiStateHistory(pub(super) Vec<UiState>);
-
-impl Default for UiStateHistory {
-    fn default() -> Self {
-        Self(vec![UiState::MainMenu])
-    }
-}
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub(crate) enum UiState {
