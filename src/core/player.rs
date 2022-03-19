@@ -23,7 +23,7 @@ use bevy::prelude::*;
 use bevy_hikari::NotGiCaster;
 use derive_more::Deref;
 
-use super::{cli::Opts, AppState, Authority};
+use super::{character::hero::HeroKind, cli::Opts, AppState, Authority, ServerSettings};
 
 pub(super) struct PlayerPlugin;
 
@@ -37,12 +37,16 @@ impl Plugin for PlayerPlugin {
     }
 }
 
-fn create_server_player_from_opts(mut commands: Commands, opts: Res<Opts>) {
+fn create_server_player_from_opts(
+    mut commands: Commands,
+    opts: Res<Opts>,
+    server_settings: Res<ServerSettings>,
+) {
     if opts.subcommand.is_some() {
         let mut player = commands.spawn_bundle(PlayerBundle::default());
         player.insert(Authority);
-        if let Some(hero_kind) = opts.preselect_hero {
-            player.insert(hero_kind);
+        if server_settings.random_heroes {
+            player.insert(HeroKind::North); // TODO: Implement random selection when there are more than one hero
         }
     }
 }
@@ -108,15 +112,15 @@ pub(crate) struct Healing(pub(crate) u32);
 
 #[cfg(test)]
 mod tests {
-    use strum::IntoEnumIterator;
-
     use super::*;
     use crate::core::{character::hero::HeroKind, cli::SubCommand, ServerSettings};
 
     #[test]
-    fn server_player_spawns_in_lobby() {
+    fn player_spawns_in_lobby() {
         let mut app = setup_app();
-        app.add_state(AppState::Lobby).init_resource::<Opts>();
+        app.add_state(AppState::Lobby)
+            .init_resource::<Opts>()
+            .init_resource::<ServerSettings>();
 
         app.update();
 
@@ -126,32 +130,30 @@ mod tests {
         local_player
             .iter(&app.world)
             .next()
-            .expect("Local player should be created without preselected hero"); // TODO 0.7: Use single
+            .expect("Local player should be created without hero"); // TODO 0.7: Use single
     }
 
     #[test]
-    fn server_player_spawns_with_host_command() {
+    fn player_spawns_from_cli() {
         let mut app = setup_app();
-        app.insert_resource(Opts {
-            subcommand: Some(SubCommand::Host(ServerSettings::default())),
-            preselect_hero: Some(HeroKind::iter().next().unwrap()),
+        app.insert_resource(ServerSettings {
+            random_heroes: true,
+            ..ServerSettings::default()
+        })
+        .insert_resource(Opts {
+            subcommand: Some(SubCommand::Connect),
         })
         .add_state(AppState::Menu);
 
         app.update();
 
-        let mut local_hero_kind = app
+        let mut local_player = app
             .world
-            .query_filtered::<&HeroKind, (With<Authority>, With<Player>)>();
-        let hero_kind = local_hero_kind
+            .query_filtered::<(), (With<Authority>, With<Player>, With<HeroKind>)>();
+        local_player
             .iter(&app.world)
             .next()
-            .expect("Local player should be created with preselected hero"); // TODO 0.7: Use single
-        assert_eq!(
-            *hero_kind,
-            HeroKind::iter().next().unwrap(),
-            "Player should have the specified preselected hero"
-        );
+            .expect("Local player should be created with hero"); // TODO 0.7: Use single
     }
 
     fn setup_app() -> App {

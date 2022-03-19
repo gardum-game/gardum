@@ -21,14 +21,14 @@
 use bevy::prelude::*;
 use clap::{Parser, Subcommand};
 
-use super::{character::hero::HeroKind, AppState, ServerSettings};
+use super::{AppState, ServerSettings};
 
 pub(super) struct CliPlugin;
 
 impl Plugin for CliPlugin {
     fn build(&self, app: &mut App) {
         if cfg!(test) {
-            // Dont parse command line when tarpaulin is used
+            // Dont parse command line in tests
             app.init_resource::<Opts>();
         } else {
             app.insert_resource(Opts::parse());
@@ -48,10 +48,6 @@ fn start_session_system(opts: Res<Opts>, mut app_state: ResMut<State<AppState>>)
 pub(crate) struct Opts {
     #[clap(subcommand)]
     pub(crate) subcommand: Option<SubCommand>,
-
-    /// Automatically preselect the specified hero
-    #[clap(long, short)]
-    pub(crate) preselect_hero: Option<HeroKind>,
 }
 
 #[derive(Subcommand)]

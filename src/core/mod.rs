@@ -94,6 +94,10 @@ pub(super) struct ServerSettings {
     /// Port to use.
     #[clap(short, long, default_value_t = ServerSettings::default().port)]
     pub(super) port: u16,
+
+    /// Port to use.
+    #[clap(short, long)]
+    pub(super) random_heroes: bool,
 }
 
 impl ServerSettings {
@@ -102,6 +106,7 @@ impl ServerSettings {
         Self {
             game_name: "My game".to_string(),
             port: 4761,
+            random_heroes: false,
         }
     }
 }
