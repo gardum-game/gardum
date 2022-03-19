@@ -25,7 +25,7 @@ pub(super) struct UiStatePlugin;
 
 impl Plugin for UiStatePlugin {
     fn build(&self, app: &mut App) {
-        app.add_state(UiState::MainMenu)
+        app.add_state(UiState::Empty)
             .init_resource::<UiStateHistory>()
             .add_system(update_ui_state);
     }
@@ -35,7 +35,7 @@ fn update_ui_state(
     mut ui_state_history: ResMut<UiStateHistory>,
     mut ui_state: ResMut<State<UiState>>,
 ) {
-    if ui_state_history.is_added() {
+    if ui_state_history.is_added() && ui_state_history.is_empty() {
         ui_state_history.push(*ui_state.current());
     } else if ui_state_history.is_changed() {
         let last_state = *ui_state_history
@@ -50,6 +50,7 @@ pub(super) struct UiStateHistory(pub(super) Vec<UiState>);
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub(crate) enum UiState {
+    Empty,
     MainMenu,
     CustomGameMenu,
     DirectConnectMenu,
@@ -74,8 +75,8 @@ mod tests {
                 .get_resource::<State<UiState>>()
                 .unwrap()
                 .current(),
-            UiState::MainMenu,
-            "Initial state should be main menu"
+            UiState::Empty,
+            "Initial state should be empty"
         );
 
         const STATE: UiState = UiState::CustomGameMenu;

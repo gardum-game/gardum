@@ -28,12 +28,14 @@ use super::{
     ui_state::{UiState, UiStateHistory},
     UI_MARGIN,
 };
+use crate::core::AppState;
 
 pub(super) struct MainMenuPlugin;
 
 impl Plugin for MainMenuPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(SystemSet::on_update(UiState::MainMenu).with_system(main_menu_system));
+        app.add_system_set(SystemSet::on_update(UiState::MainMenu).with_system(main_menu_system))
+            .add_system_set(SystemSet::on_enter(AppState::Menu).with_system(show_main_menu));
     }
 }
 
@@ -74,4 +76,9 @@ fn main_menu_system(
                 exit_event.send(AppExit);
             }
         });
+}
+
+fn show_main_menu(mut ui_state_history: ResMut<UiStateHistory>) {
+    ui_state_history.clear();
+    ui_state_history.push(UiState::MainMenu);
 }
