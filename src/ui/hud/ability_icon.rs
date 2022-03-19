@@ -70,15 +70,17 @@ impl Widget for AbilityIcon<'_> {
                     Color32::from_black_alpha(150),
                     Stroke::none(),
                 );
-                let text: WidgetText = display_sec.to_string().into();
-                let galley = text.into_galley(ui, Some(false), f32::INFINITY, TextStyle::Heading);
-                let text_pos = rect.center() - galley.size() / 2.0;
-                let text_color = Color32::DARK_GRAY;
-                galley.paint_with_fallback_color(
-                    &ui.painter().sub_region(rect),
-                    text_pos,
-                    text_color,
-                );
+
+                let text: WidgetText = RichText::new(display_sec.to_string())
+                    .font(FontId::monospace(25.0))
+                    .strong()
+                    .color(Color32::DARK_GRAY)
+                    .into();
+                let text_galley = text.into_galley(ui, None, f32::INFINITY, TextStyle::Heading);
+                let text_pos = rect.center() - text_galley.size() / 2.0;
+                ui.painter()
+                    .sub_region(rect)
+                    .galley(text_pos, text_galley.galley);
             }
         }
 
