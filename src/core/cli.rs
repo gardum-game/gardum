@@ -21,7 +21,7 @@
 use bevy::prelude::*;
 use clap::{Parser, Subcommand};
 
-use super::{character::hero::HeroKind, AppState};
+use super::{character::hero::HeroKind, AppState, ServerSettings};
 
 pub(super) struct CliPlugin;
 
@@ -57,7 +57,7 @@ pub(crate) struct Opts {
 #[derive(Subcommand)]
 pub(crate) enum SubCommand {
     Connect,
-    Host,
+    Host(ServerSettings),
 }
 
 #[cfg(test)]
@@ -68,7 +68,7 @@ mod tests {
     fn session_starts_from_cli() {
         let mut app = setup_app();
         let mut opts = app.world.get_resource_mut::<Opts>().unwrap();
-        opts.subcommand = Some(SubCommand::Host);
+        opts.subcommand = Some(SubCommand::Host(ServerSettings::default()));
 
         app.update();
 

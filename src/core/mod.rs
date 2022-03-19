@@ -35,6 +35,7 @@ mod projectile;
 pub(super) mod session;
 
 use bevy::{ecs::system::SystemParam, prelude::*};
+use clap::Args;
 use derive_more::From;
 use heron::PhysicsLayer;
 #[cfg(test)]
@@ -55,11 +56,14 @@ use player::PlayerPlugin;
 use projectile::ProjectilePlugin;
 use session::SessionPlugin;
 
+use self::cli::{Opts, SubCommand};
+
 pub(super) struct CorePlugin;
 
 impl Plugin for CorePlugin {
     fn build(&self, app: &mut App) {
         app.add_state(AppState::Menu)
+            .add_plugin(CliPlugin)
             .init_resource::<ServerSettings>()
             .add_plugin(HealthPlugin)
             .add_plugin(CharactersPlugin)
@@ -68,7 +72,6 @@ impl Plugin for CorePlugin {
             .add_plugin(OrbitCameraPlugin)
             .add_plugin(PickupPlugin)
             .add_plugin(MovementPlugin)
-            .add_plugin(CliPlugin)
             .add_plugin(MapsPlugin)
             .add_plugin(PlayerPlugin)
             .add_plugin(SessionPlugin)
@@ -82,16 +85,37 @@ impl Plugin for CorePlugin {
 #[derive(Component)]
 pub(super) struct Authority;
 
+#[derive(Args, Clone)]
 pub(super) struct ServerSettings {
+    /// Server name that will be visible to other players.
+    #[clap(short, long, default_value_t = ServerSettings::default().game_name)]
     pub(super) game_name: String,
+
+    /// Port to use.
+    #[clap(short, long, default_value_t = ServerSettings::default().port)]
     pub(super) port: u16,
 }
 
-impl Default for ServerSettings {
+impl ServerSettings {
+    /// We do not use the [`Default`] trait to avoid conflicting [`FromWorld`] implementation.
     fn default() -> Self {
         Self {
             game_name: "My game".to_string(),
             port: 4761,
+        }
+    }
+}
+
+impl FromWorld for ServerSettings {
+    fn from_world(world: &mut World) -> Self {
+        let opts = world
+            .get_resource::<Opts>()
+            .expect("Command line options should be initialized before server settings resource");
+
+        if let Some(SubCommand::Host(server_settings)) = &opts.subcommand {
+            server_settings.clone()
+        } else {
+            ServerSettings::default()
         }
     }
 }

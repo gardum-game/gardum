@@ -111,7 +111,7 @@ mod tests {
     use strum::IntoEnumIterator;
 
     use super::*;
-    use crate::core::{character::hero::HeroKind, cli::SubCommand};
+    use crate::core::{character::hero::HeroKind, cli::SubCommand, ServerSettings};
 
     #[test]
     fn server_player_spawns_in_lobby() {
@@ -133,7 +133,7 @@ mod tests {
     fn server_player_spawns_with_host_command() {
         let mut app = setup_app();
         app.insert_resource(Opts {
-            subcommand: Some(SubCommand::Host),
+            subcommand: Some(SubCommand::Host(ServerSettings::default())),
             preselect_hero: Some(HeroKind::iter().next().unwrap()),
         })
         .add_state(AppState::Menu);
