@@ -29,7 +29,9 @@ use super::{
     ui_state::{UiState, UiStateHistory},
     UI_MARGIN,
 };
-use crate::core::{character::hero::HeroKind, player::Player, AppState, Authority, ServerSettings};
+use crate::core::{
+    character::hero::HeroKind, player::Player, server_settings::ServerSettings, AppState, Authority,
+};
 
 pub struct HeroSelectionPlugin;
 

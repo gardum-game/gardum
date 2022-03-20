@@ -32,10 +32,10 @@ mod orbit_camera;
 mod pickup;
 pub(super) mod player;
 mod projectile;
+pub(super) mod server_settings;
 pub(super) mod session;
 
 use bevy::{ecs::system::SystemParam, prelude::*};
-use clap::Args;
 use derive_more::From;
 use heron::PhysicsLayer;
 #[cfg(test)]
@@ -54,9 +54,8 @@ use orbit_camera::OrbitCameraPlugin;
 use pickup::PickupPlugin;
 use player::PlayerPlugin;
 use projectile::ProjectilePlugin;
+use server_settings::ServerSettings;
 use session::SessionPlugin;
-
-use self::cli::{Opts, SubCommand};
 
 pub(super) struct CorePlugin;
 
@@ -84,46 +83,6 @@ impl Plugin for CorePlugin {
 /// Indicates that the local player have authority on the entity
 #[derive(Component)]
 pub(super) struct Authority;
-
-#[derive(Args, Clone)]
-pub(super) struct ServerSettings {
-    /// Server name that will be visible to other players.
-    #[clap(short, long, default_value_t = ServerSettings::default().game_name)]
-    pub(super) game_name: String,
-
-    /// Port to use.
-    #[clap(short, long, default_value_t = ServerSettings::default().port)]
-    pub(super) port: u16,
-
-    /// Port to use.
-    #[clap(short, long)]
-    pub(super) random_heroes: bool,
-}
-
-impl ServerSettings {
-    /// We do not use the [`Default`] trait to avoid conflicting [`FromWorld`] implementation.
-    fn default() -> Self {
-        Self {
-            game_name: "My game".to_string(),
-            port: 4761,
-            random_heroes: false,
-        }
-    }
-}
-
-impl FromWorld for ServerSettings {
-    fn from_world(world: &mut World) -> Self {
-        let opts = world
-            .get_resource::<Opts>()
-            .expect("Command line options should be initialized before server settings resource");
-
-        if let Some(SubCommand::Host(server_settings)) = &opts.subcommand {
-            server_settings.clone()
-        } else {
-            ServerSettings::default()
-        }
-    }
-}
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 #[cfg_attr(test, derive(EnumIter))]
