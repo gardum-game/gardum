@@ -24,13 +24,14 @@ use heron::{CollisionEvent, CollisionLayers, CollisionShape, PhysicsLayer, Rigid
 use strum::EnumIter;
 
 use super::{
+    app_state::AppState,
     character::{DamageModifier, HealingModifier, SpeedModifier},
     cooldown::Cooldown,
     effect::{
         periodic_effect::{PeriodicEffectTimer, PeriodicHealthChange},
         EffectTarget, EffectTimer,
     },
-    AppState, AssetCommands, AssociatedAsset, CollisionLayer, TransformBundle,
+    AssetCommands, AssociatedAsset, CollisionLayer, TransformBundle,
 };
 
 pub(super) struct PickupPlugin;

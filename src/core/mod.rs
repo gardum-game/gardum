@@ -19,6 +19,7 @@
  */
 
 pub(super) mod ability;
+pub(super) mod app_state;
 pub(super) mod character;
 pub(super) mod character_action;
 pub(super) mod cli;
@@ -38,13 +39,11 @@ pub(super) mod session;
 use bevy::{ecs::system::SystemParam, prelude::*};
 use derive_more::From;
 use heron::PhysicsLayer;
-#[cfg(test)]
-use strum::EnumIter;
 
+use self::{app_state::AppStatePlugin, cli::Opts};
 use ability::AbilityPlugin;
 use character::CharactersPlugin;
 use character_action::CharacterActionPlugin;
-use cli::CliPlugin;
 use despawn_timer::DespawnTimerPlugin;
 use effect::EffectPlugin;
 use health::HealthPlugin;
@@ -61,9 +60,9 @@ pub(super) struct CorePlugin;
 
 impl Plugin for CorePlugin {
     fn build(&self, app: &mut App) {
-        app.add_state(AppState::Menu)
-            .add_plugin(CliPlugin)
+        app.init_resource::<Opts>()
             .init_resource::<ServerSettings>()
+            .add_plugin(AppStatePlugin)
             .add_plugin(HealthPlugin)
             .add_plugin(CharactersPlugin)
             .add_plugin(CharacterActionPlugin)
@@ -83,14 +82,6 @@ impl Plugin for CorePlugin {
 /// Indicates that the local player have authority on the entity
 #[derive(Component)]
 pub(super) struct Authority;
-
-#[derive(Debug, Clone, Eq, PartialEq, Hash)]
-#[cfg_attr(test, derive(EnumIter))]
-pub(super) enum AppState {
-    Menu,
-    Lobby,
-    InGame,
-}
 
 #[derive(PhysicsLayer)]
 pub(super) enum CollisionLayer {

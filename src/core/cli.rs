@@ -21,66 +21,28 @@
 use bevy::prelude::*;
 use clap::{Parser, Subcommand};
 
-use super::{AppState, ServerSettings};
+use super::ServerSettings;
 
-pub(super) struct CliPlugin;
-
-impl Plugin for CliPlugin {
-    fn build(&self, app: &mut App) {
-        if cfg!(test) {
-            // Dont parse command line in tests
-            app.init_resource::<Opts>();
-        } else {
-            app.insert_resource(Opts::parse());
-        }
-        app.add_startup_system(start_session_system);
-    }
-}
-
-fn start_session_system(opts: Res<Opts>, mut app_state: ResMut<State<AppState>>) {
-    if opts.subcommand.is_some() {
-        app_state.set(AppState::InGame).unwrap();
-    }
-}
-
-#[derive(Default, Parser)]
+#[derive(Parser)]
 #[clap(author, version, about)]
 pub(crate) struct Opts {
     #[clap(subcommand)]
     pub(crate) subcommand: Option<SubCommand>,
 }
 
+impl FromWorld for Opts {
+    fn from_world(_world: &mut World) -> Self {
+        if cfg!(test) {
+            // Dont parse command line in tests
+            Opts { subcommand: None }
+        } else {
+            Opts::parse()
+        }
+    }
+}
+
 #[derive(Subcommand)]
 pub(crate) enum SubCommand {
     Connect,
     Host(ServerSettings),
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn session_starts_from_cli() {
-        let mut app = setup_app();
-        let mut opts = app.world.get_resource_mut::<Opts>().unwrap();
-        opts.subcommand = Some(SubCommand::Host(ServerSettings::default()));
-
-        app.update();
-
-        assert_eq!(
-            *app.world
-                .get_resource_mut::<State<AppState>>()
-                .unwrap()
-                .current(),
-            AppState::InGame,
-            "Game should start right away"
-        )
-    }
-
-    fn setup_app() -> App {
-        let mut app = App::new();
-        app.add_state(AppState::Menu).add_plugin(CliPlugin);
-        app
-    }
 }

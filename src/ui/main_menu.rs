@@ -28,7 +28,7 @@ use super::{
     ui_state::{UiState, UiStateHistory},
     UI_MARGIN,
 };
-use crate::core::AppState;
+use crate::core::app_state::AppState;
 
 pub(super) struct MainMenuPlugin;
 

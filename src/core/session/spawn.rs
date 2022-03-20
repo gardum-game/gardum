@@ -22,9 +22,9 @@ use bevy::prelude::*;
 use derive_more::{Deref, DerefMut};
 
 use crate::core::{
+    app_state::AppState,
     character::{hero::HeroKind, CharacterBundle},
     health::Death,
-    AppState,
 };
 
 pub(super) struct SpawnPlugin;
@@ -110,7 +110,7 @@ mod tests {
     use strum::IntoEnumIterator;
 
     use super::*;
-    use crate::{core::AppState, test_utils::HeadlessRenderPlugin};
+    use crate::{core::app_state::AppState, test_utils::HeadlessRenderPlugin};
 
     #[test]
     fn hero_spawns() {

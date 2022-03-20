@@ -23,8 +23,8 @@ use heron::{rapier_plugin::PhysicsWorld, CollisionLayers, CollisionShape, Veloci
 use leafwing_input_manager::prelude::ActionState;
 
 use super::{
-    character::SpeedModifier, character_action::CharacterAction, orbit_camera::CameraTarget,
-    AppState,
+    app_state::AppState, character::SpeedModifier, character_action::CharacterAction,
+    orbit_camera::CameraTarget,
 };
 
 const MOVE_SPEED: f32 = 10.0;

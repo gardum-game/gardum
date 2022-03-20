@@ -22,7 +22,7 @@ use bevy::prelude::*;
 use derive_more::{Deref, DerefMut, From};
 
 use super::EffectTarget;
-use crate::core::{health::HealthChangeEvent, AppState, Owner};
+use crate::core::{app_state::AppState, health::HealthChangeEvent, Owner};
 
 pub(super) struct PeriodicEffectPlugin;
 

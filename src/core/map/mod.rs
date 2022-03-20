@@ -25,7 +25,7 @@ use bevy::prelude::*;
 use strum::EnumIter;
 
 use super::{AssetCommands, AssociatedAsset};
-use crate::core::AppState;
+use crate::core::app_state::AppState;
 
 pub(super) struct MapsPlugin;
 

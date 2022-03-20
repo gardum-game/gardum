@@ -22,7 +22,7 @@ use bevy::prelude::*;
 use derive_more::{Deref, DerefMut};
 use std::time::Duration;
 
-use super::AppState;
+use super::app_state::AppState;
 
 pub(super) struct DespawnTimerPlugin;
 

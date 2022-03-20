@@ -22,7 +22,7 @@ use bevy::prelude::*;
 use heron::{CollisionEvent, CollisionLayers, CollisionShape, PhysicsLayer, RigidBody, Velocity};
 use itertools::Itertools;
 
-use super::{despawn_timer::DespawnTimer, AppState, CollisionLayer};
+use super::{app_state::AppState, despawn_timer::DespawnTimer, CollisionLayer};
 
 pub(super) struct ProjectilePlugin;
 

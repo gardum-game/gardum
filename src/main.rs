@@ -86,7 +86,7 @@ mod tests {
     use test_utils::HeadlessRenderPlugin;
 
     use super::*;
-    use crate::core::AppState;
+    use crate::core::app_state::AppState;
 
     #[test]
     fn update_in_states() {

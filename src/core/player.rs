@@ -23,7 +23,7 @@ use bevy::prelude::*;
 use bevy_hikari::NotGiCaster;
 use derive_more::Deref;
 
-use super::{character::hero::HeroKind, cli::Opts, AppState, Authority, ServerSettings};
+use super::{app_state::AppState, character::hero::HeroKind, cli::Opts, Authority, ServerSettings};
 
 pub(super) struct PlayerPlugin;
 

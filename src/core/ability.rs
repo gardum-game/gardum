@@ -22,7 +22,7 @@ use bevy::prelude::*;
 use derive_more::{Deref, DerefMut, From};
 use leafwing_input_manager::prelude::ActionState;
 
-use super::{character_action::CharacterAction, cooldown::Cooldown, AppState};
+use super::{app_state::AppState, character_action::CharacterAction, cooldown::Cooldown};
 
 pub(super) struct AbilityPlugin;
 

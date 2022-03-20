@@ -25,9 +25,9 @@ use bevy::prelude::*;
 use derive_more::{Deref, DerefMut, From};
 
 use super::{
+    app_state::AppState,
     character::{DamageModifier, HealingModifier, SpeedModifier},
     health::Death,
-    AppState,
 };
 use modifier_effect::ModifierEffectPlugin;
 use periodic_effect::PeriodicEffectPlugin;

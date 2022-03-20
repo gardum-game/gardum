@@ -25,7 +25,7 @@ use std::{
 };
 
 use super::{Dispelled, EffectTarget};
-use crate::core::AppState;
+use crate::core::app_state::AppState;
 
 #[derive(Default)]
 pub(super) struct ModifierEffectPlugin<T> {
@@ -65,7 +65,7 @@ mod tests {
     use derive_more::{AddAssign, From, SubAssign};
 
     use super::*;
-    use crate::core::AppState;
+    use crate::core::app_state::AppState;
 
     #[test]
     fn player_modifier_changes() {

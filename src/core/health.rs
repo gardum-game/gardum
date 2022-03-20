@@ -21,9 +21,9 @@
 use bevy::prelude::*;
 
 use super::{
+    app_state::AppState,
     character::{DamageModifier, HealingModifier},
     player::{Damage, Deaths, Healing, Kills},
-    AppState,
 };
 
 pub(super) struct HealthPlugin;
