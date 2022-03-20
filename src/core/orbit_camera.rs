@@ -29,7 +29,7 @@ use bevy_hikari::Volume;
 use derive_more::{Deref, DerefMut, From};
 use heron::PhysicsSystem;
 
-use super::{app_state::AppState, character::hero::HeroKind, Authority};
+use super::{character::hero::HeroKind, game_state::GameState, Authority};
 
 const CAMERA_DISTANCE: f32 = 10.0;
 const CAMERA_SENSETIVITY: f32 = 0.2;
@@ -38,14 +38,16 @@ pub(super) struct OrbitCameraPlugin;
 
 impl Plugin for OrbitCameraPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(SystemSet::on_update(AppState::InGame).with_system(spawn_camera_system))
-            .add_system_set(SystemSet::on_update(AppState::InGame).with_system(camera_input_system))
-            .add_system_to_stage(
-                CoreStage::PostUpdate,
-                camera_position_system
-                    .after(PhysicsSystem::TransformUpdate)
-                    .before(TransformSystem::TransformPropagate),
-            );
+        app.add_system_set(
+            SystemSet::on_update(GameState::InGame).with_system(spawn_camera_system),
+        )
+        .add_system_set(SystemSet::on_update(GameState::InGame).with_system(camera_input_system))
+        .add_system_to_stage(
+            CoreStage::PostUpdate,
+            camera_position_system
+                .after(PhysicsSystem::TransformUpdate)
+                .before(TransformSystem::TransformPropagate),
+        );
     }
 }
 
@@ -93,11 +95,11 @@ fn camera_input_system(
 }
 
 fn camera_position_system(
-    app_state: Res<State<AppState>>,
+    game_state: Res<State<GameState>>,
     transforms: Query<&Transform, Without<OrbitRotation>>,
     mut cameras: Query<(&mut Transform, &OrbitRotation, &CameraTarget)>,
 ) {
-    if *app_state.current() != AppState::InGame {
+    if *game_state.current() != GameState::InGame {
         return;
     }
 
@@ -278,7 +280,7 @@ mod tests {
 
     fn setup_app() -> App {
         let mut app = App::new();
-        app.add_state(AppState::InGame)
+        app.add_state(GameState::InGame)
             .add_plugin(HeadlessRenderPlugin)
             .add_plugin(InputPlugin)
             .add_plugin(PhysicsPlugin::default())

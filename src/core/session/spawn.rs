@@ -22,8 +22,8 @@ use bevy::prelude::*;
 use derive_more::{Deref, DerefMut};
 
 use crate::core::{
-    app_state::AppState,
     character::{hero::HeroKind, CharacterBundle},
+    game_state::GameState,
     health::Death,
 };
 
@@ -32,7 +32,7 @@ pub(super) struct SpawnPlugin;
 impl Plugin for SpawnPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
-            SystemSet::on_update(AppState::InGame)
+            SystemSet::on_update(GameState::InGame)
                 .with_system(spawn_system)
                 .with_system(assign_respawn_system)
                 .with_system(respawn_system),
@@ -110,7 +110,7 @@ mod tests {
     use strum::IntoEnumIterator;
 
     use super::*;
-    use crate::{core::app_state::AppState, test_utils::HeadlessRenderPlugin};
+    use crate::{core::game_state::GameState, test_utils::HeadlessRenderPlugin};
 
     #[test]
     fn hero_spawns() {
@@ -208,7 +208,7 @@ mod tests {
 
     fn setup_app() -> App {
         let mut app = App::new();
-        app.add_state(AppState::InGame)
+        app.add_state(GameState::InGame)
             .add_plugin(HeadlessRenderPlugin)
             .add_plugin(SpawnPlugin);
 

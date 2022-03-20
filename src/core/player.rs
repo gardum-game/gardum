@@ -23,14 +23,18 @@ use bevy::prelude::*;
 use bevy_hikari::NotGiCaster;
 use derive_more::Deref;
 
-use super::{app_state::AppState, character::hero::HeroKind, cli::Opts, Authority, ServerSettings};
+use super::{
+    character::hero::HeroKind, cli::Opts, game_state::GameState, Authority, ServerSettings,
+};
 
 pub(super) struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_startup_system(create_server_player_from_opts)
-            .add_system_set(SystemSet::on_enter(AppState::Lobby).with_system(create_server_player));
+            .add_system_set(
+                SystemSet::on_enter(GameState::Lobby).with_system(create_server_player),
+            );
 
         #[cfg(feature = "gi")]
         app.add_system(player_not_cast_gi);
@@ -118,7 +122,7 @@ mod tests {
     #[test]
     fn player_spawns_in_lobby() {
         let mut app = setup_app();
-        app.add_state(AppState::Lobby)
+        app.add_state(GameState::Lobby)
             .init_resource::<Opts>()
             .init_resource::<ServerSettings>();
 
@@ -143,7 +147,7 @@ mod tests {
         .insert_resource(Opts {
             subcommand: Some(SubCommand::Connect),
         })
-        .add_state(AppState::Menu);
+        .add_state(GameState::Menu);
 
         app.update();
 

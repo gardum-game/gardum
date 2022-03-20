@@ -25,14 +25,14 @@ use bevy::prelude::*;
 use strum::EnumIter;
 
 use super::{AssetCommands, AssociatedAsset};
-use crate::core::app_state::AppState;
+use crate::core::game_state::GameState;
 
 pub(super) struct MapsPlugin;
 
 impl Plugin for MapsPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(Map::SkyRoof)
-            .add_system_set(SystemSet::on_enter(AppState::InGame).with_system(load_map_system));
+            .add_system_set(SystemSet::on_enter(GameState::InGame).with_system(load_map_system));
     }
 }
 
@@ -74,7 +74,7 @@ mod tests {
 
     fn setup_app() -> App {
         let mut app = App::new();
-        app.add_state(AppState::InGame)
+        app.add_state(GameState::InGame)
             .add_plugin(HeadlessRenderPlugin)
             .add_plugin(ScenePlugin)
             .add_plugin(GltfPlugin)

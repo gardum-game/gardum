@@ -25,7 +25,7 @@ use std::{
 };
 
 use super::{Dispelled, EffectTarget};
-use crate::core::app_state::AppState;
+use crate::core::game_state::GameState;
 
 #[derive(Default)]
 pub(super) struct ModifierEffectPlugin<T> {
@@ -35,7 +35,7 @@ pub(super) struct ModifierEffectPlugin<T> {
 impl<T: Component + AddAssign + SubAssign + Copy> Plugin for ModifierEffectPlugin<T> {
     fn build(&self, app: &mut App) {
         app.add_system_set(
-            SystemSet::on_update(AppState::InGame)
+            SystemSet::on_update(GameState::InGame)
                 .with_system(effect_modifier_activation_system::<T>)
                 .with_system(effect_modifier_removal_system::<T>),
         );
@@ -65,7 +65,7 @@ mod tests {
     use derive_more::{AddAssign, From, SubAssign};
 
     use super::*;
-    use crate::core::app_state::AppState;
+    use crate::core::game_state::GameState;
 
     #[test]
     fn player_modifier_changes() {
@@ -101,7 +101,7 @@ mod tests {
 
     fn setup_app() -> App {
         let mut app = App::new();
-        app.add_state(AppState::InGame)
+        app.add_state(GameState::InGame)
             .add_plugins(MinimalPlugins)
             .add_plugin(ModifierEffectPlugin::<DummyModifier>::default());
         app

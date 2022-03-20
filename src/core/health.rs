@@ -21,8 +21,8 @@
 use bevy::prelude::*;
 
 use super::{
-    app_state::AppState,
     character::{DamageModifier, HealingModifier},
+    game_state::GameState,
     player::{Damage, Deaths, Healing, Kills},
 };
 
@@ -31,7 +31,7 @@ pub(super) struct HealthPlugin;
 impl Plugin for HealthPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<HealthChangeEvent>().add_system_set(
-            SystemSet::on_update(AppState::InGame)
+            SystemSet::on_update(GameState::InGame)
                 .with_system(heal_system)
                 .with_system(damage_system),
         );
@@ -302,7 +302,7 @@ mod tests {
 
     fn setup_app() -> App {
         let mut app = App::new();
-        app.add_state(AppState::InGame)
+        app.add_state(GameState::InGame)
             .add_plugins(MinimalPlugins)
             .add_plugin(HealthPlugin);
 

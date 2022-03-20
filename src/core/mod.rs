@@ -19,13 +19,13 @@
  */
 
 pub(super) mod ability;
-pub(super) mod app_state;
 pub(super) mod character;
 pub(super) mod character_action;
 pub(super) mod cli;
 pub(super) mod cooldown;
 mod despawn_timer;
 mod effect;
+pub(super) mod game_state;
 pub(super) mod health;
 pub(super) mod map;
 mod movement;
@@ -40,7 +40,7 @@ use bevy::{ecs::system::SystemParam, prelude::*};
 use derive_more::From;
 use heron::PhysicsLayer;
 
-use self::{app_state::AppStatePlugin, cli::Opts};
+use self::{cli::Opts, game_state::AppStatePlugin};
 use ability::AbilityPlugin;
 use character::CharactersPlugin;
 use character_action::CharacterActionPlugin;

@@ -28,14 +28,14 @@ use super::{
     ui_state::{UiState, UiStateHistory},
     UI_MARGIN,
 };
-use crate::core::app_state::AppState;
+use crate::core::game_state::GameState;
 
 pub(super) struct MainMenuPlugin;
 
 impl Plugin for MainMenuPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(SystemSet::on_update(UiState::MainMenu).with_system(main_menu_system))
-            .add_system_set(SystemSet::on_enter(AppState::Menu).with_system(show_main_menu));
+            .add_system_set(SystemSet::on_enter(GameState::Menu).with_system(show_main_menu));
     }
 }
 

@@ -24,13 +24,13 @@ use heron::{CollisionEvent, CollisionLayers, CollisionShape, PhysicsLayer, Rigid
 use strum::EnumIter;
 
 use super::{
-    app_state::AppState,
     character::{DamageModifier, HealingModifier, SpeedModifier},
     cooldown::Cooldown,
     effect::{
         periodic_effect::{PeriodicEffectTimer, PeriodicHealthChange},
         EffectTarget, EffectTimer,
     },
+    game_state::GameState,
     AssetCommands, AssociatedAsset, CollisionLayer, TransformBundle,
 };
 
@@ -39,7 +39,7 @@ pub(super) struct PickupPlugin;
 impl Plugin for PickupPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
-            SystemSet::on_update(AppState::InGame)
+            SystemSet::on_update(GameState::InGame)
                 .with_system(pickup_collision_system)
                 .with_system(pickup_cooldown_system),
         );
@@ -380,7 +380,7 @@ mod tests {
 
     fn setup_app() -> App {
         let mut app = App::new();
-        app.add_state(AppState::InGame)
+        app.add_state(GameState::InGame)
             .add_plugin(HeadlessRenderPlugin)
             .add_plugin(ScenePlugin)
             .add_plugin(GltfPlugin)

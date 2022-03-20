@@ -33,16 +33,16 @@ impl Plugin for AppStatePlugin {
             .get_resource::<Opts>()
             .expect("Command line options should be initialized before app state setting");
         if opts.subcommand.is_some() {
-            app.add_state(AppState::InGame);
+            app.add_state(GameState::InGame);
         } else {
-            app.add_state(AppState::Menu);
+            app.add_state(GameState::Menu);
         }
     }
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 #[cfg_attr(test, derive(EnumIter))]
-pub(crate) enum AppState {
+pub(crate) enum GameState {
     Menu,
     Lobby,
     InGame,
@@ -64,10 +64,10 @@ mod tests {
 
         assert_eq!(
             *app.world
-                .get_resource::<State<AppState>>()
+                .get_resource::<State<GameState>>()
                 .unwrap()
                 .current(),
-            AppState::InGame,
+            GameState::InGame,
             "State should be in game when launched with a subcommand"
         );
     }
@@ -80,10 +80,10 @@ mod tests {
 
         assert_eq!(
             *app.world
-                .get_resource::<State<AppState>>()
+                .get_resource::<State<GameState>>()
                 .unwrap()
                 .current(),
-            AppState::Menu,
+            GameState::Menu,
             "State should be in menu when launched without a subcommand"
         );
     }

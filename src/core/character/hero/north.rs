@@ -23,10 +23,10 @@ use heron::{CollisionShape, Velocity};
 
 use crate::core::{
     ability::{Abilities, Activator, IconPath},
-    app_state::AppState,
     character::{character_direction, CharacterBundle},
     character_action::CharacterAction,
     cooldown::Cooldown,
+    game_state::GameState,
     health::{Health, HealthChangeEvent},
     projectile::{ProjectileBundle, ProjectileHitEvent},
     Owner,
@@ -42,7 +42,7 @@ pub(super) struct NorthPlugin;
 impl Plugin for NorthPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
-            SystemSet::on_update(AppState::InGame)
+            SystemSet::on_update(GameState::InGame)
                 .with_system(frost_bolt_system)
                 .with_system(frost_bolt_hit_system)
                 .with_system(frost_path_system),
@@ -355,7 +355,7 @@ mod tests {
         let mut app = App::new();
         app.add_event::<ProjectileHitEvent>()
             .add_event::<HealthChangeEvent>()
-            .add_state(AppState::InGame)
+            .add_state(GameState::InGame)
             .add_plugin(HeadlessRenderPlugin)
             .add_plugin(NorthPlugin);
 

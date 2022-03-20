@@ -30,7 +30,7 @@ use super::{
     UI_MARGIN,
 };
 use crate::core::{
-    app_state::AppState, character::hero::HeroKind, player::Player,
+    character::hero::HeroKind, game_state::GameState, player::Player,
     server_settings::ServerSettings, Authority,
 };
 
@@ -43,7 +43,7 @@ impl Plugin for HeroSelectionPlugin {
                 .with_system(hero_selection_system.system()),
         )
         .add_system_set(
-            SystemSet::on_enter(AppState::InGame).with_system(show_hero_selection_system.system()),
+            SystemSet::on_enter(GameState::InGame).with_system(show_hero_selection_system.system()),
         );
     }
 }

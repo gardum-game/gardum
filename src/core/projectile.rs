@@ -22,14 +22,14 @@ use bevy::prelude::*;
 use heron::{CollisionEvent, CollisionLayers, CollisionShape, PhysicsLayer, RigidBody, Velocity};
 use itertools::Itertools;
 
-use super::{app_state::AppState, despawn_timer::DespawnTimer, CollisionLayer};
+use super::{despawn_timer::DespawnTimer, game_state::GameState, CollisionLayer};
 
 pub(super) struct ProjectilePlugin;
 
 impl Plugin for ProjectilePlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<ProjectileHitEvent>()
-            .add_system_set(SystemSet::on_update(AppState::InGame).with_system(collision_system));
+            .add_system_set(SystemSet::on_update(GameState::InGame).with_system(collision_system));
     }
 }
 
@@ -273,7 +273,7 @@ mod tests {
 
     fn setup_app() -> App {
         let mut app = App::new();
-        app.add_state(AppState::InGame)
+        app.add_state(GameState::InGame)
             .add_plugins(MinimalPlugins)
             .add_plugin(PhysicsPlugin::default())
             .add_plugin(ProjectilePlugin);

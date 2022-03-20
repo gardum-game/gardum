@@ -22,14 +22,14 @@ use bevy::prelude::*;
 use derive_more::{Deref, DerefMut, From};
 
 use super::EffectTarget;
-use crate::core::{app_state::AppState, health::HealthChangeEvent, Owner};
+use crate::core::{game_state::GameState, health::HealthChangeEvent, Owner};
 
 pub(super) struct PeriodicEffectPlugin;
 
 impl Plugin for PeriodicEffectPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
-            SystemSet::on_update(AppState::InGame)
+            SystemSet::on_update(GameState::InGame)
                 .with_system(update_health_system)
                 .with_system(periodic_timer_system),
         );
@@ -142,7 +142,7 @@ mod tests {
 
     fn setup_app() -> App {
         let mut app = App::new();
-        app.add_state(AppState::InGame)
+        app.add_state(GameState::InGame)
             .add_event::<HealthChangeEvent>()
             .add_plugins(MinimalPlugins)
             .add_plugin(PeriodicEffectPlugin);

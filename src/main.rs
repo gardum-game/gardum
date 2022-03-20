@@ -86,15 +86,15 @@ mod tests {
     use test_utils::HeadlessRenderPlugin;
 
     use super::*;
-    use crate::core::app_state::AppState;
+    use crate::core::game_state::GameState;
 
     #[test]
     fn update_in_states() {
         let mut app = setup_app();
         app.update();
 
-        for state in AppState::iter().skip(1) {
-            let mut current_state = app.world.get_resource_mut::<State<AppState>>().unwrap();
+        for state in GameState::iter().skip(1) {
+            let mut current_state = app.world.get_resource_mut::<State<GameState>>().unwrap();
             current_state.set(state).unwrap();
             app.update();
         }

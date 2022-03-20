@@ -25,8 +25,8 @@ use bevy::prelude::*;
 use derive_more::{Deref, DerefMut, From};
 
 use super::{
-    app_state::AppState,
     character::{DamageModifier, HealingModifier, SpeedModifier},
+    game_state::GameState,
     health::Death,
 };
 use modifier_effect::ModifierEffectPlugin;
@@ -41,7 +41,7 @@ impl Plugin for EffectPlugin {
             .add_plugin(ModifierEffectPlugin::<HealingModifier>::default())
             .add_plugin(PeriodicEffectPlugin)
             .add_system_set(
-                SystemSet::on_update(AppState::InGame)
+                SystemSet::on_update(GameState::InGame)
                     .with_system(dispell_on_death_system)
                     .with_system(effect_timer_system)
                     .with_system(effect_removal_system),
@@ -145,7 +145,7 @@ mod tests {
 
     fn setup_app() -> App {
         let mut app = App::new();
-        app.add_state(AppState::InGame)
+        app.add_state(GameState::InGame)
             .add_event::<HealthChangeEvent>()
             .add_plugins(MinimalPlugins)
             .add_plugin(EffectPlugin);

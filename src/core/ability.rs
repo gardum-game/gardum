@@ -22,13 +22,13 @@ use bevy::prelude::*;
 use derive_more::{Deref, DerefMut, From};
 use leafwing_input_manager::prelude::ActionState;
 
-use super::{app_state::AppState, character_action::CharacterAction, cooldown::Cooldown};
+use super::{character_action::CharacterAction, cooldown::Cooldown, game_state::GameState};
 
 pub(super) struct AbilityPlugin;
 
 impl Plugin for AbilityPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(SystemSet::on_update(AppState::InGame).with_system(activation_system));
+        app.add_system_set(SystemSet::on_update(GameState::InGame).with_system(activation_system));
     }
 }
 
@@ -191,7 +191,7 @@ mod tests {
 
     fn setup_app() -> App {
         let mut app = App::new();
-        app.add_state(AppState::InGame)
+        app.add_state(GameState::InGame)
             .add_plugins(MinimalPlugins)
             .add_plugin(InputPlugin)
             .add_plugin(AbilityPlugin);

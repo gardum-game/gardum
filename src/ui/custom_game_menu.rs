@@ -27,7 +27,7 @@ use strum::IntoEnumIterator;
 
 use super::ui_state::{UiState, UiStateHistory};
 use crate::core::{
-    app_state::AppState, map::Map, server_settings::ServerSettings, session::GameMode,
+    game_state::GameState, map::Map, server_settings::ServerSettings, session::GameMode,
 };
 
 pub(super) struct CustomGameMenuPlugin;
@@ -47,7 +47,7 @@ impl Plugin for CustomGameMenuPlugin {
             )
             .add_system_set(SystemSet::on_update(UiState::LobbyMenu).with_system(lobby_menu_system))
             .add_system_set(
-                SystemSet::on_enter(AppState::Lobby).with_system(show_lobby_menu_system),
+                SystemSet::on_enter(GameState::Lobby).with_system(show_lobby_menu_system),
             );
     }
 }
@@ -86,7 +86,7 @@ fn create_game_menu_system(
     mut server_settings: ResMut<ServerSettings>,
     mut game_mode: ResMut<GameMode>,
     mut map: ResMut<Map>,
-    mut app_state: ResMut<State<AppState>>,
+    mut game_state: ResMut<State<GameState>>,
 ) {
     Window::new("Custom game")
         .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
@@ -96,7 +96,7 @@ fn create_game_menu_system(
             ui.vertical(|ui| {
                 show_game_settings(ui, &mut server_settings, &mut game_mode, &mut map);
                 if ui.button("Create").clicked() {
-                    app_state.set(AppState::Lobby).unwrap();
+                    game_state.set(GameState::Lobby).unwrap();
                 }
             })
         });
@@ -108,7 +108,7 @@ fn lobby_menu_system(
     mut server_settings: ResMut<ServerSettings>,
     mut game_mode: ResMut<GameMode>,
     mut map: ResMut<Map>,
-    mut app_state: ResMut<State<AppState>>,
+    mut game_state: ResMut<State<GameState>>,
 ) {
     Window::new("Lobby")
         .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
@@ -123,7 +123,7 @@ fn lobby_menu_system(
                     })
                 });
                 if ui.button("Start").clicked() {
-                    app_state.set(AppState::InGame).unwrap();
+                    game_state.set(GameState::InGame).unwrap();
                 }
             })
         });
@@ -194,7 +194,7 @@ impl Default for DirectConnectData {
 fn direct_connect_menu_system(
     egui: ResMut<EguiContext>,
     mut data: Local<DirectConnectData>,
-    mut app_state: ResMut<State<AppState>>,
+    mut game_state: ResMut<State<GameState>>,
 ) {
     Window::new("Direct connect")
         .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
@@ -213,7 +213,7 @@ fn direct_connect_menu_system(
                 });
             ui.vertical_centered(|ui| {
                 if ui.button("Connect").clicked() {
-                    app_state.set(AppState::InGame).unwrap();
+                    game_state.set(GameState::InGame).unwrap();
                 }
             });
         });

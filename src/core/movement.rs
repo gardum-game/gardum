@@ -23,7 +23,7 @@ use heron::{rapier_plugin::PhysicsWorld, CollisionLayers, CollisionShape, Veloci
 use leafwing_input_manager::prelude::ActionState;
 
 use super::{
-    app_state::AppState, character::SpeedModifier, character_action::CharacterAction,
+    character::SpeedModifier, character_action::CharacterAction, game_state::GameState,
     orbit_camera::CameraTarget,
 };
 
@@ -36,7 +36,7 @@ pub(super) struct MovementPlugin;
 
 impl Plugin for MovementPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(SystemSet::on_update(AppState::InGame).with_system(movement_system));
+        app.add_system_set(SystemSet::on_update(GameState::InGame).with_system(movement_system));
     }
 }
 
@@ -346,7 +346,7 @@ mod tests {
 
     fn setup_app() -> App {
         let mut app = App::new();
-        app.add_state(AppState::InGame)
+        app.add_state(GameState::InGame)
             .insert_resource(Gravity::from(Vec3::Y * -9.81))
             .add_plugins(MinimalPlugins)
             .add_plugin(InputPlugin)

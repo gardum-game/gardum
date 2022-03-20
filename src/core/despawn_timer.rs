@@ -22,14 +22,14 @@ use bevy::prelude::*;
 use derive_more::{Deref, DerefMut};
 use std::time::Duration;
 
-use super::app_state::AppState;
+use super::game_state::GameState;
 
 pub(super) struct DespawnTimerPlugin;
 
 impl Plugin for DespawnTimerPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
-            SystemSet::on_update(AppState::InGame).with_system(despawn_timer_system),
+            SystemSet::on_update(GameState::InGame).with_system(despawn_timer_system),
         );
     }
 }
@@ -104,7 +104,7 @@ mod tests {
 
     fn setup_app() -> App {
         let mut app = App::new();
-        app.add_state(AppState::InGame)
+        app.add_state(GameState::InGame)
             .add_plugins(MinimalPlugins)
             .add_plugin(DespawnTimerPlugin);
         app

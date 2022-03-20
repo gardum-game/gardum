@@ -22,13 +22,13 @@ use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
 use strum::EnumIter;
 
-use super::{app_state::AppState, Authority};
+use super::{game_state::GameState, Authority};
 
 pub(super) struct CharacterActionPlugin;
 
 impl Plugin for CharacterActionPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(SystemSet::on_enter(AppState::InGame).with_system(setup_actions));
+        app.add_system_set(SystemSet::on_enter(GameState::InGame).with_system(setup_actions));
     }
 }
 
@@ -89,7 +89,7 @@ mod tests {
 
     fn setup_app() -> App {
         let mut app = App::new();
-        app.add_state(AppState::InGame)
+        app.add_state(GameState::InGame)
             .add_plugin(CharacterActionPlugin);
         app
     }
