@@ -18,7 +18,6 @@
  *
  */
 
-use bevy::prelude::*;
 use clap::{Parser, Subcommand};
 
 use super::ServerSettings;
@@ -30,10 +29,10 @@ pub(crate) struct Opts {
     pub(crate) subcommand: Option<SubCommand>,
 }
 
-impl FromWorld for Opts {
-    fn from_world(_world: &mut World) -> Self {
+impl Default for Opts {
+    fn default() -> Self {
         if cfg!(test) {
-            // Dont parse command line in tests
+            // Do not parse command line in tests
             Opts { subcommand: None }
         } else {
             Opts::parse()
