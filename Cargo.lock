@@ -1408,7 +1408,9 @@ dependencies = [
  "heron",
  "itertools",
  "leafwing-input-manager",
+ "serde",
  "strum",
+ "toml",
 ]
 
 [[package]]

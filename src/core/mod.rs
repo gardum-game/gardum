@@ -22,6 +22,7 @@ pub(super) mod ability;
 pub(super) mod character;
 pub(super) mod character_action;
 pub(super) mod cli;
+pub(super) mod client_settings;
 pub(super) mod cooldown;
 mod despawn_timer;
 mod effect;
@@ -40,12 +41,14 @@ use bevy::{ecs::system::SystemParam, prelude::*};
 use derive_more::From;
 use heron::PhysicsLayer;
 
-use self::{cli::Opts, game_state::AppStatePlugin};
 use ability::AbilityPlugin;
 use character::CharactersPlugin;
 use character_action::CharacterActionPlugin;
+use cli::Opts;
+use client_settings::ClientSettingsPlugin;
 use despawn_timer::DespawnTimerPlugin;
 use effect::EffectPlugin;
+use game_state::AppStatePlugin;
 use health::HealthPlugin;
 use map::MapsPlugin;
 use movement::MovementPlugin;
@@ -62,6 +65,7 @@ impl Plugin for CorePlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<Opts>()
             .init_resource::<ServerSettings>()
+            .add_plugin(ClientSettingsPlugin)
             .add_plugin(AppStatePlugin)
             .add_plugin(HealthPlugin)
             .add_plugin(CharactersPlugin)
