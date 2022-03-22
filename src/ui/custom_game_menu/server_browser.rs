@@ -61,6 +61,6 @@ fn game_browser_system(
                     ui_state_history.push(UiState::CrateLobbyMenu);
                 }
             });
-            ui.add_space(400.0);
+            ui.add_space(ui.available_height());
         });
 }
