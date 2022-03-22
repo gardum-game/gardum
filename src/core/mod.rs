@@ -22,7 +22,6 @@ pub(super) mod ability;
 pub(super) mod character;
 pub(super) mod character_action;
 pub(super) mod cli;
-pub(super) mod client_settings;
 pub(super) mod cooldown;
 mod despawn_timer;
 mod effect;
@@ -36,6 +35,7 @@ pub(super) mod player;
 mod projectile;
 pub(super) mod server_settings;
 pub(super) mod session;
+pub(super) mod settings;
 
 use bevy::{ecs::system::SystemParam, prelude::*};
 use derive_more::From;
@@ -45,7 +45,6 @@ use ability::AbilityPlugin;
 use character::CharactersPlugin;
 use character_action::CharacterActionPlugin;
 use cli::Opts;
-use client_settings::ClientSettingsPlugin;
 use despawn_timer::DespawnTimerPlugin;
 use effect::EffectPlugin;
 use game_state::AppStatePlugin;
@@ -58,6 +57,7 @@ use player::PlayerPlugin;
 use projectile::ProjectilePlugin;
 use server_settings::ServerSettingsPlugin;
 use session::SessionPlugin;
+use settings::SettingsPlugin;
 
 pub(super) struct CorePlugin;
 
@@ -65,7 +65,7 @@ impl Plugin for CorePlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<Opts>()
             .add_plugin(ServerSettingsPlugin)
-            .add_plugin(ClientSettingsPlugin)
+            .add_plugin(SettingsPlugin)
             .add_plugin(AppStatePlugin)
             .add_plugin(HealthPlugin)
             .add_plugin(CharactersPlugin)
