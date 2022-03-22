@@ -53,6 +53,7 @@ pub(crate) enum UiState {
     Empty,
     MainMenu,
     ServerBrowser,
+    SettingsMenu,
     DirectConnectMenu,
     CrateLobbyMenu,
     LobbyMenu,

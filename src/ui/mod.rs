@@ -26,6 +26,7 @@ mod hud;
 mod ingame_menu;
 mod main_menu;
 mod scoreboard;
+mod setting_menu;
 pub(super) mod ui_action;
 pub(super) mod ui_state;
 
@@ -39,6 +40,7 @@ use hud::HudPlugin;
 use ingame_menu::InGameMenuPlugin;
 use main_menu::MainMenuPlugin;
 use scoreboard::ScoreboardPlugin;
+use setting_menu::SettingMenuPlugin;
 use ui_action::UiActionPlugin;
 use ui_state::UiStatePlugin;
 
@@ -51,6 +53,7 @@ impl Plugin for UiPlugin {
         app.add_plugin(UiStatePlugin)
             .add_plugin(CursorPlugin)
             .add_plugin(UiActionPlugin)
+            .add_plugin(SettingMenuPlugin)
             .add_plugin(HeroSelectionPlugin)
             .add_plugin(HudPlugin)
             .add_plugin(ScoreboardPlugin)

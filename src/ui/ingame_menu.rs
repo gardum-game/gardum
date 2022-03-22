@@ -20,7 +20,7 @@
 
 use bevy::{app::AppExit, prelude::*, utils::Instant};
 use bevy_egui::{
-    egui::{Align2, Area, Button},
+    egui::{Align2, Area},
     EguiContext,
 };
 use leafwing_input_manager::prelude::ActionState;
@@ -54,7 +54,9 @@ fn ingame_menu_system(
             if ui.button("Resume").clicked() {
                 ui_state_history.pop();
             }
-            ui.add_enabled(false, Button::new("Settings"));
+            if ui.button("Settings").clicked() {
+                ui_state_history.push(UiState::SettingsMenu);
+            }
             if ui.button("Main menu").clicked() {
                 ui_state_history.clear();
                 ui_state_history.push(UiState::MainMenu);

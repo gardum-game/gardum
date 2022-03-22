@@ -63,10 +63,14 @@ fn main_menu_system(
                 false,
                 Button::new(RichText::new("Characters").text_style(TextStyle::Heading)),
             );
-            ui.add_enabled(
-                false,
-                Button::new(RichText::new("Settings").text_style(TextStyle::Heading)),
-            );
+            if ui
+                .add(Button::new(
+                    RichText::new("Settings").text_style(TextStyle::Heading),
+                ))
+                .clicked()
+            {
+                ui_state_history.push(UiState::SettingsMenu);
+            }
             if ui
                 .add(Button::new(
                     RichText::new("Exit").text_style(TextStyle::Heading),

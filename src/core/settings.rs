@@ -33,7 +33,7 @@ impl Plugin for SettingsPlugin {
     }
 }
 
-struct SettingApplyEvent;
+pub(crate) struct SettingApplyEvent;
 
 fn apply_video_settings_system(
     mut commands: Commands,
@@ -60,7 +60,7 @@ fn write_settings_system(
 #[cfg_attr(test, derive(Debug, PartialEq))]
 #[serde(default)]
 pub(crate) struct Settings {
-    pub(super) video: VideoSettings,
+    pub(crate) video: VideoSettings,
 }
 
 impl Settings {

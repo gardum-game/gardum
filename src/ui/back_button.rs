@@ -36,6 +36,9 @@ pub(super) struct BackButtonPlugin;
 impl Plugin for BackButtonPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
+            SystemSet::on_update(UiState::SettingsMenu).with_system(back_button_system),
+        )
+        .add_system_set(
             SystemSet::on_update(UiState::ServerBrowser).with_system(back_button_system),
         )
         .add_system_set(
