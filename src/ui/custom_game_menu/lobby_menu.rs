@@ -20,75 +20,36 @@
 
 use bevy::prelude::*;
 use bevy_egui::{
-    egui::{Align2, ComboBox, DragValue, Grid, SidePanel, TextEdit, Ui, Window},
+    egui::{Align2, ComboBox, DragValue, Grid, SidePanel, Ui, Window},
     EguiContext,
 };
 use strum::IntoEnumIterator;
 
-use super::ui_state::{UiState, UiStateHistory};
-use crate::core::{
-    game_state::GameState, map::Map, server_settings::ServerSettings, session::GameMode,
+use crate::{
+    core::{game_state::GameState, map::Map, server_settings::ServerSettings, session::GameMode},
+    ui::ui_state::{UiState, UiStateHistory},
 };
 
-pub(super) struct CustomGameMenuPlugin;
+pub(super) struct LobbyMenuPlugin;
 
-impl Plugin for CustomGameMenuPlugin {
+impl Plugin for LobbyMenuPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<SearchText>()
-            .add_system_set(
-                SystemSet::on_update(UiState::CustomGameMenu).with_system(custom_game_menu_system),
-            )
-            .add_system_set(
-                SystemSet::on_update(UiState::DirectConnectMenu)
-                    .with_system(direct_connect_menu_system),
-            )
-            .add_system_set(
-                SystemSet::on_update(UiState::CreateGameMenu).with_system(create_game_menu_system),
-            )
-            .add_system_set(SystemSet::on_update(UiState::LobbyMenu).with_system(lobby_menu_system))
-            .add_system_set(
-                SystemSet::on_enter(GameState::Lobby).with_system(show_lobby_menu_system),
-            );
+        app.add_system_set(
+            SystemSet::on_update(UiState::CrateLobbyMenu).with_system(create_lobby_menu_system),
+        )
+        .add_system_set(SystemSet::on_update(UiState::LobbyMenu).with_system(lobby_menu_system))
+        .add_system_set(SystemSet::on_enter(GameState::Lobby).with_system(show_lobby_menu_system));
     }
 }
 
-#[derive(Default)]
-struct SearchText(String);
-
-fn custom_game_menu_system(
-    egui: ResMut<EguiContext>,
-    mut search_text: Local<SearchText>,
-    mut ui_state_history: ResMut<UiStateHistory>,
-) {
-    Window::new("Custom game")
-        .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
-        .collapsible(false)
-        .resizable(false)
-        .show(egui.ctx(), |ui| {
-            ui.horizontal(|ui| {
-                ui.add_enabled(
-                    false,
-                    TextEdit::singleline(&mut search_text.0).hint_text("Search servers"),
-                );
-                if ui.button("Connect").clicked() {
-                    ui_state_history.push(UiState::DirectConnectMenu);
-                }
-                if ui.button("Create").clicked() {
-                    ui_state_history.push(UiState::CreateGameMenu);
-                }
-            });
-            ui.add_space(400.0);
-        });
-}
-
-fn create_game_menu_system(
+fn create_lobby_menu_system(
     egui: ResMut<EguiContext>,
     mut server_settings: ResMut<ServerSettings>,
     mut game_mode: ResMut<GameMode>,
     mut map: ResMut<Map>,
     mut game_state: ResMut<State<GameState>>,
 ) {
-    Window::new("Custom game")
+    Window::new("Create lobby")
         .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
         .collapsible(false)
         .resizable(false)
@@ -175,48 +136,6 @@ fn show_teams(ui: &mut Ui, current_game_mode: GameMode, names: Vec<&Name>) {
             }
         }
     });
-}
-
-struct DirectConnectData {
-    ip: String,
-    port: String,
-}
-
-impl Default for DirectConnectData {
-    fn default() -> Self {
-        Self {
-            ip: "127.0.0.1".to_string(),
-            port: "4761".to_string(),
-        }
-    }
-}
-
-fn direct_connect_menu_system(
-    egui: ResMut<EguiContext>,
-    mut data: Local<DirectConnectData>,
-    mut game_state: ResMut<State<GameState>>,
-) {
-    Window::new("Direct connect")
-        .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
-        .collapsible(false)
-        .resizable(false)
-        .show(egui.ctx(), |ui| {
-            Grid::new("Direct connect grid")
-                .num_columns(2)
-                .show(ui, |ui| {
-                    ui.label("IP:");
-                    ui.text_edit_singleline(&mut data.ip);
-                    ui.end_row();
-                    ui.label("Port:");
-                    ui.text_edit_singleline(&mut data.port);
-                    ui.end_row();
-                });
-            ui.vertical_centered(|ui| {
-                if ui.button("Connect").clicked() {
-                    game_state.set(GameState::InGame).unwrap();
-                }
-            });
-        });
 }
 
 fn show_lobby_menu_system(mut ui_state_history: ResMut<UiStateHistory>) {

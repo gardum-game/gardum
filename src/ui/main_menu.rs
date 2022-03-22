@@ -57,7 +57,7 @@ fn main_menu_system(
                 ))
                 .clicked()
             {
-                ui_state_history.push(UiState::CustomGameMenu);
+                ui_state_history.push(UiState::ServerBrowser);
             }
             ui.add_enabled(
                 false,

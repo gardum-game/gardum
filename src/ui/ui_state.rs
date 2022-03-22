@@ -52,9 +52,9 @@ pub(super) struct UiStateHistory(pub(super) Vec<UiState>);
 pub(crate) enum UiState {
     Empty,
     MainMenu,
-    CustomGameMenu,
+    ServerBrowser,
     DirectConnectMenu,
-    CreateGameMenu,
+    CrateLobbyMenu,
     LobbyMenu,
     HeroSelection,
     Hud,
@@ -79,7 +79,7 @@ mod tests {
             "Initial state should be empty"
         );
 
-        const STATE: UiState = UiState::CustomGameMenu;
+        const STATE: UiState = UiState::ServerBrowser;
         app.world
             .get_resource_mut::<UiStateHistory>()
             .unwrap()

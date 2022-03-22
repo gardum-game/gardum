@@ -36,13 +36,13 @@ pub(super) struct BackButtonPlugin;
 impl Plugin for BackButtonPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
-            SystemSet::on_update(UiState::CustomGameMenu).with_system(back_button_system),
+            SystemSet::on_update(UiState::ServerBrowser).with_system(back_button_system),
         )
         .add_system_set(
             SystemSet::on_update(UiState::DirectConnectMenu).with_system(back_button_system),
         )
         .add_system_set(
-            SystemSet::on_update(UiState::CreateGameMenu).with_system(back_button_system),
+            SystemSet::on_update(UiState::CrateLobbyMenu).with_system(back_button_system),
         )
         .add_system_set(SystemSet::on_update(UiState::LobbyMenu).with_system(back_button_system));
     }
