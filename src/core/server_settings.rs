@@ -23,6 +23,23 @@ use clap::Args;
 
 use super::cli::{Opts, SubCommand};
 
+pub(super) struct ServerSettingsPlugin;
+
+impl Plugin for ServerSettingsPlugin {
+    fn build(&self, app: &mut App) {
+        let opts = app
+            .world
+            .get_resource::<Opts>()
+            .expect("Command line options should be initialized before server settings resource");
+
+        let server_settings = match &opts.subcommand {
+            Some(SubCommand::Host(server_settings)) => server_settings.clone(),
+            _ => ServerSettings::default(),
+        };
+        app.insert_resource(server_settings);
+    }
+}
+
 #[derive(Args, Clone)]
 pub(crate) struct ServerSettings {
     /// Server name that will be visible to other players.
@@ -38,27 +55,12 @@ pub(crate) struct ServerSettings {
     pub(crate) random_heroes: bool,
 }
 
-impl ServerSettings {
-    /// We do not use the [`Default`] trait to avoid conflicting [`FromWorld`] implementation.
-    pub(super) fn default() -> Self {
+impl Default for ServerSettings {
+    fn default() -> Self {
         Self {
             game_name: "My game".to_string(),
             port: 4761,
             random_heroes: false,
-        }
-    }
-}
-
-impl FromWorld for ServerSettings {
-    fn from_world(world: &mut World) -> Self {
-        let opts = world
-            .get_resource::<Opts>()
-            .expect("Command line options should be initialized before server settings resource");
-
-        if let Some(SubCommand::Host(server_settings)) = &opts.subcommand {
-            server_settings.clone()
-        } else {
-            ServerSettings::default()
         }
     }
 }

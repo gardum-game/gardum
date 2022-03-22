@@ -20,7 +20,7 @@
 
 use clap::{Parser, Subcommand};
 
-use super::ServerSettings;
+use super::server_settings::ServerSettings;
 
 #[derive(Parser)]
 #[clap(author, version, about)]

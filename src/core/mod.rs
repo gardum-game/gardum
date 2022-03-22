@@ -56,7 +56,7 @@ use orbit_camera::OrbitCameraPlugin;
 use pickup::PickupPlugin;
 use player::PlayerPlugin;
 use projectile::ProjectilePlugin;
-use server_settings::ServerSettings;
+use server_settings::ServerSettingsPlugin;
 use session::SessionPlugin;
 
 pub(super) struct CorePlugin;
@@ -64,7 +64,7 @@ pub(super) struct CorePlugin;
 impl Plugin for CorePlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<Opts>()
-            .init_resource::<ServerSettings>()
+            .add_plugin(ServerSettingsPlugin)
             .add_plugin(ClientSettingsPlugin)
             .add_plugin(AppStatePlugin)
             .add_plugin(HealthPlugin)

@@ -24,7 +24,8 @@ use bevy_hikari::NotGiCaster;
 use derive_more::Deref;
 
 use super::{
-    character::hero::HeroKind, cli::Opts, game_state::GameState, Authority, ServerSettings,
+    character::hero::HeroKind, cli::Opts, game_state::GameState, server_settings::ServerSettings,
+    Authority,
 };
 
 pub(super) struct PlayerPlugin;
@@ -117,7 +118,7 @@ pub(crate) struct Healing(pub(crate) u32);
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::core::{character::hero::HeroKind, cli::SubCommand, ServerSettings};
+    use crate::core::{character::hero::HeroKind, cli::SubCommand};
 
     #[test]
     fn player_spawns_in_lobby() {
