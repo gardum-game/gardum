@@ -181,7 +181,7 @@ mod tests {
         let msaa = app.world.get_resource::<Msaa>().unwrap();
         assert_eq!(
             settings.video.msaa, msaa.samples,
-            "MSAA should be updated on apply event"
+            "MSAA setting should be updated on apply event"
         );
         fs::remove_file(Settings::config_path())
             .expect("Saved file should be removed after the test");

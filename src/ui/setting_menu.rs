@@ -20,15 +20,16 @@
 
 use bevy::prelude::*;
 use bevy_egui::{
-    egui::{Align2, Area, ComboBox, Grid, Window},
+    egui::{Align2, Area, ComboBox, Grid, Ui, Window},
     EguiContext,
 };
+use strum::{Display, EnumIter, IntoEnumIterator};
 
 use super::{
     ui_state::{UiState, UiStateHistory},
     UI_MARGIN,
 };
-use crate::core::settings::{SettingApplyEvent, Settings};
+use crate::core::settings::{SettingApplyEvent, Settings, VideoSettings};
 
 pub(super) struct SettingMenuPlugin;
 
@@ -46,6 +47,7 @@ fn settings_menu_system(
     mut settings: ResMut<Settings>,
     mut apply_events: EventWriter<SettingApplyEvent>,
     mut ui_state_history: ResMut<UiStateHistory>,
+    mut current_tab: Local<SettingsTab>,
 ) {
     let main_window = windows.get_primary().unwrap();
 
@@ -55,19 +57,19 @@ fn settings_menu_system(
         .resizable(false)
         .vscroll(true)
         .show(egui.ctx(), |ui| {
+            ui.horizontal(|ui| {
+                for tab in SettingsTab::iter() {
+                    ui.selectable_value(&mut *current_tab, tab, tab.to_string());
+                }
+            });
             Grid::new("Settings grid")
                 .num_columns(2)
                 .striped(true)
                 .min_col_width(main_window.width() / 2.0)
                 .show(ui, |ui| {
-                    ui.label("MSAA");
-                    ComboBox::from_id_source("MSAA combobox")
-                        .selected_text(settings.video.msaa.to_string())
-                        .show_ui(ui, |ui| {
-                            ui.selectable_value(&mut settings.video.msaa, 1, 1.to_string());
-                            ui.selectable_value(&mut settings.video.msaa, 4, 4.to_string());
-                        });
-                    ui.end_row();
+                    match *current_tab {
+                        SettingsTab::Video => show_video_settings(ui, &mut settings.video),
+                    };
                 });
             ui.add_space(ui.available_height());
         });
@@ -89,4 +91,26 @@ fn settings_menu_system(
                 }
             })
         });
+}
+
+fn show_video_settings(ui: &mut Ui, video_settings: &mut VideoSettings) {
+    ui.label("MSAA");
+    ComboBox::from_id_source("MSAA combobox")
+        .selected_text(video_settings.msaa.to_string())
+        .show_ui(ui, |ui| {
+            ui.selectable_value(&mut video_settings.msaa, 1, 1.to_string());
+            ui.selectable_value(&mut video_settings.msaa, 4, 4.to_string());
+        });
+    ui.end_row();
+}
+
+#[derive(Display, Clone, Copy, EnumIter, PartialEq)]
+enum SettingsTab {
+    Video,
+}
+
+impl Default for SettingsTab {
+    fn default() -> Self {
+        SettingsTab::Video
+    }
 }
