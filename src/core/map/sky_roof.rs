@@ -19,12 +19,13 @@
  */
 
 use bevy::{ecs::system::EntityCommands, prelude::*};
-use heron::{PendingConvexCollision, RigidBody};
+use heron::{CollisionLayers, PendingConvexCollision, RigidBody};
 use std::f32::consts::PI;
 
 use super::Map;
 use crate::core::{
-    pickup::PickupKind, session::spawn::SpawnPoint, AssetCommands, AssociatedAsset, TransformBundle,
+    pickup::PickupKind, session::spawn::SpawnPoint, AssetCommands, AssociatedAsset, CollisionLayer,
+    TransformBundle,
 };
 
 impl<'w, 's> AssetCommands<'w, 's> {
@@ -62,10 +63,11 @@ impl<'w, 's> AssetCommands<'w, 's> {
 
         let mut scene_commands = self.commands.spawn_bundle(TransformBundle::default());
         scene_commands
-            .insert(PendingConvexCollision {
-                body_type: RigidBody::Static,
-                border_radius: None,
-            })
+            .insert(PendingConvexCollision::default())
+            .insert(RigidBody::Static)
+            .insert(
+                CollisionLayers::all_masks::<CollisionLayer>().with_group(CollisionLayer::World),
+            )
             .with_children(|parent| {
                 parent.spawn_scene(self.asset_server.load(Map::SkyRoof.asset_path()));
             });

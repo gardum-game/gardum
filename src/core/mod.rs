@@ -89,6 +89,7 @@ pub(super) struct Authority;
 
 #[derive(PhysicsLayer)]
 pub(super) enum CollisionLayer {
+    World,
     Character,
     Projectile,
     Pickup,
