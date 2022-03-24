@@ -41,6 +41,7 @@ impl Plugin for ServerSettingsPlugin {
 }
 
 #[derive(Args, Clone)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
 pub(crate) struct ServerSettings {
     /// Server name that will be visible to other players.
     #[clap(short, long, default_value_t = ServerSettings::default().game_name)]
@@ -62,5 +63,42 @@ impl Default for ServerSettings {
             port: 4761,
             random_heroes: false,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn defaulted_without_host() {
+        let mut app = App::new();
+        app.init_resource::<Opts>();
+        app.add_plugin(ServerSettingsPlugin);
+
+        assert_eq!(
+            *app.world.get_resource::<ServerSettings>().unwrap(),
+            ServerSettings::default(),
+            "Server settings should be initialized with defaults without host command"
+        );
+    }
+
+    #[test]
+    fn initializes_from_host() {
+        let mut app = App::new();
+        let server_settings = ServerSettings {
+            random_heroes: !ServerSettings::default().random_heroes,
+            ..Default::default()
+        };
+        app.world.insert_resource(Opts {
+            subcommand: Some(SubCommand::Host(server_settings.clone())),
+        });
+        app.add_plugin(ServerSettingsPlugin);
+
+        assert_eq!(
+            *app.world.get_resource::<ServerSettings>().unwrap(),
+            server_settings,
+            "Server settings should be initialized with parameters passed from host command"
+        );
     }
 }
