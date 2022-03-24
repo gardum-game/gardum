@@ -19,8 +19,7 @@
  */
 
 use bevy::prelude::*;
-use heron::{CollisionEvent, CollisionLayers, CollisionShape, PhysicsLayer, RigidBody, Velocity};
-use itertools::Itertools;
+use heron::{CollisionLayers, CollisionShape, Collisions, RigidBody, Velocity};
 
 use super::{despawn_timer::DespawnTimer, game_state::GameState, CollisionLayer};
 
@@ -28,33 +27,18 @@ pub(super) struct ProjectilePlugin;
 
 impl Plugin for ProjectilePlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<ProjectileHitEvent>()
-            .add_system_set(SystemSet::on_update(GameState::InGame).with_system(collision_system));
+        app.add_system_set(SystemSet::on_update(GameState::InGame).with_system(collision_system));
     }
 }
 
 fn collision_system(
     mut commands: Commands,
-    mut collision_events: EventReader<CollisionEvent>,
-    mut hit_events: EventWriter<ProjectileHitEvent>,
+    projectiles: Query<(Entity, &Collisions), Changed<Collisions>>,
 ) {
-    for (projectile, target) in collision_events
-        .iter()
-        .filter_map(|event| {
-            let (layers_1, layers_2) = event.collision_layers();
-            if layers_1.groups_bits() == CollisionLayer::Projectile.to_bits() {
-                return Some(event.rigid_body_entities());
-            }
-            if layers_2.groups_bits() == CollisionLayer::Projectile.to_bits() {
-                let (target, projectile) = event.rigid_body_entities();
-                return Some((projectile, target));
-            }
-            None
-        })
-        .dedup()
-    {
-        hit_events.send(ProjectileHitEvent { projectile, target });
-        commands.entity(projectile).despawn();
+    for (projectile, collisions) in projectiles.iter() {
+        if !collisions.is_empty() {
+            commands.entity(projectile).despawn();
+        }
     }
 }
 
@@ -67,6 +51,7 @@ pub(super) struct ProjectileBundle {
     pub(super) velocity: Velocity,
     pub(super) projectile: Projectile,
     pub(super) despawn_timer: DespawnTimer,
+    pub(super) collisions: Collisions,
 
     #[bundle]
     pub(super) pbr: PbrBundle,
@@ -84,6 +69,7 @@ impl Default for ProjectileBundle {
             velocity: Velocity::default(),
             projectile: Projectile,
             despawn_timer: DespawnTimer::from_secs(4),
+            collisions: Collisions::default(),
             pbr: PbrBundle::default(),
         }
     }
@@ -92,15 +78,8 @@ impl Default for ProjectileBundle {
 #[derive(Component)]
 pub(super) struct Projectile;
 
-#[allow(dead_code)]
-pub(super) struct ProjectileHitEvent {
-    pub(super) projectile: Entity,
-    pub(super) target: Entity,
-}
-
 #[cfg(test)]
 mod tests {
-    use bevy::app::Events;
     use heron::PhysicsPlugin;
 
     use super::*;
@@ -128,64 +107,7 @@ mod tests {
     }
 
     #[test]
-    fn projectiles_do_not_collide() {
-        let mut app = setup_app();
-        app.world.spawn().insert_bundle(ProjectileBundle::default());
-        app.world.spawn().insert_bundle(ProjectileBundle::default());
-
-        app.update();
-        app.update();
-
-        assert_eq!(
-            app.world.entities().len(),
-            2,
-            "Projectiles shouldn't be destroyed when colliding with each other"
-        );
-
-        let hit_events = app
-            .world
-            .get_resource::<Events<ProjectileHitEvent>>()
-            .unwrap();
-        let mut reader = hit_events.get_reader();
-
-        assert_eq!(
-            reader.iter(&hit_events).count(),
-            0,
-            "Hit event shouldn't be triggered for collision between two projectiles"
-        );
-    }
-
-    #[test]
-    fn objects_do_not_collide() {
-        let mut app = setup_app();
-        // Spawn in different order
-        app.world.spawn().insert_bundle(DummyBundle::default());
-        app.world.spawn().insert_bundle(DummyBundle::default());
-
-        app.update();
-        app.update();
-
-        assert_eq!(
-            app.world.entities().len(),
-            2,
-            "Objects shouldn't be destroyed when colliding with each other"
-        );
-
-        let hit_events = app
-            .world
-            .get_resource::<Events<ProjectileHitEvent>>()
-            .unwrap();
-        let mut reader = hit_events.get_reader();
-
-        assert_eq!(
-            reader.iter(&hit_events).count(),
-            0,
-            "Hit event shouldn't be triggered for collision between two objects"
-        );
-    }
-
-    #[test]
-    fn projectile_collides_with_object() {
+    fn projectile_collides() {
         let mut app = setup_app();
         let projectile = app
             .world
@@ -196,78 +118,15 @@ mod tests {
 
         app.update();
         app.update();
-
-        assert_eq!(
-            app.world.entities().len(),
-            1,
-            "Projectiles are destroyed when colliding with other objects"
-        );
-
-        let hit_events = app
-            .world
-            .get_resource::<Events<ProjectileHitEvent>>()
-            .unwrap();
-        let mut reader = hit_events.get_reader();
-        let event = reader
-            .iter(&hit_events)
-            .next()
-            .expect("Hit event should be triggered");
-
-        assert_eq!(
-            event.projectile, projectile,
-            "Hit event should have the same projectile"
-        );
-        assert_eq!(
-            event.target, object,
-            "Hit event should have the same target"
-        );
-        assert!(
-            reader.iter(&hit_events).next().is_none(),
-            "There should be no more collision events"
-        );
-    }
-
-    #[test]
-    fn object_collides_with_projectile() {
-        let mut app = setup_app();
-        // Spawn in different order
-        let object = app.world.spawn().insert_bundle(DummyBundle::default()).id();
-        let projectile = app
-            .world
-            .spawn()
-            .insert_bundle(ProjectileBundle::default())
-            .id();
-
-        app.update();
         app.update();
 
-        assert_eq!(
-            app.world.entities().len(),
-            1,
-            "Projectiles are destroyed when colliding with other objects"
-        );
-
-        let hit_events = app
-            .world
-            .get_resource::<Events<ProjectileHitEvent>>()
-            .unwrap();
-        let mut reader = hit_events.get_reader();
-        let event = reader
-            .iter(&hit_events)
-            .next()
-            .expect("Hit event should be triggered");
-
-        assert_eq!(
-            event.projectile, projectile,
-            "Hit event should have the same projectile"
-        );
-        assert_eq!(
-            event.target, object,
-            "Hit event should have the same target"
+        assert!(
+            app.world.get_entity(projectile).is_none(),
+            "Projectile should be destroyed when colliding with other objects"
         );
         assert!(
-            reader.iter(&hit_events).next().is_none(),
-            "There should be no more collision events"
+            app.world.get_entity(object).is_some(),
+            "Colliding object should exist"
         );
     }
 

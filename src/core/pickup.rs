@@ -19,7 +19,7 @@
  */
 
 use bevy::{ecs::system::EntityCommands, prelude::*};
-use heron::{CollisionEvent, CollisionLayers, CollisionShape, PhysicsLayer, RigidBody};
+use heron::{CollisionLayers, CollisionShape, Collisions, RigidBody};
 #[cfg(test)]
 use strum::EnumIter;
 
@@ -48,26 +48,15 @@ impl Plugin for PickupPlugin {
 
 fn pickup_collision_system(
     mut commands: Commands,
-    mut collision_events: EventReader<CollisionEvent>,
-    mut pickups: Query<(&PickupKind, &mut Cooldown)>,
+    mut pickups: Query<(Entity, &PickupKind, &mut Cooldown, &Collisions), Changed<Collisions>>,
     children: Query<&Children>,
 ) {
-    for (pickup, character) in collision_events.iter().filter_map(|event| {
-        let (layers_1, layers_2) = event.collision_layers();
-        if layers_1.groups_bits() == CollisionLayer::Pickup.to_bits()
-            && layers_2.groups_bits() == CollisionLayer::Character.to_bits()
-        {
-            return Some(event.rigid_body_entities());
-        }
-        if layers_2.groups_bits() == CollisionLayer::Pickup.to_bits()
-            && layers_1.groups_bits() == CollisionLayer::Character.to_bits()
-        {
-            let (character, pickup) = event.rigid_body_entities();
-            return Some((pickup, character));
-        }
-        None
-    }) {
-        let (pickup_kind, mut cooldown) = pickups.get_mut(pickup).unwrap();
+    for (pickup, pickup_kind, mut cooldown, collisions) in pickups.iter_mut() {
+        let character = match collisions.iter().next() {
+            Some(character) => character,
+            None => continue,
+        };
+
         if !cooldown.finished() {
             continue;
         }
@@ -122,6 +111,7 @@ struct PickupBundle {
     rigid_body: RigidBody,
     shape: CollisionShape,
     collision_layers: CollisionLayers,
+    collision: Collisions,
     transform: Transform,
     global_transform: GlobalTransform,
 }
@@ -138,6 +128,7 @@ impl PickupBundle {
                 CollisionLayer::Pickup,
                 CollisionLayer::Character,
             ),
+            collision: Collisions::default(),
             transform: Transform::from_translation(translation),
             global_transform: GlobalTransform::default(),
         }
@@ -285,6 +276,7 @@ mod tests {
                 .insert_bundle(CharacterBundle::default())
                 .id();
 
+            app.update();
             app.update();
             app.update();
 

@@ -19,7 +19,7 @@
  */
 
 use bevy::{prelude::*, render::camera::Camera};
-use heron::{CollisionShape, Velocity};
+use heron::{CollisionShape, Collisions, Velocity};
 
 use crate::core::{
     ability::{Abilities, Activator, IconPath},
@@ -28,7 +28,7 @@ use crate::core::{
     cooldown::Cooldown,
     game_state::GameState,
     health::{Health, HealthChangeEvent},
-    projectile::{ProjectileBundle, ProjectileHitEvent},
+    projectile::ProjectileBundle,
     Owner,
 };
 
@@ -69,23 +69,23 @@ fn frost_bolt_system(
                 &mut meshes,
                 &mut materials,
             ))
+            .insert(FrostBoltAbility)
             .insert(Owner(activator.0));
         commands.entity(ability).remove::<Activator>();
     }
 }
 
 fn frost_bolt_hit_system(
-    mut hit_events: EventReader<ProjectileHitEvent>,
     mut health_events: EventWriter<HealthChangeEvent>,
-    projectiles: Query<&Owner>,
-    characters: Query<(), With<Health>>,
+    projectiles: Query<(&Owner, &Collisions), (With<FrostBoltAbility>, Changed<Collisions>)>,
+    health: Query<(), With<Health>>,
 ) {
-    for event in hit_events.iter() {
-        if characters.get(event.target).is_ok() {
-            if let Ok(owner) = projectiles.get(event.projectile) {
+    for (owner, collisions) in projectiles.iter() {
+        if let Some(first_collision) = collisions.iter().next() {
+            if health.get(first_collision).is_ok() {
                 health_events.send(HealthChangeEvent {
                     instigator: owner.0,
-                    target: event.target,
+                    target: first_collision,
                     delta: FROST_BOLT_DAMAGE,
                 });
             }
@@ -219,6 +219,7 @@ impl ProjectileBundle {
 mod tests {
     use approx::assert_relative_eq;
     use bevy::app::Events;
+    use heron::PhysicsPlugin;
 
     use super::*;
     use crate::{core::projectile::Projectile, test_utils::HeadlessRenderPlugin};
@@ -226,7 +227,7 @@ mod tests {
     #[test]
     fn frost_bolt() {
         let mut app = setup_app();
-        let character = app
+        let instigator = app
             .world
             .spawn()
             .insert(Transform::from_translation(Vec3::ONE))
@@ -235,7 +236,7 @@ mod tests {
             .world
             .spawn()
             .insert_bundle(FrostBoltBundle::default())
-            .insert(Activator(character))
+            .insert(Activator(instigator))
             .id();
         let camera = app
             .world
@@ -246,8 +247,8 @@ mod tests {
         app.update();
 
         let mut projectiles = app.world.query_filtered::<&Transform, With<Projectile>>();
-        let projectile_transform = projectiles.iter(&app.world).next().unwrap(); // TODO 0.7: Use single
-        let character_transform = app.world.get::<Transform>(character).unwrap();
+        let projectile_transform = *projectiles.iter(&app.world).next().unwrap(); // TODO 0.7: Use single
+        let character_transform = app.world.get::<Transform>(instigator).unwrap();
 
         assert_relative_eq!(
             character_transform.translation.x,
@@ -267,16 +268,51 @@ mod tests {
         );
 
         let camera_trasnform = app.world.get::<Transform>(camera).unwrap();
-        assert_eq!(
+        assert_relative_eq!(
             projectile_transform.rotation,
             camera_trasnform.rotation * Quat::from_rotation_x(90.0_f32.to_radians()),
-            "Spawned projectile must be turned towards the camera."
         );
 
         assert!(
             !app.world.entity(ability).contains::<Activator>(),
             "Activator component should be removed from the ability",
-        )
+        );
+
+        let target = app
+            .world
+            .spawn()
+            .insert_bundle(CharacterBundle {
+                pbr: PbrBundle {
+                    transform: projectile_transform,
+                    ..Default::default()
+                },
+                ..Default::default()
+            })
+            .id();
+
+        app.update();
+        app.update();
+        app.update();
+
+        let health_events = app
+            .world
+            .get_resource::<Events<HealthChangeEvent>>()
+            .unwrap();
+        let mut reader = health_events.get_reader();
+        let event = reader
+            .iter(&health_events)
+            .next()
+            .expect("Health change event should be emitted");
+
+        assert_eq!(
+            event.instigator, instigator,
+            "Instigator should be equal to specified"
+        );
+        assert_eq!(event.target, target, "Target should be equal to specified");
+        assert_eq!(
+            event.delta, FROST_BOLT_DAMAGE,
+            "Damage should be equal to frost bolt damage"
+        );
     }
 
     #[test]
@@ -317,46 +353,12 @@ mod tests {
         )
     }
 
-    #[test]
-    fn frost_bolt_hit() {
-        let mut app = setup_app();
-        let instigator = app.world.spawn().id();
-        let projectile = app.world.spawn().insert(Owner(instigator)).id();
-        let target = app.world.spawn().insert(Health::default()).id();
-
-        let mut hit_events = app
-            .world
-            .get_resource_mut::<Events<ProjectileHitEvent>>()
-            .unwrap();
-
-        hit_events.send(ProjectileHitEvent { projectile, target });
-
-        app.update();
-
-        let health_events = app
-            .world
-            .get_resource::<Events<HealthChangeEvent>>()
-            .unwrap();
-        let mut reader = health_events.get_reader();
-        let event = reader.iter(&health_events).next().unwrap();
-
-        assert_eq!(
-            event.instigator, instigator,
-            "Instigator should be equal to specified"
-        );
-        assert_eq!(event.target, target, "Target should be equal to specified");
-        assert_eq!(
-            event.delta, FROST_BOLT_DAMAGE,
-            "Damage should be equal to frost bolt damage"
-        );
-    }
-
     fn setup_app() -> App {
         let mut app = App::new();
-        app.add_event::<ProjectileHitEvent>()
-            .add_event::<HealthChangeEvent>()
+        app.add_event::<HealthChangeEvent>()
             .add_state(GameState::InGame)
             .add_plugin(HeadlessRenderPlugin)
+            .add_plugin(PhysicsPlugin::default())
             .add_plugin(NorthPlugin);
 
         app

@@ -61,10 +61,7 @@ mod tests {
     use strum::IntoEnumIterator;
 
     use super::*;
-    use crate::{
-        core::{health::HealthChangeEvent, projectile::ProjectileHitEvent},
-        test_utils::HeadlessRenderPlugin,
-    };
+    use crate::{core::health::HealthChangeEvent, test_utils::HeadlessRenderPlugin};
 
     #[test]
     fn heroes() {
@@ -89,8 +86,7 @@ mod tests {
 
     fn setup_app() -> App {
         let mut app = App::new();
-        app.add_event::<ProjectileHitEvent>()
-            .add_event::<HealthChangeEvent>()
+        app.add_event::<HealthChangeEvent>()
             .add_plugin(HeadlessRenderPlugin)
             .add_plugin(HeroesPlugin);
 
