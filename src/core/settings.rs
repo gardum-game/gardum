@@ -19,15 +19,18 @@
  */
 
 use bevy::prelude::*;
+#[cfg(test)]
+use rand::{distributions::Alphanumeric, Rng};
 use serde::{Deserialize, Serialize};
-use std::{env, fs, path::PathBuf};
+use standard_paths::{LocationType, StandardPaths};
+use std::{fs, path::PathBuf};
 
 pub(super) struct SettingsPlugin;
 
 impl Plugin for SettingsPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<SettingApplyEvent>()
-            .insert_resource(Settings::read())
+            .insert_resource(Settings::new())
             .add_system(apply_video_settings_system)
             .add_system(write_settings_system);
     }
@@ -57,41 +60,65 @@ fn write_settings_system(
 }
 
 #[derive(Default, Deserialize, Serialize, Clone)]
-#[cfg_attr(test, derive(Debug, PartialEq))]
 #[serde(default)]
 pub(crate) struct Settings {
     pub(crate) video: VideoSettings,
+
+    #[serde(skip)]
+    file_path: PathBuf,
 }
 
 impl Settings {
-    fn read() -> Settings {
-        let config_path = Settings::config_path();
-        match fs::read_to_string(config_path) {
-            Ok(content) => {
-                toml::from_str::<Settings>(&content).expect("Unable to parse setting file")
-            }
-            Err(_) => Settings::default(),
+    /// Creates [`Settings`] from the application settings file.
+    /// Will be initialed with defaults if the file does not exist.
+    fn new() -> Settings {
+        let standard_paths = StandardPaths::default();
+        // Use temp directory in tests
+        let mut location = standard_paths
+            .writable_location(if cfg!(test) {
+                LocationType::TempLocation
+            } else {
+                LocationType::AppConfigLocation
+            })
+            .expect("Unable to get application settings directory");
+
+        fs::create_dir_all(&location).expect("Unable to create applicaiton settings directory");
+
+        // Generate ranom files for each tests to avoid access to the same file from multiply tests
+        #[cfg(test)]
+        location.push(
+            rand::thread_rng()
+                .sample_iter(&Alphanumeric)
+                .take(7)
+                .map(char::from)
+                .collect::<String>(),
+        );
+        #[cfg(not(test))]
+        location.push(env!("CARGO_PKG_NAME"));
+        location.set_extension("toml");
+
+        Settings::from_file(location)
+    }
+
+    /// Creates [`Settings`] from the specified file.
+    /// Will be initialed with defaults if the file does not exist.
+    fn from_file(file_path: PathBuf) -> Settings {
+        match fs::read_to_string(&file_path) {
+            Ok(content) => Settings {
+                file_path,
+                ..toml::from_str::<Settings>(&content).expect("Unable to parse setting file")
+            },
+            Err(_) => Settings {
+                file_path,
+                ..Default::default()
+            },
         }
     }
 
+    /// Serialize [`Settings`] on disk under [`self.file_path`].
     fn write(&self) {
-        let config_path = Settings::config_path();
         let content = toml::to_string_pretty(&self).expect("Unable to serialize settings");
-        fs::write(config_path, content).expect("Unable to write settings");
-    }
-
-    fn config_path() -> PathBuf {
-        let current_exe = env::current_exe().expect("Unable to get current executable location");
-        let current_folder = current_exe
-            .parent()
-            .expect("Unable to get executable folder");
-
-        // Do not overwrite normal configuration file during tests
-        if cfg!(test) {
-            current_folder.join("config.toml")
-        } else {
-            current_folder.join("test-config.toml")
-        }
+        fs::write(&self.file_path, content).expect("Unable to write settings");
     }
 }
 
@@ -117,41 +144,42 @@ mod tests {
     #[test]
     fn read_write() {
         let mut app = setup_app();
-        let config_path = Settings::config_path();
+
+        let mut settings = app.world.get_resource_mut::<Settings>().unwrap();
         assert!(
-            !config_path.exists(),
-            "Configuration file shouldn't be created on startup"
+            !settings.file_path.exists(),
+            "Settings file shouldn't be created on startup"
         );
         assert_eq!(
-            *app.world.get_resource::<Settings>().unwrap(),
-            Settings::default(),
-            "When the configuration file does not exist, all values defaulted"
+            settings.video,
+            VideoSettings::default(),
+            "Video settings should be defaulted if settings file does not exist"
         );
 
         // Modify settings
-        let mut settings = app.world.get_resource_mut::<Settings>().unwrap();
         settings.video.msaa += 1;
 
-        let mut hit_events = app
+        let mut apply_events = app
             .world
             .get_resource_mut::<Events<SettingApplyEvent>>()
             .unwrap();
-        hit_events.send(SettingApplyEvent);
+        apply_events.send(SettingApplyEvent);
 
         app.update();
 
+        let settings = app.world.get_resource::<Settings>().unwrap();
         assert!(
-            config_path.exists(),
+            settings.file_path.exists(),
             "Configuration file should be created on apply event"
         );
 
-        let loaded_settings = Settings::read();
+        let loaded_settings = Settings::from_file(settings.file_path.clone());
         assert_eq!(
-            *app.world.get_resource::<Settings>().unwrap(),
-            loaded_settings,
+            settings.video, loaded_settings.video,
             "Loaded settings should be equal to saved"
         );
-        fs::remove_file(config_path).expect("Saved file should be removed after the test");
+
+        fs::remove_file(&settings.file_path).expect("Saved file should be removed after the test");
     }
 
     #[test]
@@ -159,21 +187,20 @@ mod tests {
         let mut app = setup_app();
         app.update();
 
-        let msaa = app.world.get_resource::<Msaa>().unwrap();
-        let settings = app.world.get_resource::<Settings>().unwrap();
+        let msaa = app.world.get_resource::<Msaa>().unwrap().clone();
+        let mut settings = app.world.get_resource_mut::<Settings>().unwrap();
         assert_eq!(
             settings.video.msaa, msaa.samples,
             "MSAA setting should be loaded at startup"
         );
 
-        let mut settings = app.world.get_resource_mut::<Settings>().unwrap();
         settings.video.msaa += 1;
 
-        let mut hit_events = app
+        let mut apply_events = app
             .world
             .get_resource_mut::<Events<SettingApplyEvent>>()
             .unwrap();
-        hit_events.send(SettingApplyEvent);
+        apply_events.send(SettingApplyEvent);
 
         app.update();
 
@@ -183,8 +210,8 @@ mod tests {
             settings.video.msaa, msaa.samples,
             "MSAA setting should be updated on apply event"
         );
-        fs::remove_file(Settings::config_path())
-            .expect("Saved file should be removed after the test");
+
+        fs::remove_file(&settings.file_path).expect("Saved file should be removed after the test");
     }
 
     fn setup_app() -> App {

@@ -19,6 +19,7 @@ leafwing-input-manager = "0.2"
 clap = { version = "3.1", features = ["derive"] }
 toml = "0.5"
 serde = "1.0"
+standard_paths = "1.1"
 derive_more = { version = "0.99", default-features = false, features = [
     "deref",
     "deref_mut",
@@ -30,6 +31,7 @@ strum = { version = "0.24", features = ["derive"] }
 [dev-dependencies]
 approx = "0.5"
 glam = { version = "0.20", features = ["approx"] }
+rand = "0.8"
 
 [features]
 default = ["client"]
