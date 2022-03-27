@@ -20,7 +20,7 @@
 
 use bevy::prelude::*;
 use bevy_egui::{
-    egui::{Align2, Area, ComboBox, Grid, Ui, Window},
+    egui::{Align2, Area, ComboBox, Ui, Window},
     EguiContext,
 };
 use strum::{Display, EnumIter, IntoEnumIterator};
@@ -50,28 +50,23 @@ fn settings_menu_system(
     mut current_tab: Local<SettingsTab>,
 ) {
     let main_window = windows.get_primary().unwrap();
+    let window_margin = egui.ctx().style().spacing.window_margin.left;
 
     Window::new("Settings")
         .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
         .collapsible(false)
         .resizable(false)
-        .vscroll(true)
+        .default_width(main_window.width() - UI_MARGIN * 2.0 - window_margin * 2.0)
         .show(egui.ctx(), |ui| {
             ui.horizontal(|ui| {
                 for tab in SettingsTab::iter() {
                     ui.selectable_value(&mut *current_tab, tab, tab.to_string());
                 }
             });
-            Grid::new("Settings grid")
-                .num_columns(2)
-                .striped(true)
-                .min_col_width(main_window.width() / 2.0)
-                .show(ui, |ui| {
-                    match *current_tab {
-                        SettingsTab::Video => show_video_settings(ui, &mut settings.video),
-                    };
-                });
-            ui.add_space(ui.available_height());
+            match *current_tab {
+                SettingsTab::Video => show_video_settings(ui, &mut settings.video),
+            };
+            ui.expand_to_include_rect(ui.available_rect_before_wrap());
         });
 
     Area::new("Settings buttons area")
@@ -94,14 +89,12 @@ fn settings_menu_system(
 }
 
 fn show_video_settings(ui: &mut Ui, video_settings: &mut VideoSettings) {
-    ui.label("MSAA");
-    ComboBox::from_id_source("MSAA combobox")
+    ComboBox::from_label("MSAA samples")
         .selected_text(video_settings.msaa.to_string())
         .show_ui(ui, |ui| {
             ui.selectable_value(&mut video_settings.msaa, 1, 1.to_string());
             ui.selectable_value(&mut video_settings.msaa, 4, 4.to_string());
         });
-    ui.end_row();
 }
 
 #[derive(Display, Clone, Copy, EnumIter, PartialEq)]
