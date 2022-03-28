@@ -210,12 +210,13 @@ dependencies = [
 
 [[package]]
 name = "bevy-hikari"
-version = "0.1.9"
+version = "0.1.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d60ff9f36ecd606adf32c7364dd191a90c39ebd774bdaf22add67b224e73b24a"
+checksum = "1e7f34095a8f07a72c3b2c186d2c4d77289329cca6c7f26dc52acf6001b44b77"
 dependencies = [
  "bevy",
  "itertools",
+ "wgpu",
 ]
 
 [[package]]
