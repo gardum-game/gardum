@@ -36,13 +36,11 @@ use crate::core::CorePlugin;
 use {
     crate::core::character_action::CharacterAction,
     bevy_atmosphere::AtmospherePlugin,
+    bevy_hikari::VoxelConeTracingPlugin,
     leafwing_input_manager::prelude::InputManagerPlugin,
     ui::ui_state::UiState,
     ui::{ui_action::UiAction, UiPlugin},
 };
-
-#[cfg(feature = "gi")]
-use bevy_hikari::VoxelConeTracingPlugin;
 
 #[cfg(feature = "inspector")]
 use bevy_inspector_egui::WorldInspectorPlugin;
@@ -66,12 +64,10 @@ fn main() {
             dynamic: false,
             sky_radius: 100.0,
         })
+        .add_plugin(VoxelConeTracingPlugin::default())
         .add_plugin(InputManagerPlugin::<CharacterAction, UiState>::run_in_state(UiState::Hud))
         .add_plugin(InputManagerPlugin::<UiAction>::default())
         .add_plugin(UiPlugin);
-
-    #[cfg(feature = "gi")]
-    app.add_plugin(VoxelConeTracingPlugin);
 
     #[cfg(feature = "inspector")]
     app.add_plugin(WorldInspectorPlugin::new());

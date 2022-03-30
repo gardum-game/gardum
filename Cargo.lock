@@ -210,9 +210,9 @@ dependencies = [
 
 [[package]]
 name = "bevy-hikari"
-version = "0.1.10"
+version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1e7f34095a8f07a72c3b2c186d2c4d77289329cca6c7f26dc52acf6001b44b77"
+checksum = "5ed658b5226baa400d6f2a905f935ede2f7c015d457a511909085fce3994002b"
 dependencies = [
  "bevy",
  "itertools",

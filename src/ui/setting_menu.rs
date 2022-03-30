@@ -102,6 +102,10 @@ fn show_video_settings(ui: &mut Ui, video_settings: &mut VideoSettings) {
             ui.selectable_value(&mut video_settings.msaa, 1, 1.to_string());
             ui.selectable_value(&mut video_settings.msaa, 4, 4.to_string());
         });
+    ui.checkbox(
+        &mut video_settings.global_illumination,
+        "Global illumination",
+    );
 }
 
 #[derive(Display, Clone, Copy, EnumIter, PartialEq)]

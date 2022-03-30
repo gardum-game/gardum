@@ -19,6 +19,7 @@
  */
 
 use bevy::prelude::*;
+use bevy_hikari::GiConfig;
 #[cfg(test)]
 use rand::{distributions::Alphanumeric, Rng};
 use serde::{Deserialize, Serialize};
@@ -46,6 +47,9 @@ fn apply_video_settings_system(
     if apply_events.iter().next().is_some() || settings.is_added() {
         commands.insert_resource(Msaa {
             samples: settings.video.msaa,
+        });
+        commands.insert_resource(GiConfig {
+            enabled: settings.video.global_illumination,
         });
     }
 }
@@ -127,11 +131,15 @@ impl Settings {
 #[serde(default)]
 pub(crate) struct VideoSettings {
     pub(crate) msaa: u32,
+    pub(crate) global_illumination: bool,
 }
 
 impl Default for VideoSettings {
     fn default() -> Self {
-        Self { msaa: 1 }
+        Self {
+            msaa: 1,
+            global_illumination: true,
+        }
     }
 }
 
