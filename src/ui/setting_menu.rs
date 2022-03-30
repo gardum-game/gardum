@@ -36,7 +36,9 @@ pub(super) struct SettingMenuPlugin;
 impl Plugin for SettingMenuPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
-            SystemSet::on_update(UiState::SettingsMenu).with_system(settings_menu_system),
+            SystemSet::on_update(UiState::SettingsMenu)
+                .with_system(settings_menu_system)
+                .with_system(settings_buttons_system),
         );
     }
 }
@@ -45,8 +47,6 @@ fn settings_menu_system(
     egui: ResMut<EguiContext>,
     windows: Res<Windows>,
     mut settings: ResMut<Settings>,
-    mut apply_events: EventWriter<SettingApplyEvent>,
-    mut ui_state_history: ResMut<UiStateHistory>,
     mut current_tab: Local<SettingsTab>,
 ) {
     let main_window = windows.get_primary().unwrap();
@@ -68,7 +68,14 @@ fn settings_menu_system(
             };
             ui.expand_to_include_rect(ui.available_rect_before_wrap());
         });
+}
 
+fn settings_buttons_system(
+    egui: ResMut<EguiContext>,
+    mut apply_events: EventWriter<SettingApplyEvent>,
+    mut settings: ResMut<Settings>,
+    mut ui_state_history: ResMut<UiStateHistory>,
+) {
     Area::new("Settings buttons area")
         .anchor(Align2::RIGHT_BOTTOM, (-UI_MARGIN, -UI_MARGIN))
         .show(egui.ctx(), |ui| {
