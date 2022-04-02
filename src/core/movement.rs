@@ -24,7 +24,7 @@ use leafwing_input_manager::prelude::ActionState;
 
 use super::{
     character::SpeedModifier, game_state::GameState, orbit_camera::CameraTarget,
-    settings::CharacterAction,
+    settings::ControlAction,
 };
 
 const MOVE_SPEED: f32 = 10.0;
@@ -47,7 +47,7 @@ fn movement_system(
     mut characters: Query<(
         Entity,
         &SpeedModifier,
-        &ActionState<CharacterAction>,
+        &ActionState<ControlAction>,
         &Transform,
         &CollisionShape,
         &mut Velocity,
@@ -66,7 +66,7 @@ fn movement_system(
             .lerp(motion, VELOCITY_INTERPOLATE_SPEED * time.delta_seconds());
         velocity.linear.y = falling_velocity;
 
-        if action_state.pressed(CharacterAction::Jump)
+        if action_state.pressed(ControlAction::Jump)
             && is_on_floor(&physics_world, character, shape, transform)
         {
             velocity.linear.y += JUMP_IMPULSE;
@@ -74,18 +74,18 @@ fn movement_system(
     }
 }
 
-fn movement_direction(action_state: &ActionState<CharacterAction>, rotation: Quat) -> Vec3 {
+fn movement_direction(action_state: &ActionState<ControlAction>, rotation: Quat) -> Vec3 {
     let mut direction = Vec3::ZERO;
-    if action_state.pressed(CharacterAction::Left) {
+    if action_state.pressed(ControlAction::Left) {
         direction.x -= 1.0;
     }
-    if action_state.pressed(CharacterAction::Right) {
+    if action_state.pressed(ControlAction::Right) {
         direction.x += 1.0;
     }
-    if action_state.pressed(CharacterAction::Forward) {
+    if action_state.pressed(ControlAction::Forward) {
         direction.z -= 1.0;
     }
-    if action_state.pressed(CharacterAction::Backward) {
+    if action_state.pressed(ControlAction::Backward) {
         direction.z += 1.0;
     }
 
@@ -125,9 +125,9 @@ mod tests {
 
     #[test]
     fn movement_direction_normalization() {
-        let mut action_state = ActionState::<CharacterAction>::default();
-        action_state.press(CharacterAction::Forward);
-        action_state.press(CharacterAction::Right);
+        let mut action_state = ActionState::<ControlAction>::default();
+        action_state.press(ControlAction::Forward);
+        action_state.press(ControlAction::Right);
 
         let direction = movement_direction(&action_state, Quat::IDENTITY);
         assert!(direction.is_normalized(), "Should be normalized");
@@ -136,11 +136,11 @@ mod tests {
 
     #[test]
     fn movement_direction_compensation() {
-        let mut action_state = ActionState::<CharacterAction>::default();
-        action_state.press(CharacterAction::Forward);
-        action_state.press(CharacterAction::Backward);
-        action_state.press(CharacterAction::Right);
-        action_state.press(CharacterAction::Left);
+        let mut action_state = ActionState::<ControlAction>::default();
+        action_state.press(ControlAction::Forward);
+        action_state.press(ControlAction::Backward);
+        action_state.press(ControlAction::Right);
+        action_state.press(ControlAction::Left);
 
         let direction = movement_direction(&action_state, Quat::IDENTITY);
         assert_eq!(
@@ -155,7 +155,7 @@ mod tests {
 
     #[test]
     fn movement_direction_empty() {
-        let action_state = ActionState::<CharacterAction>::default();
+        let action_state = ActionState::<ControlAction>::default();
 
         let direction = movement_direction(&action_state, Quat::IDENTITY);
         assert_eq!(
@@ -198,9 +198,9 @@ mod tests {
 
         let mut action_state = app
             .world
-            .get_mut::<ActionState<CharacterAction>>(character)
+            .get_mut::<ActionState<ControlAction>>(character)
             .unwrap();
-        action_state.press(CharacterAction::Jump);
+        action_state.press(ControlAction::Jump);
         let previous_translation = app.world.get::<Transform>(character).unwrap().translation;
 
         app.update();
@@ -252,9 +252,9 @@ mod tests {
 
         let mut action_state = app
             .world
-            .get_mut::<ActionState<CharacterAction>>(character)
+            .get_mut::<ActionState<ControlAction>>(character)
             .unwrap();
-        action_state.press(CharacterAction::Jump);
+        action_state.press(ControlAction::Jump);
 
         app.update();
 
@@ -280,16 +280,16 @@ mod tests {
         app.update();
 
         let test_data = [
-            (CharacterAction::Forward, -Vec3::Z),
-            (CharacterAction::Backward, Vec3::Z),
-            (CharacterAction::Left, -Vec3::X),
-            (CharacterAction::Right, Vec3::X),
+            (ControlAction::Forward, -Vec3::Z),
+            (ControlAction::Backward, Vec3::Z),
+            (ControlAction::Left, -Vec3::X),
+            (ControlAction::Right, Vec3::X),
         ];
 
         for (key, expected_direction) in test_data.iter() {
             let mut action_state = app
                 .world
-                .get_mut::<ActionState<CharacterAction>>(character)
+                .get_mut::<ActionState<ControlAction>>(character)
                 .unwrap();
             action_state.release_all();
             action_state.press(*key);
@@ -331,9 +331,9 @@ mod tests {
 
         let mut action_state = app
             .world
-            .get_mut::<ActionState<CharacterAction>>(character)
+            .get_mut::<ActionState<ControlAction>>(character)
             .unwrap();
-        action_state.press(CharacterAction::Forward);
+        action_state.press(ControlAction::Forward);
 
         app.update();
 
@@ -351,7 +351,7 @@ mod tests {
             .insert_resource(Gravity::from(Vec3::Y * -9.81))
             .add_plugins(MinimalPlugins)
             .add_plugin(InputPlugin)
-            .add_plugin(InputManagerPlugin::<CharacterAction>::default())
+            .add_plugin(InputManagerPlugin::<ControlAction>::default())
             .add_plugin(PhysicsPlugin::default())
             .add_plugin(InputPlugin)
             .add_plugin(MovementPlugin);
@@ -388,7 +388,7 @@ mod tests {
         transform: Transform,
         global_transform: GlobalTransform,
         velocity: Velocity,
-        action_state: ActionState<CharacterAction>,
+        action_state: ActionState<ControlAction>,
         authority: Authority,
     }
 

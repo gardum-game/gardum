@@ -26,7 +26,7 @@ use derive_more::{AddAssign, From, SubAssign};
 use heron::{CollisionLayers, CollisionShape, RigidBody, RotationConstraints, Velocity};
 use leafwing_input_manager::prelude::ActionState;
 
-use super::{ability::Abilities, health::Health, settings::CharacterAction, CollisionLayer};
+use super::{ability::Abilities, health::Health, settings::ControlAction, CollisionLayer};
 use hero::HeroesPlugin;
 
 pub(super) struct CharactersPlugin;
@@ -49,7 +49,7 @@ pub(super) struct CharacterBundle {
     shape: CollisionShape,
     collision_layers: CollisionLayers,
     velocity: Velocity,
-    action_state: ActionState<CharacterAction>,
+    action_state: ActionState<ControlAction>,
     not_gi_caster: NotGiCaster,
 
     #[bundle]

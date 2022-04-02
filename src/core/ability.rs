@@ -22,7 +22,7 @@ use bevy::prelude::*;
 use derive_more::{Deref, DerefMut, From};
 use leafwing_input_manager::prelude::ActionState;
 
-use super::{cooldown::Cooldown, game_state::GameState, settings::CharacterAction};
+use super::{cooldown::Cooldown, game_state::GameState, settings::ControlAction};
 
 pub(super) struct AbilityPlugin;
 
@@ -35,8 +35,8 @@ impl Plugin for AbilityPlugin {
 fn activation_system(
     mut commands: Commands,
     time: Res<Time>,
-    characters: Query<(Entity, &Abilities, &ActionState<CharacterAction>)>,
-    mut abilities: Query<(&CharacterAction, Option<&mut Cooldown>)>,
+    characters: Query<(Entity, &Abilities, &ActionState<ControlAction>)>,
+    mut abilities: Query<(&ControlAction, Option<&mut Cooldown>)>,
 ) {
     for (character, character_abilities, action_state) in characters.iter() {
         for ability in character_abilities.iter() {
@@ -95,9 +95,9 @@ mod tests {
 
         let mut action_state = app
             .world
-            .get_mut::<ActionState<CharacterAction>>(character)
+            .get_mut::<ActionState<ControlAction>>(character)
             .unwrap();
-        action_state.press(CharacterAction::Ability2);
+        action_state.press(ControlAction::Ability2);
 
         app.update();
 
@@ -126,9 +126,9 @@ mod tests {
 
         let mut action_state = app
             .world
-            .get_mut::<ActionState<CharacterAction>>(character)
+            .get_mut::<ActionState<ControlAction>>(character)
             .unwrap();
-        action_state.press(CharacterAction::Ability1);
+        action_state.press(ControlAction::Ability1);
 
         app.update();
 
@@ -174,9 +174,9 @@ mod tests {
 
         let mut action_state = app
             .world
-            .get_mut::<ActionState<CharacterAction>>(character)
+            .get_mut::<ActionState<ControlAction>>(character)
             .unwrap();
-        action_state.press(CharacterAction::Ability1);
+        action_state.press(ControlAction::Ability1);
 
         app.update();
 
@@ -201,7 +201,7 @@ mod tests {
     #[derive(Bundle)]
     struct DummyCharacterBundle {
         abilities: Abilities,
-        action_state: ActionState<CharacterAction>,
+        action_state: ActionState<ControlAction>,
         authority: Authority,
     }
 
@@ -217,14 +217,14 @@ mod tests {
 
     #[derive(Bundle)]
     struct DummyAbilityBundle {
-        action: CharacterAction,
+        action: ControlAction,
         cooldown: Cooldown,
     }
 
     impl Default for DummyAbilityBundle {
         fn default() -> Self {
             Self {
-                action: CharacterAction::Ability1,
+                action: ControlAction::Ability1,
                 cooldown: Cooldown::from_secs(1),
             }
         }

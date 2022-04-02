@@ -34,7 +34,7 @@ use heron::{Gravity, PhysicsPlugin};
 use crate::core::CorePlugin;
 #[cfg(feature = "client")]
 use {
-    crate::core::settings::CharacterAction,
+    crate::core::settings::ControlAction,
     bevy_atmosphere::AtmospherePlugin,
     bevy_hikari::VoxelConeTracingPlugin,
     leafwing_input_manager::prelude::InputManagerPlugin,
@@ -65,7 +65,9 @@ fn main() {
             sky_radius: 100.0,
         })
         .add_plugin(VoxelConeTracingPlugin::default())
-        .add_plugin(InputManagerPlugin::<CharacterAction, UiState>::run_in_state(UiState::Hud))
+        .add_plugin(InputManagerPlugin::<ControlAction, UiState>::run_in_state(
+            UiState::Hud,
+        ))
         .add_plugin(InputManagerPlugin::<UiAction>::default())
         .add_plugin(UiPlugin);
 

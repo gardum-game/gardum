@@ -64,7 +64,7 @@ fn apply_video_settings_system(
 
 fn apply_control_settings_system(
     mut apply_events: EventReader<SettingApplyEvent>,
-    mut local_player: Query<&mut InputMap<CharacterAction>, With<Authority>>,
+    mut local_player: Query<&mut InputMap<ControlAction>, With<Authority>>,
     settings: Res<Settings>,
 ) {
     if apply_events.iter().next().is_some() {
@@ -181,23 +181,23 @@ impl Default for VideoSettings {
 #[cfg_attr(test, derive(PartialEq))]
 #[serde(default)]
 pub(crate) struct ControlSettings {
-    pub(crate) mappings: InputMap<CharacterAction>,
+    pub(crate) mappings: InputMap<ControlAction>,
 }
 
 impl Default for ControlSettings {
     fn default() -> Self {
         let mut input = InputMap::default();
         input
-            .insert(CharacterAction::Forward, KeyCode::W)
-            .insert(CharacterAction::Backward, KeyCode::S)
-            .insert(CharacterAction::Left, KeyCode::A)
-            .insert(CharacterAction::Right, KeyCode::D)
-            .insert(CharacterAction::Jump, KeyCode::Space)
-            .insert(CharacterAction::BaseAttack, MouseButton::Left)
-            .insert(CharacterAction::Ability1, KeyCode::Q)
-            .insert(CharacterAction::Ability2, KeyCode::E)
-            .insert(CharacterAction::Ability3, KeyCode::LShift)
-            .insert(CharacterAction::Ultimate, KeyCode::R);
+            .insert(ControlAction::Forward, KeyCode::W)
+            .insert(ControlAction::Backward, KeyCode::S)
+            .insert(ControlAction::Left, KeyCode::A)
+            .insert(ControlAction::Right, KeyCode::D)
+            .insert(ControlAction::Jump, KeyCode::Space)
+            .insert(ControlAction::BaseAttack, MouseButton::Left)
+            .insert(ControlAction::Ability1, KeyCode::Q)
+            .insert(ControlAction::Ability2, KeyCode::E)
+            .insert(ControlAction::Ability3, KeyCode::LShift)
+            .insert(ControlAction::Ultimate, KeyCode::R);
 
         Self { mappings: input }
     }
@@ -206,7 +206,7 @@ impl Default for ControlSettings {
 #[derive(
     Actionlike, Component, PartialEq, Eq, Clone, Copy, Hash, Display, Serialize, Deserialize,
 )]
-pub(crate) enum CharacterAction {
+pub(crate) enum ControlAction {
     // Movement
     Forward,
     Backward,
@@ -316,7 +316,7 @@ mod tests {
             app.world
                 .get_entity(player)
                 .unwrap()
-                .contains::<InputMap<CharacterAction>>(),
+                .contains::<InputMap<ControlAction>>(),
             "Mappings should be added to the local player"
         );
     }

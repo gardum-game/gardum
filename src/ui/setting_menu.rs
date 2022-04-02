@@ -41,7 +41,7 @@ use super::{
     UI_MARGIN,
 };
 use crate::core::{
-    settings::CharacterAction,
+    settings::ControlAction,
     settings::{ControlSettings, SettingApplyEvent, Settings, VideoSettings},
 };
 
@@ -148,7 +148,7 @@ fn show_control_settings(
         .striped(true)
         .min_col_width(ui.available_width() / COLUMNS_COUNT as f32 - window_width_margin)
         .show(ui, |ui| {
-            for action in CharacterAction::variants() {
+            for action in ControlAction::variants() {
                 ui.label(action.to_string());
                 let inputs = control_settings.mappings.get(action);
                 for index in 0..INPUT_VARIANTS {
@@ -222,7 +222,7 @@ fn show_binding_window_system(
                 } else if let Some(input_button) = input_events.input_button() {
                     let conflict_action = settings.control.mappings.iter().enumerate().find_map(
                         |(action, inputs)| {
-                            let action = CharacterAction::get_at(action).unwrap();
+                            let action = ControlAction::get_at(action).unwrap();
                             if action != active_binding.action
                                 && inputs.contains(&input_button.into())
                             {
@@ -250,13 +250,13 @@ fn show_binding_window_system(
 }
 
 struct ActiveBinding {
-    action: CharacterAction,
+    action: ControlAction,
     index: usize,
     conflict: Option<BindingConflict>,
 }
 
 impl ActiveBinding {
-    fn new(action: CharacterAction, index: usize) -> Self {
+    fn new(action: ControlAction, index: usize) -> Self {
         Self {
             action,
             index,
@@ -266,7 +266,7 @@ impl ActiveBinding {
 }
 
 struct BindingConflict {
-    action: CharacterAction,
+    action: ControlAction,
     input_button: InputButton,
 }
 

@@ -28,7 +28,7 @@ use crate::core::{
     game_state::GameState,
     health::{Health, HealthChangeEvent},
     projectile::ProjectileBundle,
-    settings::CharacterAction,
+    settings::ControlAction,
     Owner,
 };
 
@@ -113,7 +113,7 @@ struct FrostBoltBundle {
     name: Name,
     frost_bolt_ability: FrostBoltAbility,
     icon: IconPath,
-    action: CharacterAction,
+    action: ControlAction,
     cooldown: Cooldown,
 }
 
@@ -123,7 +123,7 @@ impl Default for FrostBoltBundle {
             name: "Frost Bolt Ability".into(),
             frost_bolt_ability: FrostBoltAbility,
             icon: "character/hero/north/frost_bolt.png".into(),
-            action: CharacterAction::BaseAttack,
+            action: ControlAction::BaseAttack,
             cooldown: Cooldown::from_secs(4),
         }
     }
@@ -137,7 +137,7 @@ struct FrostPathBundle {
     name: Name,
     frost_path_ability: FrostPathAbility,
     icon: IconPath,
-    action: CharacterAction,
+    action: ControlAction,
     cooldown: Cooldown,
 }
 
@@ -147,7 +147,7 @@ impl Default for FrostPathBundle {
             name: "Frost Path Ability".into(),
             frost_path_ability: FrostPathAbility,
             icon: "character/hero/north/frost_path.png".into(),
-            action: CharacterAction::Ability1,
+            action: ControlAction::Ability1,
             cooldown: Cooldown::from_secs(4),
         }
     }
