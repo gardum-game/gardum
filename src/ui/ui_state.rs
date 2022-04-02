@@ -27,11 +27,11 @@ impl Plugin for UiStatePlugin {
     fn build(&self, app: &mut App) {
         app.add_state(UiState::Empty)
             .init_resource::<UiStateHistory>()
-            .add_system(update_ui_state);
+            .add_system(update_ui_state_system);
     }
 }
 
-fn update_ui_state(
+fn update_ui_state_system(
     mut ui_state_history: ResMut<UiStateHistory>,
     mut ui_state: ResMut<State<UiState>>,
 ) {

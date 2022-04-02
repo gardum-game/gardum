@@ -26,12 +26,12 @@ pub(super) struct UiActionPlugin;
 
 impl Plugin for UiActionPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(setup_actions);
+        app.add_startup_system(setup_ui_actions_system);
     }
 }
 
 /// Setup player input on game start
-fn setup_actions(mut commands: Commands) {
+fn setup_ui_actions_system(mut commands: Commands) {
     let mut input_map = InputMap::default();
     input_map
         .insert(UiAction::Back, KeyCode::Escape)
@@ -64,7 +64,7 @@ mod tests {
                 .iter(&app.world)
                 .count(),
             1,
-            "UI action should be set up at startup"
+            "UI actions should be created at startup"
         );
     }
 

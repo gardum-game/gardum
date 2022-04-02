@@ -56,7 +56,7 @@ impl Plugin for SettingMenuPlugin {
         )
         .add_system_set(
             SystemSet::on_update(UiState::SettingsMenu)
-                .with_system(show_binding_window_system)
+                .with_system(binding_window_system)
                 .before(BackButtonsSystems::BackButton),
         );
     }
@@ -173,7 +173,7 @@ fn show_control_settings(
         });
 }
 
-fn show_binding_window_system(
+fn binding_window_system(
     mut commands: Commands,
     egui: ResMut<EguiContext>,
     mut input_events: InputEvents,

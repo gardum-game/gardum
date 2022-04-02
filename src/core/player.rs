@@ -30,14 +30,14 @@ pub(super) struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(create_server_player_from_opts)
+        app.add_startup_system(create_local_player_from_opts_system)
             .add_system_set(
-                SystemSet::on_enter(GameState::Lobby).with_system(create_server_player),
+                SystemSet::on_enter(GameState::Lobby).with_system(create_local_player_system),
             );
     }
 }
 
-fn create_server_player_from_opts(
+fn create_local_player_from_opts_system(
     mut commands: Commands,
     opts: Res<Opts>,
     server_settings: Res<ServerSettings>,
@@ -51,7 +51,7 @@ fn create_server_player_from_opts(
     }
 }
 
-fn create_server_player(mut commands: Commands) {
+fn create_local_player_system(mut commands: Commands) {
     commands
         .spawn_bundle(PlayerBundle::default())
         .insert(Authority);
