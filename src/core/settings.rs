@@ -204,6 +204,7 @@ impl Default for ControlSettings {
 }
 
 #[derive(Actionlike, Component, Clone, Copy, PartialEq, Hash, Display, Serialize, Deserialize)]
+#[cfg_attr(test, derive(Debug))]
 pub(crate) enum ControlAction {
     // Movement
     Forward,
@@ -300,22 +301,59 @@ mod tests {
     }
 
     #[test]
-    fn player_mappings_initialization() {
+    fn control_setttings_applies() {
         let mut app = setup_app();
         let mut game_state = app.world.get_resource_mut::<State<GameState>>().unwrap();
         game_state
             .set(GameState::InGame)
             .expect("State should be switched to in game to test mappings initialization");
         let player = app.world.spawn().insert(Authority).insert(Player).id();
+        let mut settings = app.world.get_resource_mut::<Settings>().unwrap();
+        settings
+            .control
+            .mappings
+            .insert(ControlAction::Jump, KeyCode::Q);
 
         app.update();
 
-        assert!(
-            app.world
-                .entity(player)
-                .contains::<InputMap<ControlAction>>(),
-            "Mappings should be added to the local player"
+        let mappings = app
+            .world
+            .entity(player)
+            .get::<InputMap<ControlAction>>()
+            .expect("Mappings should be added to the local player");
+
+        let settings = app.world.get_resource::<Settings>().unwrap();
+        assert_eq!(
+            settings.control.mappings, *mappings,
+            "Added mappings should the same as in settings"
         );
+
+        let mut settings = app.world.get_resource_mut::<Settings>().unwrap();
+        settings
+            .control
+            .mappings
+            .insert(ControlAction::Jump, KeyCode::F);
+
+        let mut apply_events = app
+            .world
+            .get_resource_mut::<Events<SettingApplyEvent>>()
+            .unwrap();
+        apply_events.send(SettingApplyEvent);
+
+        app.update();
+
+        let settings = app.world.get_resource::<Settings>().unwrap();
+        let mappings = app
+            .world
+            .entity(player)
+            .get::<InputMap<ControlAction>>()
+            .unwrap();
+        assert_eq!(
+            settings.control.mappings, *mappings,
+            "Mappings should be updated on apply event"
+        );
+
+        fs::remove_file(&settings.file_path).expect("Saved file should be removed after the test");
     }
 
     fn setup_app() -> App {
