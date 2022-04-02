@@ -314,8 +314,7 @@ mod tests {
 
         assert!(
             app.world
-                .get_entity(player)
-                .unwrap()
+                .entity(player)
                 .contains::<InputMap<ControlAction>>(),
             "Mappings should be added to the local player"
         );

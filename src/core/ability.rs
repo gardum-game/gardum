@@ -102,10 +102,7 @@ mod tests {
         app.update();
 
         assert!(
-            !app.world
-                .get_entity(ability)
-                .unwrap()
-                .contains::<Activator>(),
+            !app.world.entity(ability).contains::<Activator>(),
             "Ability shouldn't be triggered for unrelated action"
         );
     }
@@ -181,10 +178,7 @@ mod tests {
         app.update();
 
         assert!(
-            !app.world
-                .get_entity(ability)
-                .unwrap()
-                .contains::<Activator>(),
+            !app.world.entity(ability).contains::<Activator>(),
             "Ability shouldn't be triggered because of cooldown"
         );
     }
