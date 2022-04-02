@@ -313,6 +313,11 @@ mod tests {
             .control
             .mappings
             .insert(ControlAction::Jump, KeyCode::Q);
+        assert_ne!(
+            settings.control.mappings,
+            ControlSettings::default().mappings,
+            "Settings shouldn't be default for proper applying testing"
+        );
 
         app.update();
 
@@ -328,11 +333,9 @@ mod tests {
             "Added mappings should the same as in settings"
         );
 
+        // Change settings again to test reloading
         let mut settings = app.world.get_resource_mut::<Settings>().unwrap();
-        settings
-            .control
-            .mappings
-            .insert(ControlAction::Jump, KeyCode::F);
+        settings.control.mappings = ControlSettings::default().mappings;
 
         let mut apply_events = app
             .world
