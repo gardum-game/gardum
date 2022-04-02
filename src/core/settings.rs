@@ -203,9 +203,7 @@ impl Default for ControlSettings {
     }
 }
 
-#[derive(
-    Actionlike, Component, PartialEq, Eq, Clone, Copy, Hash, Display, Serialize, Deserialize,
-)]
+#[derive(Actionlike, Component, Clone, Copy, PartialEq, Hash, Display, Serialize, Deserialize)]
 pub(crate) enum ControlAction {
     // Movement
     Forward,
