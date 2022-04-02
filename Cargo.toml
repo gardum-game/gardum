@@ -21,7 +21,7 @@ derive_more = { version = "0.99", default-features = false, features = [
     "deref",
     "deref_mut",
     "from",
-    "add_assign"
+    "add_assign",
 ] }
 strum = { version = "0.24", features = ["derive"] }
 
