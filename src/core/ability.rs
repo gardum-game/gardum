@@ -38,13 +38,13 @@ fn activation_system(
     characters: Query<(Entity, &Abilities, &ActionState<CharacterAction>)>,
     mut abilities: Query<(&CharacterAction, Option<&mut Cooldown>)>,
 ) {
-    for (character, character_abilities, actions) in characters.iter() {
+    for (character, character_abilities, action_state) in characters.iter() {
         for ability in character_abilities.iter() {
             let (action, cooldown) = abilities.get_mut(*ability).unwrap();
 
             if let Some(mut cooldown) = cooldown {
                 cooldown.tick(time.delta());
-                if actions.just_pressed(*action) {
+                if action_state.just_pressed(*action) {
                     if !cooldown.finished() {
                         break;
                     }
@@ -52,7 +52,7 @@ fn activation_system(
                 }
             }
 
-            if actions.just_pressed(*action) {
+            if action_state.just_pressed(*action) {
                 commands.entity(*ability).insert(Activator(character));
                 break;
             }
@@ -93,11 +93,11 @@ mod tests {
             .insert_bundle(DummyCharacterBundle::new(ability))
             .id();
 
-        let mut actions = app
+        let mut action_state = app
             .world
             .get_mut::<ActionState<CharacterAction>>(character)
             .unwrap();
-        actions.press(CharacterAction::Ability2);
+        action_state.press(CharacterAction::Ability2);
 
         app.update();
 
@@ -124,11 +124,11 @@ mod tests {
             .insert_bundle(DummyCharacterBundle::new(ability))
             .id();
 
-        let mut actions = app
+        let mut action_state = app
             .world
             .get_mut::<ActionState<CharacterAction>>(character)
             .unwrap();
-        actions.press(CharacterAction::Ability1);
+        action_state.press(CharacterAction::Ability1);
 
         app.update();
 
@@ -172,11 +172,11 @@ mod tests {
         let mut cooldown = app.world.get_mut::<Cooldown>(ability).unwrap();
         cooldown.reset();
 
-        let mut actions = app
+        let mut action_state = app
             .world
             .get_mut::<ActionState<CharacterAction>>(character)
             .unwrap();
-        actions.press(CharacterAction::Ability1);
+        action_state.press(CharacterAction::Ability1);
 
         app.update();
 

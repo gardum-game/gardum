@@ -71,9 +71,9 @@ fn show_ingame_menu_system(
     mut ui_actions: Query<&mut ActionState<UiAction>>,
     mut ui_state_history: ResMut<UiStateHistory>,
 ) {
-    let mut ui_actions = ui_actions.single_mut();
-    if ui_actions.just_pressed(UiAction::Back) {
-        ui_actions.tick(Instant::now());
+    let mut action_state = ui_actions.single_mut();
+    if action_state.just_pressed(UiAction::Back) {
+        action_state.tick(Instant::now());
         ui_state_history.push(UiState::InGameMenu);
     }
 }
@@ -82,9 +82,9 @@ fn hide_ingame_menu_system(
     mut ui_actions: Query<&mut ActionState<UiAction>>,
     mut ui_state_history: ResMut<UiStateHistory>,
 ) {
-    let mut ui_actions = ui_actions.single_mut();
-    if ui_actions.just_pressed(UiAction::Back) {
-        ui_actions.tick(Instant::now());
+    let mut action_state = ui_actions.single_mut();
+    if action_state.just_pressed(UiAction::Back) {
+        action_state.tick(Instant::now());
         ui_state_history.pop();
     }
 }

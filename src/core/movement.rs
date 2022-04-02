@@ -54,18 +54,19 @@ fn movement_system(
     )>,
 ) {
     for (camera_transform, camera_target) in cameras.iter() {
-        let (character, speed_modifier, actions, transform, shape, mut velocity) =
+        let (character, speed_modifier, action_state, transform, shape, mut velocity) =
             characters.get_mut(camera_target.0).unwrap();
 
         let falling_velocity = velocity.linear.y; // Save Y velocity to avoid it interpolation
-        let motion =
-            movement_direction(actions, camera_transform.rotation) * MOVE_SPEED * speed_modifier.0;
+        let motion = movement_direction(action_state, camera_transform.rotation)
+            * MOVE_SPEED
+            * speed_modifier.0;
         velocity.linear = velocity
             .linear
             .lerp(motion, VELOCITY_INTERPOLATE_SPEED * time.delta_seconds());
         velocity.linear.y = falling_velocity;
 
-        if actions.pressed(CharacterAction::Jump)
+        if action_state.pressed(CharacterAction::Jump)
             && is_on_floor(&physics_world, character, shape, transform)
         {
             velocity.linear.y += JUMP_IMPULSE;
@@ -73,18 +74,18 @@ fn movement_system(
     }
 }
 
-fn movement_direction(actions: &ActionState<CharacterAction>, rotation: Quat) -> Vec3 {
+fn movement_direction(action_state: &ActionState<CharacterAction>, rotation: Quat) -> Vec3 {
     let mut direction = Vec3::ZERO;
-    if actions.pressed(CharacterAction::Left) {
+    if action_state.pressed(CharacterAction::Left) {
         direction.x -= 1.0;
     }
-    if actions.pressed(CharacterAction::Right) {
+    if action_state.pressed(CharacterAction::Right) {
         direction.x += 1.0;
     }
-    if actions.pressed(CharacterAction::Forward) {
+    if action_state.pressed(CharacterAction::Forward) {
         direction.z -= 1.0;
     }
-    if actions.pressed(CharacterAction::Backward) {
+    if action_state.pressed(CharacterAction::Backward) {
         direction.z += 1.0;
     }
 
@@ -124,24 +125,24 @@ mod tests {
 
     #[test]
     fn movement_direction_normalization() {
-        let mut actions = ActionState::<CharacterAction>::default();
-        actions.press(CharacterAction::Forward);
-        actions.press(CharacterAction::Right);
+        let mut action_state = ActionState::<CharacterAction>::default();
+        action_state.press(CharacterAction::Forward);
+        action_state.press(CharacterAction::Right);
 
-        let direction = movement_direction(&actions, Quat::IDENTITY);
+        let direction = movement_direction(&action_state, Quat::IDENTITY);
         assert!(direction.is_normalized(), "Should be normalized");
         assert_eq!(direction.y, 0.0, "Shouldn't point up");
     }
 
     #[test]
     fn movement_direction_compensation() {
-        let mut actions = ActionState::<CharacterAction>::default();
-        actions.press(CharacterAction::Forward);
-        actions.press(CharacterAction::Backward);
-        actions.press(CharacterAction::Right);
-        actions.press(CharacterAction::Left);
+        let mut action_state = ActionState::<CharacterAction>::default();
+        action_state.press(CharacterAction::Forward);
+        action_state.press(CharacterAction::Backward);
+        action_state.press(CharacterAction::Right);
+        action_state.press(CharacterAction::Left);
 
-        let direction = movement_direction(&actions, Quat::IDENTITY);
+        let direction = movement_direction(&action_state, Quat::IDENTITY);
         assert_eq!(
             direction.x, 0.0,
             "Should be 0 when opposite buttons are pressed"
@@ -154,9 +155,9 @@ mod tests {
 
     #[test]
     fn movement_direction_empty() {
-        let actions = ActionState::<CharacterAction>::default();
+        let action_state = ActionState::<CharacterAction>::default();
 
-        let direction = movement_direction(&actions, Quat::IDENTITY);
+        let direction = movement_direction(&action_state, Quat::IDENTITY);
         assert_eq!(
             direction,
             Vec3::ZERO,
@@ -195,11 +196,11 @@ mod tests {
             "Character should be affected by gravity"
         );
 
-        let mut actions = app
+        let mut action_state = app
             .world
             .get_mut::<ActionState<CharacterAction>>(character)
             .unwrap();
-        actions.press(CharacterAction::Jump);
+        action_state.press(CharacterAction::Jump);
         let previous_translation = app.world.get::<Transform>(character).unwrap().translation;
 
         app.update();
@@ -249,11 +250,11 @@ mod tests {
             "Character shouldn't be affected by gravity"
         );
 
-        let mut actions = app
+        let mut action_state = app
             .world
             .get_mut::<ActionState<CharacterAction>>(character)
             .unwrap();
-        actions.press(CharacterAction::Jump);
+        action_state.press(CharacterAction::Jump);
 
         app.update();
 
@@ -286,12 +287,12 @@ mod tests {
         ];
 
         for (key, expected_direction) in test_data.iter() {
-            let mut actions = app
+            let mut action_state = app
                 .world
                 .get_mut::<ActionState<CharacterAction>>(character)
                 .unwrap();
-            actions.release_all();
-            actions.press(*key);
+            action_state.release_all();
+            action_state.press(*key);
 
             let previous_translation = app.world.get::<Transform>(character).unwrap().translation;
 
@@ -328,11 +329,11 @@ mod tests {
 
         app.update();
 
-        let mut actions = app
+        let mut action_state = app
             .world
             .get_mut::<ActionState<CharacterAction>>(character)
             .unwrap();
-        actions.press(CharacterAction::Forward);
+        action_state.press(CharacterAction::Forward);
 
         app.update();
 

@@ -215,9 +215,9 @@ fn show_binding_window_system(
                 });
             } else {
                 ui.label("Press any key now or Esc to cancel");
-                let mut ui_actions = ui_actions.single_mut();
-                if ui_actions.just_pressed(UiAction::Back) {
-                    ui_actions.make_held(UiAction::Back);
+                let mut action_state = ui_actions.single_mut();
+                if action_state.just_pressed(UiAction::Back) {
+                    action_state.make_held(UiAction::Back);
                     commands.remove_resource::<ActiveBinding>();
                 } else if let Some(input_button) = input_events.input_button() {
                     let conflict_action = settings.control.mappings.iter().enumerate().find_map(
