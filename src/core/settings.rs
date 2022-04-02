@@ -20,11 +20,15 @@
 
 use bevy::prelude::*;
 use bevy_hikari::GiConfig;
+use derive_more::Display;
+use leafwing_input_manager::{prelude::InputMap, Actionlike};
 #[cfg(test)]
 use rand::{distributions::Alphanumeric, Rng};
 use serde::{Deserialize, Serialize};
 use standard_paths::{LocationType, StandardPaths};
 use std::{fs, path::PathBuf};
+
+use super::{game_state::GameState, player::Player, Authority};
 
 pub(super) struct SettingsPlugin;
 
@@ -33,7 +37,11 @@ impl Plugin for SettingsPlugin {
         app.add_event::<SettingApplyEvent>()
             .insert_resource(Settings::new())
             .add_system(apply_video_settings_system)
-            .add_system(write_settings_system);
+            .add_system(apply_control_settings_system)
+            .add_system(write_settings_system)
+            .add_system_set(
+                SystemSet::on_enter(GameState::InGame).with_system(apply_mappings_system),
+            );
     }
 }
 
@@ -54,6 +62,18 @@ fn apply_video_settings_system(
     }
 }
 
+fn apply_control_settings_system(
+    mut apply_events: EventReader<SettingApplyEvent>,
+    mut local_player: Query<&mut InputMap<CharacterAction>, With<Authority>>,
+    settings: Res<Settings>,
+) {
+    if apply_events.iter().next().is_some() {
+        if let Ok(mut mappings) = local_player.get_single_mut() {
+            *mappings = settings.control.mappings.clone();
+        }
+    }
+}
+
 fn write_settings_system(
     mut apply_events: EventReader<SettingApplyEvent>,
     settings: Res<Settings>,
@@ -63,10 +83,24 @@ fn write_settings_system(
     }
 }
 
+/// Setup player input on game start
+fn apply_mappings_system(
+    mut commands: Commands,
+    settings: Res<Settings>,
+    local_player: Query<Entity, (With<Authority>, With<Player>)>,
+) {
+    let local_player = local_player.single();
+    commands
+        .entity(local_player)
+        .insert(settings.control.mappings.clone());
+}
+
 #[derive(Default, Deserialize, Serialize, Clone)]
 #[serde(default)]
 pub(crate) struct Settings {
     pub(crate) video: VideoSettings,
+    #[serde(skip)] // TODO: Remove after https://github.com/Leafwing-Studios/petitset/issues/15
+    pub(crate) control: ControlSettings,
 
     #[serde(skip)]
     file_path: PathBuf,
@@ -141,6 +175,51 @@ impl Default for VideoSettings {
             global_illumination: true,
         }
     }
+}
+
+#[derive(Deserialize, Serialize, Clone)]
+#[cfg_attr(test, derive(PartialEq))]
+#[serde(default)]
+pub(crate) struct ControlSettings {
+    pub(crate) mappings: InputMap<CharacterAction>,
+}
+
+impl Default for ControlSettings {
+    fn default() -> Self {
+        let mut input = InputMap::default();
+        input
+            .insert(CharacterAction::Forward, KeyCode::W)
+            .insert(CharacterAction::Backward, KeyCode::S)
+            .insert(CharacterAction::Left, KeyCode::A)
+            .insert(CharacterAction::Right, KeyCode::D)
+            .insert(CharacterAction::Jump, KeyCode::Space)
+            .insert(CharacterAction::BaseAttack, MouseButton::Left)
+            .insert(CharacterAction::Ability1, KeyCode::Q)
+            .insert(CharacterAction::Ability2, KeyCode::E)
+            .insert(CharacterAction::Ability3, KeyCode::LShift)
+            .insert(CharacterAction::Ultimate, KeyCode::R);
+
+        Self { mappings: input }
+    }
+}
+
+#[derive(
+    Actionlike, Component, PartialEq, Eq, Clone, Copy, Hash, Display, Serialize, Deserialize,
+)]
+pub(crate) enum CharacterAction {
+    // Movement
+    Forward,
+    Backward,
+    Left,
+    Right,
+    Jump,
+
+    // Abilities activation
+    BaseAttack,
+    Ability1,
+    Ability2,
+    Ability3,
+    Ultimate,
 }
 
 #[cfg(test)]
@@ -222,9 +301,29 @@ mod tests {
         fs::remove_file(&settings.file_path).expect("Saved file should be removed after the test");
     }
 
+    #[test]
+    fn player_mappings_initialization() {
+        let mut app = setup_app();
+        let mut game_state = app.world.get_resource_mut::<State<GameState>>().unwrap();
+        game_state
+            .set(GameState::InGame)
+            .expect("State should be switched to in game to test mappings initialization");
+        let player = app.world.spawn().insert(Authority).insert(Player).id();
+
+        app.update();
+
+        assert!(
+            app.world
+                .get_entity(player)
+                .unwrap()
+                .contains::<InputMap<CharacterAction>>(),
+            "Mappings should be added to the local player"
+        );
+    }
+
     fn setup_app() -> App {
         let mut app = App::new();
-        app.add_plugin(SettingsPlugin);
+        app.add_state(GameState::Menu).add_plugin(SettingsPlugin);
         app
     }
 }

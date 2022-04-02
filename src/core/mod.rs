@@ -20,7 +20,6 @@
 
 pub(super) mod ability;
 pub(super) mod character;
-pub(super) mod character_action;
 pub(super) mod cli;
 pub(super) mod cooldown;
 mod despawn_timer;
@@ -43,7 +42,6 @@ use heron::PhysicsLayer;
 
 use ability::AbilityPlugin;
 use character::CharactersPlugin;
-use character_action::CharacterActionPlugin;
 use cli::Opts;
 use despawn_timer::DespawnTimerPlugin;
 use effect::EffectPlugin;
@@ -69,7 +67,6 @@ impl Plugin for CorePlugin {
             .add_plugin(AppStatePlugin)
             .add_plugin(HealthPlugin)
             .add_plugin(CharactersPlugin)
-            .add_plugin(CharacterActionPlugin)
             .add_plugin(AbilityPlugin)
             .add_plugin(OrbitCameraPlugin)
             .add_plugin(PickupPlugin)

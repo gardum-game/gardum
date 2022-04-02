@@ -14,8 +14,9 @@ license-files = []
 
 [bans]
 multiple-versions = "allow"
-wildcards = "deny"
+wildcards = "allow"
 
 [sources]
 unknown-registry = "deny"
 unknown-git = "deny"
+allow-git = ["https://github.com/Leafwing-Studios/leafwing_input_manager"]

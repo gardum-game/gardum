@@ -978,6 +978,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "convert_case"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6245d59a3e82a7fc217c5828a6692dbc6dfb63a0c8c90495621f7b9d79704a0e"
+
+[[package]]
 name = "copyless"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1211,8 +1217,10 @@ version = "0.99.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4fb810d30a7c1953f91334de7244731fc3f3c10d7fe163338a35b9f640960321"
 dependencies = [
+ "convert_case",
  "proc-macro2",
  "quote",
+ "rustc_version",
  "syn",
 ]
 
@@ -1409,7 +1417,7 @@ dependencies = [
  "derive_more",
  "glam",
  "heron",
- "leafwing-input-manager",
+ "leafwing_input_manager",
  "rand",
  "serde",
  "standard_paths",
@@ -1772,12 +1780,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 
 [[package]]
-name = "leafwing-input-manager"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5fc788b9ff4814297cd9234a671a98868da42ea51bcbb74d88005230df1221a7"
+name = "leafwing_input_manager"
+version = "0.3.0"
+source = "git+https://github.com/Leafwing-Studios/leafwing_input_manager?branch=dev#5bea1cf14962adcd832b65b57768c522a228361e"
 dependencies = [
  "bevy",
+ "derive_more",
  "itertools",
  "leafwing_input_manager_macros",
  "petitset",
@@ -1788,8 +1796,7 @@ dependencies = [
 [[package]]
 name = "leafwing_input_manager_macros"
 version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c1ed425559b115e4ee637924708d0834d8cbe42fb8b86cd4f930e15f0aeae8c6"
+source = "git+https://github.com/Leafwing-Studios/leafwing_input_manager?branch=dev#5bea1cf14962adcd832b65b57768c522a228361e"
 dependencies = [
  "proc-macro-crate",
  "proc-macro2",
@@ -2580,6 +2587,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "08d43f7aa6b08d49f382cde6a7982047c3426db949b1424bc4b7ec9ae12c6ce2"
 
 [[package]]
+name = "rustc_version"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bfa0f585226d2e68097d4f95d113b15b83a82e819ab25717ec0590d9584ef366"
+dependencies = [
+ "semver",
+]
+
+[[package]]
 name = "rustversion"
 version = "1.0.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2605,6 +2621,12 @@ name = "scopeguard"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d29ab0c6d3fc0ee92fe66e2d99f700eab17a8d57d1c1d3b748380fb20baa78cd"
+
+[[package]]
+name = "semver"
+version = "1.0.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d65bd28f48be7196d222d95b9243287f48d27aca604e08497513019ff0502cc4"
 
 [[package]]
 name = "serde"

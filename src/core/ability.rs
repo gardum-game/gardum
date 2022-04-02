@@ -22,7 +22,7 @@ use bevy::prelude::*;
 use derive_more::{Deref, DerefMut, From};
 use leafwing_input_manager::prelude::ActionState;
 
-use super::{character_action::CharacterAction, cooldown::Cooldown, game_state::GameState};
+use super::{cooldown::Cooldown, game_state::GameState, settings::CharacterAction};
 
 pub(super) struct AbilityPlugin;
 
@@ -44,7 +44,7 @@ fn activation_system(
 
             if let Some(mut cooldown) = cooldown {
                 cooldown.tick(time.delta());
-                if actions.just_pressed(action) {
+                if actions.just_pressed(*action) {
                     if !cooldown.finished() {
                         break;
                     }
@@ -52,7 +52,7 @@ fn activation_system(
                 }
             }
 
-            if actions.just_pressed(action) {
+            if actions.just_pressed(*action) {
                 commands.entity(*ability).insert(Activator(character));
                 break;
             }
@@ -97,7 +97,7 @@ mod tests {
             .world
             .get_mut::<ActionState<CharacterAction>>(character)
             .unwrap();
-        actions.press(&CharacterAction::Ability2);
+        actions.press(CharacterAction::Ability2);
 
         app.update();
 
@@ -128,7 +128,7 @@ mod tests {
             .world
             .get_mut::<ActionState<CharacterAction>>(character)
             .unwrap();
-        actions.press(&CharacterAction::Ability1);
+        actions.press(CharacterAction::Ability1);
 
         app.update();
 
@@ -176,7 +176,7 @@ mod tests {
             .world
             .get_mut::<ActionState<CharacterAction>>(character)
             .unwrap();
-        actions.press(&CharacterAction::Ability1);
+        actions.press(CharacterAction::Ability1);
 
         app.update();
 
