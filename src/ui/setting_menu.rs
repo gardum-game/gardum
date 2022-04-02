@@ -220,17 +220,19 @@ fn binding_window_system(
                     action_state.make_held(UiAction::Back);
                     commands.remove_resource::<ActiveBinding>();
                 } else if let Some(input_button) = input_events.input_button() {
-                    let conflict_action = settings.control.mappings.iter().enumerate().find_map(
-                        |(action, inputs)| {
-                            let action = ControlAction::get_at(action).unwrap();
-                            if action != active_binding.action
-                                && inputs.contains(&input_button.into())
-                            {
-                                return Some(action);
-                            }
-                            None
-                        },
-                    );
+                    let conflict_action =
+                        settings
+                            .control
+                            .mappings
+                            .iter()
+                            .find_map(|(action, inputs)| {
+                                if action != active_binding.action
+                                    && inputs.contains(&input_button.into())
+                                {
+                                    return Some(action);
+                                }
+                                None
+                            });
                     if let Some(action) = conflict_action {
                         active_binding.conflict.replace(BindingConflict {
                             action,
