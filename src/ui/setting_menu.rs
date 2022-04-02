@@ -319,3 +319,110 @@ impl InputEvents<'_, '_> {
         None
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use bevy::{app::Events, ecs::system::SystemState, input::InputPlugin};
+
+    use super::*;
+
+    #[test]
+    fn input_events_reads_keyboard() {
+        let mut app = setup_app();
+        const KEY: KeyCode = KeyCode::Space;
+        let mut keyboard_input = app
+            .world
+            .get_resource_mut::<Events<KeyboardInput>>()
+            .unwrap();
+        keyboard_input.send(KeyboardInput {
+            scan_code: 0,
+            key_code: Some(KEY),
+            state: ElementState::Released,
+        });
+
+        let mut system_state: SystemState<InputEvents> = SystemState::new(&mut app.world);
+        let mut input_events = system_state.get_mut(&mut app.world);
+        let input_button = input_events
+            .input_button()
+            .expect("Input button should be detected");
+        assert_eq!(
+            input_button,
+            InputButton::Keyboard(KEY),
+            "Input button should be equal to the released keyboard key"
+        );
+    }
+
+    #[test]
+    fn input_events_reads_mouse() {
+        let mut app = setup_app();
+        const BUTTON: MouseButton = MouseButton::Right;
+        let mut mouse_button = app
+            .world
+            .get_resource_mut::<Events<MouseButtonInput>>()
+            .unwrap();
+        mouse_button.send(MouseButtonInput {
+            button: BUTTON,
+            state: ElementState::Released,
+        });
+
+        let mut system_state: SystemState<InputEvents> = SystemState::new(&mut app.world);
+        let mut input_events = system_state.get_mut(&mut app.world);
+        let input_button = input_events
+            .input_button()
+            .expect("Input button should be detected");
+        assert_eq!(
+            input_button,
+            InputButton::Mouse(BUTTON),
+            "Input button should be equal to the released mouse button"
+        );
+    }
+
+    #[test]
+    fn input_events_reads_gamepad() {
+        let mut app = setup_app();
+        const BUTTON: GamepadButtonType = GamepadButtonType::Z;
+        const PRESSED_STRENGTH: f32 = 0.6;
+        let mut gamepad_events = app
+            .world
+            .get_resource_mut::<Events<GamepadEvent>>()
+            .unwrap();
+        gamepad_events.send(GamepadEvent(
+            Gamepad(0),
+            GamepadEventType::ButtonChanged(BUTTON, PRESSED_STRENGTH),
+        ));
+
+        let mut system_state: SystemState<InputEvents> = SystemState::new(&mut app.world);
+        let mut input_events = system_state.get_mut(&mut app.world);
+        assert_eq!(
+            input_events.input_button(),
+            None,
+            "Input button shouldn't be detected when pressed strength is {PRESSED_STRENGTH}"
+        );
+
+        const RELEASED_STRENGTH: f32 = 0.5;
+        let mut gamepad_events = app
+            .world
+            .get_resource_mut::<Events<GamepadEvent>>()
+            .unwrap();
+        gamepad_events.send(GamepadEvent(
+            Gamepad(0),
+            GamepadEventType::ButtonChanged(BUTTON, RELEASED_STRENGTH),
+        ));
+
+        let mut input_events = system_state.get_mut(&mut app.world);
+        let input_button = input_events
+            .input_button()
+            .expect("Input button should be detected with {RELEASED_STRENGTH} strength");
+        assert_eq!(
+            input_button,
+            InputButton::Gamepad(BUTTON),
+            "Input button should be equal to the released gamepad button"
+        );
+    }
+
+    fn setup_app() -> App {
+        let mut app = App::new();
+        app.add_plugin(InputPlugin);
+        app
+    }
+}
