@@ -108,13 +108,13 @@ fn settings_buttons_system(
             ui.horizontal(|ui| {
                 if ui.button("Restore defaults").clicked() {
                     *settings = Settings::default();
-                    apply_events.send(SettingApplyEvent);
+                    apply_events.send(SettingApplyEvent::apply_and_save());
                 }
                 if ui.button("Apply").clicked() {
-                    apply_events.send(SettingApplyEvent);
+                    apply_events.send(SettingApplyEvent::apply_and_save());
                 }
                 if ui.button("Ok").clicked() {
-                    apply_events.send(SettingApplyEvent);
+                    apply_events.send(SettingApplyEvent::apply_and_save());
                     ui_state_history.pop();
                 }
             })

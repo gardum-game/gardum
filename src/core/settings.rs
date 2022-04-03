@@ -22,8 +22,6 @@ use bevy::prelude::*;
 use bevy_hikari::GiConfig;
 use derive_more::Display;
 use leafwing_input_manager::{prelude::InputMap, Actionlike};
-#[cfg(test)]
-use rand::{distributions::Alphanumeric, Rng};
 use serde::{Deserialize, Serialize};
 use standard_paths::{LocationType, StandardPaths};
 use std::{fs, path::PathBuf};
@@ -44,8 +42,6 @@ impl Plugin for SettingsPlugin {
             );
     }
 }
-
-pub(crate) struct SettingApplyEvent;
 
 fn apply_video_settings_system(
     mut commands: Commands,
@@ -78,8 +74,10 @@ fn write_settings_system(
     mut apply_events: EventReader<SettingApplyEvent>,
     settings: Res<Settings>,
 ) {
-    if apply_events.iter().next().is_some() {
-        settings.write();
+    if let Some(apply_event) = apply_events.iter().next() {
+        if apply_event.save {
+            settings.write();
+        }
     }
 }
 
@@ -93,6 +91,25 @@ fn apply_mappings_system(
     commands
         .entity(local_player)
         .insert(settings.controls.mappings.clone());
+}
+
+/// An event that applies the specified settings in the [`Settings`] resource.
+pub(crate) struct SettingApplyEvent {
+    /// Specifies whether to save settings to disk or not
+    save: bool,
+}
+
+impl SettingApplyEvent {
+    pub(crate) fn apply_and_save() -> Self {
+        Self { save: true }
+    }
+
+    // Currently used only in tests, but in future could be used to confirm settings in resolution
+    // change
+    #[cfg(test)]
+    fn apply_without_save() -> Self {
+        Self { save: false }
+    }
 }
 
 #[derive(Default, Deserialize, Serialize, Clone)]
@@ -122,16 +139,6 @@ impl Settings {
 
         fs::create_dir_all(&location).expect("Unable to create applicaiton settings directory");
 
-        // Generate ranom files for each tests to avoid access to the same file from multiply tests
-        #[cfg(test)]
-        location.push(
-            rand::thread_rng()
-                .sample_iter(&Alphanumeric)
-                .take(7)
-                .map(char::from)
-                .collect::<String>(),
-        );
-        #[cfg(not(test))]
         location.push(env!("CARGO_PKG_NAME"));
         location.set_extension("toml");
 
@@ -249,7 +256,7 @@ mod tests {
             .world
             .get_resource_mut::<Events<SettingApplyEvent>>()
             .unwrap();
-        apply_events.send(SettingApplyEvent);
+        apply_events.send(SettingApplyEvent::apply_and_save());
 
         app.update();
 
@@ -286,7 +293,7 @@ mod tests {
             .world
             .get_resource_mut::<Events<SettingApplyEvent>>()
             .unwrap();
-        apply_events.send(SettingApplyEvent);
+        apply_events.send(SettingApplyEvent::apply_without_save());
 
         app.update();
 
@@ -296,8 +303,6 @@ mod tests {
             settings.video.msaa, msaa.samples,
             "MSAA setting should be updated on apply event"
         );
-
-        fs::remove_file(&settings.file_path).expect("Saved file should be removed after the test");
     }
 
     #[test]
@@ -341,7 +346,7 @@ mod tests {
             .world
             .get_resource_mut::<Events<SettingApplyEvent>>()
             .unwrap();
-        apply_events.send(SettingApplyEvent);
+        apply_events.send(SettingApplyEvent::apply_without_save());
 
         app.update();
 
@@ -355,8 +360,6 @@ mod tests {
             settings.controls.mappings, *mappings,
             "Mappings should be updated on apply event"
         );
-
-        fs::remove_file(&settings.file_path).expect("Saved file should be removed after the test");
     }
 
     fn setup_app() -> App {

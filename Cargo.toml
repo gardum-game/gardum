@@ -28,7 +28,6 @@ strum = { version = "0.24", features = ["derive"] }
 [dev-dependencies]
 approx = "0.5"
 glam = { version = "0.20", features = ["approx"] }
-rand = "0.8"
 
 [features]
 default = ["client"]

@@ -1418,7 +1418,6 @@ dependencies = [
  "glam",
  "heron",
  "leafwing_input_manager",
- "rand",
  "serde",
  "standard_paths",
  "strum",
