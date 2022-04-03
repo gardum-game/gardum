@@ -37,7 +37,7 @@ impl Plugin for SettingsPlugin {
         app.add_event::<SettingApplyEvent>()
             .insert_resource(Settings::new())
             .add_system(apply_video_settings_system)
-            .add_system(apply_control_settings_system)
+            .add_system(apply_controls_settings_system)
             .add_system(write_settings_system)
             .add_system_set(
                 SystemSet::on_enter(GameState::InGame).with_system(apply_mappings_system),
@@ -62,14 +62,14 @@ fn apply_video_settings_system(
     }
 }
 
-fn apply_control_settings_system(
+fn apply_controls_settings_system(
     mut apply_events: EventReader<SettingApplyEvent>,
     mut local_player: Query<&mut InputMap<ControlAction>, With<Authority>>,
     settings: Res<Settings>,
 ) {
     if apply_events.iter().next().is_some() {
         if let Ok(mut mappings) = local_player.get_single_mut() {
-            *mappings = settings.control.mappings.clone();
+            *mappings = settings.controls.mappings.clone();
         }
     }
 }
@@ -92,7 +92,7 @@ fn apply_mappings_system(
     let local_player = local_player.single();
     commands
         .entity(local_player)
-        .insert(settings.control.mappings.clone());
+        .insert(settings.controls.mappings.clone());
 }
 
 #[derive(Default, Deserialize, Serialize, Clone)]
@@ -100,7 +100,7 @@ fn apply_mappings_system(
 pub(crate) struct Settings {
     pub(crate) video: VideoSettings,
     #[serde(skip)] // TODO: Remove after https://github.com/Leafwing-Studios/petitset/issues/15
-    pub(crate) control: ControlSettings,
+    pub(crate) controls: ControlsSettings,
 
     #[serde(skip)]
     file_path: PathBuf,
@@ -180,11 +180,11 @@ impl Default for VideoSettings {
 #[derive(Deserialize, Serialize, Clone)]
 #[cfg_attr(test, derive(PartialEq))]
 #[serde(default)]
-pub(crate) struct ControlSettings {
+pub(crate) struct ControlsSettings {
     pub(crate) mappings: InputMap<ControlAction>,
 }
 
-impl Default for ControlSettings {
+impl Default for ControlsSettings {
     fn default() -> Self {
         let mut input = InputMap::default();
         input
@@ -301,7 +301,7 @@ mod tests {
     }
 
     #[test]
-    fn control_setttings_applies() {
+    fn controls_setttings_applies() {
         let mut app = setup_app();
         let mut game_state = app.world.get_resource_mut::<State<GameState>>().unwrap();
         game_state
@@ -310,12 +310,12 @@ mod tests {
         let player = app.world.spawn().insert(Authority).insert(Player).id();
         let mut settings = app.world.get_resource_mut::<Settings>().unwrap();
         settings
-            .control
+            .controls
             .mappings
             .insert(ControlAction::Jump, KeyCode::Q);
         assert_ne!(
-            settings.control.mappings,
-            ControlSettings::default().mappings,
+            settings.controls.mappings,
+            ControlsSettings::default().mappings,
             "Settings shouldn't be default for proper applying testing"
         );
 
@@ -329,13 +329,13 @@ mod tests {
 
         let settings = app.world.get_resource::<Settings>().unwrap();
         assert_eq!(
-            settings.control.mappings, *mappings,
+            settings.controls.mappings, *mappings,
             "Added mappings should the same as in settings"
         );
 
         // Change settings again to test reloading
         let mut settings = app.world.get_resource_mut::<Settings>().unwrap();
-        settings.control.mappings = ControlSettings::default().mappings;
+        settings.controls.mappings = ControlsSettings::default().mappings;
 
         let mut apply_events = app
             .world
@@ -352,7 +352,7 @@ mod tests {
             .get::<InputMap<ControlAction>>()
             .unwrap();
         assert_eq!(
-            settings.control.mappings, *mappings,
+            settings.controls.mappings, *mappings,
             "Mappings should be updated on apply event"
         );
 

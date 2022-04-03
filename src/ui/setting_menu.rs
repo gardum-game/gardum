@@ -42,7 +42,7 @@ use super::{
 };
 use crate::core::{
     settings::ControlAction,
-    settings::{ControlSettings, SettingApplyEvent, Settings, VideoSettings},
+    settings::{ControlsSettings, SettingApplyEvent, Settings, VideoSettings},
 };
 
 pub(super) struct SettingMenuPlugin;
@@ -89,7 +89,7 @@ fn settings_menu_system(
                     &mut commands,
                     ui,
                     window_width_margin,
-                    &mut settings.control,
+                    &mut settings.controls,
                 ),
             };
             ui.expand_to_include_rect(ui.available_rect_before_wrap());
@@ -138,19 +138,19 @@ fn show_control_settings(
     commands: &mut Commands,
     ui: &mut Ui,
     window_width_margin: f32,
-    control_settings: &mut ControlSettings,
+    controls_settings: &mut ControlsSettings,
 ) {
     const INPUT_VARIANTS: usize = 3;
     const COLUMNS_COUNT: usize = INPUT_VARIANTS + 1;
 
-    Grid::new("Control grid")
+    Grid::new("Controls grid")
         .num_columns(COLUMNS_COUNT)
         .striped(true)
         .min_col_width(ui.available_width() / COLUMNS_COUNT as f32 - window_width_margin)
         .show(ui, |ui| {
             for action in ControlAction::variants() {
                 ui.label(action.to_string());
-                let inputs = control_settings.mappings.get(action);
+                let inputs = controls_settings.mappings.get(action);
                 for index in 0..INPUT_VARIANTS {
                     let button_text = match inputs.get_at(index) {
                         Some(UserInput::Single(InputButton::Gamepad(gamepad_button))) => {
@@ -199,10 +199,10 @@ fn binding_window_system(
                 ui.horizontal(|ui| {
                     if ui.button("Replace").clicked() {
                         settings
-                            .control
+                            .controls
                             .mappings
                             .remove(conflict.action, conflict.input_button);
-                        settings.control.mappings.insert_at(
+                        settings.controls.mappings.insert_at(
                             active_binding.action,
                             conflict.input_button,
                             active_binding.index,
@@ -222,7 +222,7 @@ fn binding_window_system(
                 } else if let Some(input_button) = input_events.input_button() {
                     let conflict_action =
                         settings
-                            .control
+                            .controls
                             .mappings
                             .iter()
                             .find_map(|(action, inputs)| {
@@ -239,7 +239,7 @@ fn binding_window_system(
                             input_button,
                         });
                     } else {
-                        settings.control.mappings.insert_at(
+                        settings.controls.mappings.insert_at(
                             active_binding.action,
                             input_button,
                             active_binding.index,
