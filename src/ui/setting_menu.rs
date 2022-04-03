@@ -193,7 +193,7 @@ fn binding_window_system(
         .show(egui.ctx(), |ui| {
             if let Some(conflict) = &active_binding.conflict {
                 ui.label(format!(
-                    "Input {} is already used by {}",
+                    "Input \"{}\" is already used by \"{}\"",
                     conflict.input_button, conflict.action
                 ));
                 ui.horizontal(|ui| {
