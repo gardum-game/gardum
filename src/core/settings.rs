@@ -298,7 +298,7 @@ mod tests {
     }
 
     #[test]
-    fn controls_setttings_applies() {
+    fn controls_settings_applies() {
         let mut app = setup_app();
         let mut game_state = app.world.get_resource_mut::<State<GameState>>().unwrap();
         game_state
