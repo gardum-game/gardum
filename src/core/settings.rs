@@ -33,7 +33,7 @@ pub(super) struct SettingsPlugin;
 impl Plugin for SettingsPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<SettingApplyEvent>()
-            .insert_resource(Settings::new())
+            .insert_resource(Settings::read())
             .add_system(apply_video_settings_system)
             .add_system(apply_controls_settings_system)
             .add_system(write_settings_system)
@@ -113,20 +113,33 @@ impl SettingApplyEvent {
 }
 
 #[derive(Default, Deserialize, Serialize, Clone)]
+#[cfg_attr(test, derive(Debug, PartialEq))]
 #[serde(default)]
 pub(crate) struct Settings {
     pub(crate) video: VideoSettings,
     #[serde(skip)] // TODO: Remove after https://github.com/Leafwing-Studios/petitset/issues/15
     pub(crate) controls: ControlsSettings,
-
-    #[serde(skip)]
-    file_path: PathBuf,
 }
 
 impl Settings {
     /// Creates [`Settings`] from the application settings file.
     /// Will be initialed with defaults if the file does not exist.
-    fn new() -> Settings {
+    fn read() -> Settings {
+        match fs::read_to_string(Settings::file_path()) {
+            Ok(content) => {
+                toml::from_str::<Settings>(&content).expect("Unable to parse setting file")
+            }
+            Err(_) => Settings::default(),
+        }
+    }
+
+    /// Serialize [`Settings`] on disk under [`self.file_path`].
+    fn write(&self) {
+        let content = toml::to_string_pretty(&self).expect("Unable to serialize settings");
+        fs::write(Settings::file_path(), content).expect("Unable to write settings");
+    }
+
+    fn file_path() -> PathBuf {
         let standard_paths = StandardPaths::default();
         // Use temp directory in tests
         let mut location = standard_paths
@@ -141,29 +154,7 @@ impl Settings {
 
         location.push(env!("CARGO_PKG_NAME"));
         location.set_extension("toml");
-
-        Settings::from_file(location)
-    }
-
-    /// Creates [`Settings`] from the specified file.
-    /// Will be initialed with defaults if the file does not exist.
-    fn from_file(file_path: PathBuf) -> Settings {
-        match fs::read_to_string(&file_path) {
-            Ok(content) => Settings {
-                file_path,
-                ..toml::from_str::<Settings>(&content).expect("Unable to parse setting file")
-            },
-            Err(_) => Settings {
-                file_path,
-                ..Default::default()
-            },
-        }
-    }
-
-    /// Serialize [`Settings`] on disk under [`self.file_path`].
-    fn write(&self) {
-        let content = toml::to_string_pretty(&self).expect("Unable to serialize settings");
-        fs::write(&self.file_path, content).expect("Unable to write settings");
+        location
     }
 }
 
@@ -185,7 +176,7 @@ impl Default for VideoSettings {
 }
 
 #[derive(Deserialize, Serialize, Clone)]
-#[cfg_attr(test, derive(PartialEq))]
+#[cfg_attr(test, derive(Debug, PartialEq))]
 #[serde(default)]
 pub(crate) struct ControlsSettings {
     pub(crate) mappings: InputMap<ControlAction>,
@@ -239,14 +230,15 @@ mod tests {
         let mut app = setup_app();
 
         let mut settings = app.world.get_resource_mut::<Settings>().unwrap();
+        let file_path = Settings::file_path();
         assert!(
-            !settings.file_path.exists(),
+            !file_path.exists(),
             "Settings file shouldn't be created on startup"
         );
         assert_eq!(
-            settings.video,
-            VideoSettings::default(),
-            "Video settings should be defaulted if settings file does not exist"
+            *settings,
+            Settings::default(),
+            "Settings should be defaulted if settings file does not exist"
         );
 
         // Modify settings
@@ -262,17 +254,17 @@ mod tests {
 
         let settings = app.world.get_resource::<Settings>().unwrap();
         assert!(
-            settings.file_path.exists(),
+            file_path.exists(),
             "Configuration file should be created on apply event"
         );
 
-        let loaded_settings = Settings::from_file(settings.file_path.clone());
+        let loaded_settings = Settings::read();
         assert_eq!(
             settings.video, loaded_settings.video,
             "Loaded settings should be equal to saved"
         );
 
-        fs::remove_file(&settings.file_path).expect("Saved file should be removed after the test");
+        fs::remove_file(file_path).expect("Saved file should be removed after the test");
     }
 
     #[test]
