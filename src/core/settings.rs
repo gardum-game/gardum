@@ -280,6 +280,7 @@ mod tests {
         );
 
         settings.video.msaa += 1;
+        settings.video.global_illumination = !settings.video.global_illumination;
 
         let mut apply_events = app
             .world
@@ -294,6 +295,11 @@ mod tests {
         assert_eq!(
             settings.video.msaa, msaa.samples,
             "MSAA setting should be updated on apply event"
+        );
+        let gi_config = app.world.get_resource::<GiConfig>().unwrap();
+        assert_eq!(
+            settings.video.global_illumination, gi_config.enabled,
+            "Global illumination setting should be updated on apply event"
         );
     }
 
