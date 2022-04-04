@@ -75,7 +75,7 @@ fn write_settings_system(
     settings: Res<Settings>,
 ) {
     if let Some(apply_event) = apply_events.iter().next() {
-        if apply_event.save {
+        if apply_event.write {
             settings.write();
         }
     }
@@ -95,20 +95,20 @@ fn apply_mappings_system(
 
 /// An event that applies the specified settings in the [`Settings`] resource.
 pub(crate) struct SettingApplyEvent {
-    /// Specifies whether to save settings to disk or not
-    save: bool,
+    /// Specifies whether to write settings to disk or not
+    write: bool,
 }
 
 impl SettingApplyEvent {
-    pub(crate) fn apply_and_save() -> Self {
-        Self { save: true }
+    pub(crate) fn apply_and_write() -> Self {
+        Self { write: true }
     }
 
     // Currently used only in tests, but in future could be used to confirm settings in resolution
     // change
     #[cfg(test)]
-    fn apply_without_save() -> Self {
-        Self { save: false }
+    fn apply_without_write() -> Self {
+        Self { write: false }
     }
 }
 
@@ -248,7 +248,7 @@ mod tests {
             .world
             .get_resource_mut::<Events<SettingApplyEvent>>()
             .unwrap();
-        apply_events.send(SettingApplyEvent::apply_and_save());
+        apply_events.send(SettingApplyEvent::apply_and_write());
 
         app.update();
 
@@ -285,7 +285,7 @@ mod tests {
             .world
             .get_resource_mut::<Events<SettingApplyEvent>>()
             .unwrap();
-        apply_events.send(SettingApplyEvent::apply_without_save());
+        apply_events.send(SettingApplyEvent::apply_without_write());
 
         app.update();
 
@@ -338,7 +338,7 @@ mod tests {
             .world
             .get_resource_mut::<Events<SettingApplyEvent>>()
             .unwrap();
-        apply_events.send(SettingApplyEvent::apply_without_save());
+        apply_events.send(SettingApplyEvent::apply_without_write());
 
         app.update();
 
