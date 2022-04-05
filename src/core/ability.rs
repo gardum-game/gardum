@@ -68,7 +68,7 @@ pub(crate) struct IconPath(pub(crate) &'static str);
 #[derive(Component)]
 pub(super) struct Activator(pub(super) Entity);
 
-#[derive(Default, Deref, DerefMut, Component)]
+#[derive(Default, Deref, DerefMut, Component, From)]
 pub(crate) struct Abilities(pub(crate) Vec<Entity>);
 
 #[cfg(test)]

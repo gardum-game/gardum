@@ -18,18 +18,18 @@
  *
  */
 
-use bevy::{prelude::*, render::camera::Camera};
+use bevy::{ecs::system::EntityCommands, prelude::*, render::camera::Camera};
 use heron::{CollisionShape, Collisions, Velocity};
 
 use crate::core::{
-    ability::{Abilities, Activator, IconPath},
+    ability::{Activator, IconPath},
     character::{character_direction, CharacterBundle},
     cooldown::Cooldown,
     game_state::GameState,
     health::{Health, HealthChangeEvent},
     projectile::ProjectileBundle,
     settings::ControlAction,
-    Owner,
+    AssetCommands, Owner,
 };
 
 const PROJECTILE_SPEED: f32 = 20.0;
@@ -156,21 +156,23 @@ impl Default for FrostPathBundle {
 #[derive(Component)]
 struct FrostPathAbility;
 
-impl CharacterBundle {
-    pub(super) fn north(
+impl<'w, 's> AssetCommands<'w, 's> {
+    pub(crate) fn insert_north<'a>(
+        &'a mut self,
+        player: Entity,
         transform: Transform,
-        commands: &mut Commands,
-        meshes: &mut Assets<Mesh>,
-        materials: &mut Assets<StandardMaterial>,
-    ) -> Self {
-        Self {
-            abilities: Abilities(vec![
-                commands.spawn_bundle(FrostBoltBundle::default()).id(),
-                commands.spawn_bundle(FrostPathBundle::default()).id(),
-            ]),
+    ) -> EntityCommands<'w, 's, 'a> {
+        let abilities = vec![
+            self.commands.spawn_bundle(FrostBoltBundle::default()).id(),
+            self.commands.spawn_bundle(FrostPathBundle::default()).id(),
+        ];
+
+        let mut entity_commands = self.commands.entity(player);
+        entity_commands.insert_bundle(CharacterBundle {
+            abilities: abilities.into(),
             pbr: PbrBundle {
-                mesh: meshes.add(Mesh::from(shape::Capsule::default())),
-                material: materials.add(Color::rgb(0.3, 0.3, 0.3).into()),
+                mesh: self.meshes.add(Mesh::from(shape::Capsule::default())),
+                material: self.materials.add(Color::rgb(0.3, 0.3, 0.3).into()),
                 transform,
                 ..Default::default()
             },
@@ -179,7 +181,8 @@ impl CharacterBundle {
                 radius: 0.5,
             },
             ..Default::default()
-        }
+        });
+        entity_commands
     }
 }
 

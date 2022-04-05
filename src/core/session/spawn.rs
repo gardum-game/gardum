@@ -21,11 +21,7 @@
 use bevy::prelude::*;
 use derive_more::{Deref, DerefMut};
 
-use crate::core::{
-    character::{hero::HeroKind, CharacterBundle},
-    game_state::GameState,
-    health::Death,
-};
+use crate::core::{character::hero::HeroKind, game_state::GameState, health::Death, AssetCommands};
 
 pub(super) struct SpawnPlugin;
 
@@ -43,9 +39,7 @@ impl Plugin for SpawnPlugin {
 fn spawn_system(
     spawn_points: Query<&SpawnPoint>,
     players: Query<(Entity, &HeroKind), Added<HeroKind>>,
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut asset_commands: AssetCommands,
 ) {
     for (player, hero_kind) in players.iter() {
         // TODO: determine best spawn position based on other characters location
@@ -54,14 +48,11 @@ fn spawn_system(
             .next()
             .expect("Unable to find any spawn points");
 
-        let hero = CharacterBundle::hero(
-            *hero_kind,
-            Transform::from_translation(spawn_point.0),
-            &mut commands,
-            &mut meshes,
-            &mut materials,
-        );
-        commands.entity(player).insert_bundle(hero);
+        match hero_kind {
+            HeroKind::North => {
+                asset_commands.insert_north(player, Transform::from_translation(spawn_point.0));
+            }
+        }
     }
 }
 
@@ -114,23 +105,24 @@ mod tests {
 
     #[test]
     fn hero_spawns() {
-        const SPAWN_POINT: Vec3 = Vec3::ONE;
-        let hero_kind = HeroKind::iter().next().unwrap();
-
         let mut app = setup_app();
-        let player = app.world.spawn().insert(hero_kind).id();
+        const SPAWN_POINT: Vec3 = Vec3::ONE;
         app.world.spawn().insert(SpawnPoint(SPAWN_POINT)).id();
 
-        app.update();
+        for hero_kind in HeroKind::iter() {
+            let player = app.world.spawn().insert(hero_kind).id();
 
-        let transform = app
-            .world
-            .get::<Transform>(player)
-            .expect("Hero should be spawned");
-        assert_eq!(
-            transform.translation, SPAWN_POINT,
-            "Hero should be spawned at the specified location"
-        );
+            app.update();
+
+            let transform = app
+                .world
+                .get::<Transform>(player)
+                .expect("Hero should be inserted to the player");
+            assert_eq!(
+                transform.translation, SPAWN_POINT,
+                "Hero should be spawned at the specified location"
+            );
+        }
     }
 
     #[test]

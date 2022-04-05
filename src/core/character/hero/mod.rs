@@ -23,7 +23,6 @@ mod north;
 use bevy::prelude::*;
 use strum::{EnumIter, EnumString};
 
-use super::CharacterBundle;
 use north::NorthPlugin;
 
 pub(super) struct HeroesPlugin;
@@ -34,62 +33,7 @@ impl Plugin for HeroesPlugin {
     }
 }
 
-impl CharacterBundle {
-    /// Create hero bundle from the specified kind
-    pub(crate) fn hero(
-        hero_kind: HeroKind,
-        transform: Transform,
-        commands: &mut Commands,
-        meshes: &mut Assets<Mesh>,
-        materials: &mut Assets<StandardMaterial>,
-    ) -> Self {
-        let create_fn = match hero_kind {
-            HeroKind::North => CharacterBundle::north,
-        };
-        create_fn(transform, commands, meshes, materials)
-    }
-}
-
 #[derive(Clone, Copy, PartialEq, EnumIter, EnumString, Debug, Component)]
 pub(crate) enum HeroKind {
     North,
-}
-
-#[cfg(test)]
-mod tests {
-    use bevy::ecs::system::SystemState;
-    use strum::IntoEnumIterator;
-
-    use super::*;
-    use crate::{core::health::HealthChangeEvent, test_utils::HeadlessRenderPlugin};
-
-    #[test]
-    fn heroes() {
-        let mut app = setup_app();
-        let mut system_state: SystemState<(
-            Commands,
-            ResMut<Assets<Mesh>>,
-            ResMut<Assets<StandardMaterial>>,
-        )> = SystemState::new(&mut app.world);
-        let (mut commands, mut meshes, mut materials) = system_state.get_mut(&mut app.world);
-
-        for hero_kind in HeroKind::iter() {
-            CharacterBundle::hero(
-                hero_kind,
-                Transform::default(),
-                &mut commands,
-                &mut meshes,
-                &mut materials,
-            );
-        }
-    }
-
-    fn setup_app() -> App {
-        let mut app = App::new();
-        app.add_event::<HealthChangeEvent>()
-            .add_plugin(HeadlessRenderPlugin)
-            .add_plugin(HeroesPlugin);
-
-        app
-    }
 }
