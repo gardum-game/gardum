@@ -27,9 +27,8 @@ use crate::core::{
     cooldown::Cooldown,
     game_state::GameState,
     health::{Health, HealthChangeEvent},
-    projectile::ProjectileBundle,
     settings::ControlAction,
-    AssetCommands, Owner,
+    AssetCommands, Owner, ProjectileBundle,
 };
 
 const PROJECTILE_SPEED: f32 = 20.0;
@@ -51,9 +50,7 @@ impl Plugin for NorthPlugin {
 }
 
 fn frost_bolt_system(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut asset_commands: AssetCommands,
     abilities: Query<(Entity, &Activator), With<FrostBoltAbility>>,
     characters: Query<&Transform>,
     cameras: Query<&Transform, With<Camera>>,
@@ -62,26 +59,33 @@ fn frost_bolt_system(
         let camera_transform = cameras.single();
         let character_transform = characters.get(activator.0).unwrap();
 
-        commands
-            .spawn_bundle(ProjectileBundle::frost_bolt(
-                camera_transform,
-                character_transform,
-                &mut meshes,
-                &mut materials,
-            ))
-            .insert(FrostBoltAbility)
-            .insert(Owner(activator.0));
-        commands.entity(ability).remove::<Activator>();
+        let transform = Transform {
+            translation: character_transform.translation
+                + camera_transform.rotation * -Vec3::Z * FROST_BOLT_SPAWN_OFFSET,
+            rotation: camera_transform.rotation * Quat::from_rotation_x(90.0_f32.to_radians()),
+            scale: character_transform.scale,
+        };
+
+        asset_commands.spawn_frost_bolt(activator.0, transform);
+        asset_commands
+            .commands
+            .entity(ability)
+            .remove::<Activator>();
     }
 }
 
 fn frost_bolt_hit_system(
+    mut commands: Commands,
     mut health_events: EventWriter<HealthChangeEvent>,
-    projectiles: Query<(&Owner, &Collisions), (With<FrostBoltAbility>, Changed<Collisions>)>,
+    projectiles: Query<
+        (Entity, &Owner, &Collisions),
+        (With<FrostBoltAbility>, Changed<Collisions>),
+    >,
     health: Query<(), With<Health>>,
 ) {
-    for (owner, collisions) in projectiles.iter() {
+    for (projectile, owner, collisions) in projectiles.iter() {
         if let Some(first_collision) = collisions.iter().next() {
+            commands.entity(projectile).despawn();
             if health.get(first_collision).is_ok() {
                 health_events.send(HealthChangeEvent {
                     instigator: owner.0,
@@ -184,37 +188,34 @@ impl<'w, 's> AssetCommands<'w, 's> {
         });
         entity_commands
     }
-}
 
-impl ProjectileBundle {
-    fn frost_bolt(
-        camera_transform: &Transform,
-        character_transform: &Transform,
-        meshes: &mut Assets<Mesh>,
-        materials: &mut Assets<StandardMaterial>,
-    ) -> Self {
-        Self {
+    fn spawn_frost_bolt<'a>(
+        &'a mut self,
+        owner: Entity,
+        transform: Transform,
+    ) -> EntityCommands<'w, 's, 'a> {
+        let mut entity_commands = self.commands.spawn_bundle(ProjectileBundle {
             shape: CollisionShape::Capsule {
                 half_segment: 0.5,
                 radius: 0.5,
             },
             velocity: Velocity::from_linear(
-                camera_transform.rotation * -Vec3::Z * PROJECTILE_SPEED,
+                transform.rotation
+                    * Quat::from_rotation_x(-90.0_f32.to_radians())
+                    * -Vec3::Z
+                    * PROJECTILE_SPEED,
             ),
             pbr: PbrBundle {
-                mesh: meshes.add(Mesh::from(shape::Capsule::default())),
-                material: materials.add(Color::rgb(0.3, 0.3, 0.3).into()),
-                transform: Transform {
-                    translation: character_transform.translation
-                        + camera_transform.rotation * -Vec3::Z * FROST_BOLT_SPAWN_OFFSET,
-                    rotation: camera_transform.rotation
-                        * Quat::from_rotation_x(90.0_f32.to_radians()),
-                    scale: character_transform.scale,
-                },
+                mesh: self.meshes.add(Mesh::from(shape::Capsule::default())),
+                material: self.materials.add(Color::rgb(0.3, 0.3, 0.3).into()),
+                transform,
                 ..Default::default()
             },
             ..Default::default()
-        }
+        });
+        entity_commands.insert(FrostBoltAbility);
+        entity_commands.insert(Owner(owner));
+        entity_commands
     }
 }
 
@@ -225,7 +226,7 @@ mod tests {
     use heron::PhysicsPlugin;
 
     use super::*;
-    use crate::{core::projectile::Projectile, test_utils::HeadlessRenderPlugin};
+    use crate::test_utils::HeadlessRenderPlugin;
 
     #[test]
     fn frost_bolt() {
@@ -249,7 +250,9 @@ mod tests {
 
         app.update();
 
-        let mut projectiles = app.world.query_filtered::<&Transform, With<Projectile>>();
+        let mut projectiles = app
+            .world
+            .query_filtered::<&Transform, With<FrostBoltAbility>>();
         let projectile_transform = *projectiles.iter(&app.world).next().unwrap(); // TODO 0.7: Use single
         let character_transform = app.world.get::<Transform>(instigator).unwrap();
 

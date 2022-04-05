@@ -31,18 +31,18 @@ mod movement;
 mod orbit_camera;
 mod pickup;
 pub(super) mod player;
-mod projectile;
 pub(super) mod server_settings;
 pub(super) mod session;
 pub(super) mod settings;
 
 use bevy::{ecs::system::SystemParam, prelude::*};
 use derive_more::From;
-use heron::PhysicsLayer;
+use heron::{CollisionLayers, CollisionShape, Collisions, PhysicsLayer, RigidBody, Velocity};
 
 use ability::AbilityPlugin;
 use character::CharactersPlugin;
 use cli::Opts;
+use despawn_timer::DespawnTimer;
 use despawn_timer::DespawnTimerPlugin;
 use effect::EffectPlugin;
 use game_state::AppStatePlugin;
@@ -52,7 +52,6 @@ use movement::MovementPlugin;
 use orbit_camera::OrbitCameraPlugin;
 use pickup::PickupPlugin;
 use player::PlayerPlugin;
-use projectile::ProjectilePlugin;
 use server_settings::ServerSettingsPlugin;
 use session::SessionPlugin;
 use settings::SettingsPlugin;
@@ -75,8 +74,7 @@ impl Plugin for CorePlugin {
             .add_plugin(PlayerPlugin)
             .add_plugin(SessionPlugin)
             .add_plugin(DespawnTimerPlugin)
-            .add_plugin(EffectPlugin)
-            .add_plugin(ProjectilePlugin);
+            .add_plugin(EffectPlugin);
     }
 }
 
@@ -113,6 +111,37 @@ impl TransformBundle {
         TransformBundle {
             local: transform,
             ..Self::default()
+        }
+    }
+}
+
+#[derive(Bundle)]
+pub(super) struct ProjectileBundle {
+    name: Name,
+    rigid_body: RigidBody,
+    shape: CollisionShape,
+    collision_layers: CollisionLayers,
+    velocity: Velocity,
+    despawn_timer: DespawnTimer,
+    collisions: Collisions,
+
+    #[bundle]
+    pbr: PbrBundle,
+}
+
+impl Default for ProjectileBundle {
+    fn default() -> Self {
+        Self {
+            name: "Projectile".into(),
+            rigid_body: RigidBody::KinematicVelocityBased,
+            shape: CollisionShape::default(),
+            collision_layers: CollisionLayers::all_masks::<CollisionLayer>()
+                .without_mask(CollisionLayer::Projectile)
+                .with_group(CollisionLayer::Projectile),
+            velocity: Velocity::default(),
+            despawn_timer: DespawnTimer::from_secs(4),
+            collisions: Collisions::default(),
+            pbr: PbrBundle::default(),
         }
     }
 }
