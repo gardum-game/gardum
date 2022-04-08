@@ -26,12 +26,14 @@ use bevy_egui::{
     egui::{Align2, Area},
     EguiContext,
 };
+use leafwing_input_manager::plugin::DisableInput;
 
 use super::{ui_state::UiState, UI_MARGIN};
 use crate::core::{
     ability::{Abilities, IconPath},
     cooldown::Cooldown,
     health::Health,
+    settings::ControlAction,
     Authority,
 };
 use ability_icon::AbilityIcon;
@@ -41,9 +43,16 @@ pub(super) struct HudPlugin;
 
 impl Plugin for HudPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(
-            SystemSet::on_update(UiState::Hud).with_system(health_and_abilities_system),
-        );
+        app.init_resource::<DisableInput<ControlAction>>() // Disable input by default
+            .add_system_set(
+                SystemSet::on_update(UiState::Hud).with_system(health_and_abilities_system),
+            )
+            .add_system_set(
+                SystemSet::on_enter(UiState::Hud).with_system(enable_control_actions_system),
+            )
+            .add_system_set(
+                SystemSet::on_exit(UiState::Hud).with_system(disable_control_actions_system),
+            );
     }
 }
 
@@ -87,4 +96,12 @@ fn health_and_abilities_system(
                 }
             })
         });
+}
+
+fn enable_control_actions_system(mut commands: Commands) {
+    commands.remove_resource::<DisableInput<ControlAction>>();
+}
+
+fn disable_control_actions_system(mut commands: Commands) {
+    commands.insert_resource(DisableInput::<ControlAction>::default());
 }

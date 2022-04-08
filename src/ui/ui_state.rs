@@ -49,7 +49,7 @@ fn update_ui_state_system(
 pub(super) struct UiStateHistory(pub(super) Vec<UiState>);
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
-pub(crate) enum UiState {
+pub(super) enum UiState {
     Empty,
     MainMenu,
     ServerBrowser,
