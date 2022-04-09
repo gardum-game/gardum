@@ -18,7 +18,10 @@
  *
  */
 
-use bevy_egui::egui::*;
+use bevy_egui::egui::{
+    epaint::{Vertex, WHITE_UV},
+    *,
+};
 
 use crate::core::cooldown::Cooldown;
 
@@ -60,16 +63,10 @@ impl Widget for AbilityIcon<'_> {
         if let Some(cooldown) = cooldown {
             let display_sec = (cooldown.duration().as_secs_f32() - cooldown.elapsed_secs()).ceil();
             if display_sec != 0.0 {
-                let fade_rect = Rect::from_min_size(
-                    rect.min,
-                    vec2(rect.size().x, rect.size().y * cooldown.percent_left()),
-                );
-                ui.painter().rect(
-                    fade_rect,
-                    0.0,
-                    Color32::from_black_alpha(150),
-                    Stroke::none(),
-                );
+                ui.painter().add(Shape::mesh(generate_cooldown_mesh(
+                    cooldown.percent_left(),
+                    rect,
+                )));
 
                 let text: WidgetText = RichText::new(display_sec.to_string())
                     .font(FontId::monospace(25.0))
@@ -86,4 +83,95 @@ impl Widget for AbilityIcon<'_> {
 
         response
     }
+}
+
+/// Generates mesh for cooldown fade
+///
+/// `cooldown` should be from 0.0 to 1.0.
+fn generate_cooldown_mesh(cooldown: f32, content_rect: Rect) -> Mesh {
+    let segment_size = Vec2::new(content_rect.width() / 2.0, content_rect.height() / 2.0);
+    let mut mesh = Mesh::default();
+
+    /*
+     * 2 1+9 8
+     * 3  0  7
+     * 4  5  6
+     */
+    add_vert(
+        &mut mesh,
+        content_rect.min.x + segment_size.x,
+        content_rect.min.y + segment_size.y,
+    );
+    add_vert(
+        &mut mesh,
+        content_rect.min.x + segment_size.x,
+        content_rect.min.y,
+    );
+    add_vert(&mut mesh, content_rect.min.x, content_rect.min.y);
+    add_vert(
+        &mut mesh,
+        content_rect.min.x,
+        content_rect.min.y + segment_size.y,
+    );
+    add_vert(&mut mesh, content_rect.min.x, content_rect.max.y);
+    add_vert(
+        &mut mesh,
+        content_rect.min.x + segment_size.x,
+        content_rect.max.y,
+    );
+    add_vert(&mut mesh, content_rect.max.x, content_rect.max.y);
+    add_vert(
+        &mut mesh,
+        content_rect.max.x,
+        content_rect.min.y + segment_size.y,
+    );
+    add_vert(&mut mesh, content_rect.max.x, content_rect.min.y);
+    add_vert(
+        &mut mesh,
+        content_rect.min.x + segment_size.x,
+        content_rect.min.y,
+    );
+
+    /*
+     * Triangles:
+     * _______
+     * |\ | /|
+     * |_\|/_|
+     * | /|\ |
+     * |/ | \|
+     * -------
+     */
+    const TRIANGLES_COUNT: f32 = 8.0;
+    let segments = cooldown * TRIANGLES_COUNT;
+    let num_segments = segments.trunc() as u32;
+    for segment_id in 0..num_segments {
+        mesh.add_triangle(0, segment_id + 1, segment_id + 2);
+    }
+
+    let fract_segments = segments.fract();
+    if fract_segments > 0.0 {
+        if let (Some(vert_1), Some(vert_2)) = (
+            mesh.vertices.get(num_segments as usize + 1).map(|x| x.pos),
+            mesh.vertices.get(num_segments as usize + 2).map(|x| x.pos),
+        ) {
+            let vertex_id = add_vert(
+                &mut mesh,
+                (vert_2.x - vert_1.x) * fract_segments + vert_1.x,
+                (vert_2.y - vert_1.y) * fract_segments + vert_1.y,
+            );
+            mesh.add_triangle(0, num_segments + 1, vertex_id);
+        }
+    }
+
+    mesh
+}
+
+fn add_vert(mesh: &mut Mesh, x: f32, y: f32) -> u32 {
+    let pos = mesh.vertices.len();
+    mesh.vertices.push(Vertex {
+        pos: Pos2::new(x, y),
+        uv: WHITE_UV,
+        color: Color32::from_rgba_unmultiplied(50, 50, 50, 150),
+    });
+    pos as u32
 }
