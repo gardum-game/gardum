@@ -35,7 +35,8 @@ fn setup_ui_actions_system(mut commands: Commands) {
     let mut input_map = InputMap::default();
     input_map
         .insert(UiAction::Back, KeyCode::Escape)
-        .insert(UiAction::Scoreboard, KeyCode::Tab);
+        .insert(UiAction::Scoreboard, KeyCode::Tab)
+        .insert(UiAction::Chat, KeyCode::Return);
     commands.spawn_bundle(InputManagerBundle::<UiAction> {
         input_map,
         ..Default::default()
@@ -46,6 +47,7 @@ fn setup_ui_actions_system(mut commands: Commands) {
 pub(crate) enum UiAction {
     Back,
     Scoreboard,
+    Chat,
 }
 
 #[cfg(test)]

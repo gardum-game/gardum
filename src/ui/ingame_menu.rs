@@ -30,6 +30,12 @@ use super::{
     ui_state::{UiState, UiStateHistory},
 };
 
+#[derive(SystemLabel, PartialEq, Eq, Debug, Hash, Clone, Copy)]
+pub(super) enum InGameMenuSystems {
+    HideInGameMenu,
+    ShowInGameMenu,
+}
+
 pub(super) struct InGameMenuPlugin;
 
 impl Plugin for InGameMenuPlugin {
@@ -37,9 +43,12 @@ impl Plugin for InGameMenuPlugin {
         app.add_system_set(
             SystemSet::on_update(UiState::InGameMenu)
                 .with_system(ingame_menu_system)
-                .with_system(hide_ingame_menu_system),
+                .with_system(hide_ingame_menu_system.label(InGameMenuSystems::HideInGameMenu)),
         )
-        .add_system_set(SystemSet::on_update(UiState::Hud).with_system(show_ingame_menu_system));
+        .add_system_set(
+            SystemSet::on_update(UiState::Hud)
+                .with_system(show_ingame_menu_system.label(InGameMenuSystems::ShowInGameMenu)),
+        );
     }
 }
 

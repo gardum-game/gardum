@@ -19,6 +19,7 @@
  */
 
 mod back_button;
+mod chat;
 mod cursor;
 mod custom_game_menu;
 mod hero_selection;
@@ -33,6 +34,7 @@ pub(super) mod ui_state;
 use bevy::prelude::*;
 
 use back_button::BackButtonPlugin;
+use chat::ChatPlugin;
 use cursor::CursorPlugin;
 use custom_game_menu::CustomGameMenuPlugin;
 use hero_selection::HeroSelectionPlugin;
@@ -51,6 +53,7 @@ pub(super) struct UiPlugin;
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(UiStatePlugin)
+            .add_plugin(ChatPlugin)
             .add_plugin(CursorPlugin)
             .add_plugin(UiActionPlugin)
             .add_plugin(SettingMenuPlugin)
