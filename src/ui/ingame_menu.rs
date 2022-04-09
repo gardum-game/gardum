@@ -18,7 +18,7 @@
  *
  */
 
-use bevy::{app::AppExit, prelude::*, utils::Instant};
+use bevy::{app::AppExit, prelude::*};
 use bevy_egui::{
     egui::{Align2, Area},
     EguiContext,
@@ -73,7 +73,7 @@ fn show_ingame_menu_system(
 ) {
     let mut action_state = ui_actions.single_mut();
     if action_state.just_pressed(UiAction::Back) {
-        action_state.tick(Instant::now());
+        action_state.make_held(UiAction::Back);
         ui_state_history.push(UiState::InGameMenu);
     }
 }
@@ -84,7 +84,7 @@ fn hide_ingame_menu_system(
 ) {
     let mut action_state = ui_actions.single_mut();
     if action_state.just_pressed(UiAction::Back) {
-        action_state.tick(Instant::now());
+        action_state.make_held(UiAction::Back);
         ui_state_history.pop();
     }
 }
