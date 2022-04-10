@@ -24,9 +24,9 @@ derive_more = { version = "0.99", default-features = false, features = [
     "add_assign",
 ] }
 strum = { version = "0.24", features = ["derive"] }
+approx = "0.5"
 
 [dev-dependencies]
-approx = "0.5"
 glam = { version = "0.20", features = ["approx"] }
 
 [features]

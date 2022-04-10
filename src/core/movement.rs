@@ -18,8 +18,9 @@
  *
  */
 
+use approx::ulps_eq;
 use bevy::prelude::*;
-use heron::{rapier_plugin::PhysicsWorld, CollisionLayers, CollisionShape, Velocity};
+use heron::Velocity;
 use leafwing_input_manager::prelude::ActionState;
 
 use super::{
@@ -28,9 +29,10 @@ use super::{
 };
 
 const MOVE_SPEED: f32 = 10.0;
-const VELOCITY_INTERPOLATE_SPEED: f32 = 6.0;
+const MOVEMENT_INTERPOLATION_SPEED: f32 = 6.0;
+const AIR_INTERPOLATION_SPEED: f32 = 0.9;
 const JUMP_IMPULSE: f32 = 5.0;
-const FLOOR_THRESHOLD: f32 = 0.01;
+const FLOOR_VELOCITY_EPSILON: f32 = 0.05;
 
 pub(super) struct MovementPlugin;
 
@@ -42,33 +44,30 @@ impl Plugin for MovementPlugin {
 
 fn movement_system(
     time: Res<Time>,
-    physics_world: PhysicsWorld,
     cameras: Query<(&Transform, &CameraTarget)>,
-    mut characters: Query<(
-        Entity,
-        &SpeedModifier,
-        &ActionState<ControlAction>,
-        &Transform,
-        &CollisionShape,
-        &mut Velocity,
-    )>,
+    mut characters: Query<(&SpeedModifier, &ActionState<ControlAction>, &mut Velocity)>,
 ) {
     for (camera_transform, camera_target) in cameras.iter() {
-        let (character, speed_modifier, action_state, transform, shape, mut velocity) =
+        let (speed_modifier, action_state, mut velocity) =
             characters.get_mut(camera_target.0).unwrap();
 
         let falling_velocity = velocity.linear.y; // Save Y velocity to avoid it interpolation
+        let on_floor = ulps_eq!(falling_velocity, 0.0, epsilon = FLOOR_VELOCITY_EPSILON);
+        let interpolation_speed = if on_floor {
+            MOVEMENT_INTERPOLATION_SPEED
+        } else {
+            AIR_INTERPOLATION_SPEED
+        };
+
         let motion = movement_direction(action_state, camera_transform.rotation)
             * MOVE_SPEED
             * speed_modifier.0;
         velocity.linear = velocity
             .linear
-            .lerp(motion, VELOCITY_INTERPOLATE_SPEED * time.delta_seconds());
+            .lerp(motion, interpolation_speed * time.delta_seconds());
         velocity.linear.y = falling_velocity;
 
-        if action_state.pressed(ControlAction::Jump)
-            && is_on_floor(&physics_world, character, shape, transform)
-        {
+        if on_floor && action_state.pressed(ControlAction::Jump) {
             velocity.linear.y += JUMP_IMPULSE;
         }
     }
@@ -95,29 +94,11 @@ fn movement_direction(action_state: &ActionState<ControlAction>, rotation: Quat)
     direction.normalize_or_zero()
 }
 
-fn is_on_floor(
-    physics_world: &PhysicsWorld,
-    entity: Entity,
-    shape: &CollisionShape,
-    transform: &Transform,
-) -> bool {
-    physics_world
-        .shape_cast_with_filter(
-            shape,
-            transform.translation,
-            transform.rotation,
-            -Vec3::X * FLOOR_THRESHOLD,
-            CollisionLayers::default(),
-            |hit_entity| entity != hit_entity,
-        )
-        .is_some()
-}
-
 #[cfg(test)]
 mod tests {
-    use approx::assert_relative_eq;
-    use bevy::{ecs::system::SystemState, input::InputPlugin};
-    use heron::{Gravity, PhysicsPlugin, RigidBody};
+    use approx::{assert_relative_eq, assert_ulps_eq, assert_ulps_ne};
+    use bevy::input::InputPlugin;
+    use heron::{CollisionShape, Gravity, PhysicsPlugin, RigidBody};
     use leafwing_input_manager::prelude::InputManagerPlugin;
 
     use super::*;
@@ -181,16 +162,10 @@ mod tests {
         app.update();
         app.update();
 
-        // Clone collision because PhysicsWorld is a mutable SystemParam
-        let collision_shape = app.world.get::<CollisionShape>(character).unwrap().clone();
-        let transform = *app.world.get::<Transform>(character).unwrap();
-        let mut system_state: SystemState<PhysicsWorld> = SystemState::new(&mut app.world);
-        let physics_world = system_state.get_mut(&mut app.world);
+        let velocity = app.world.entity(character).get::<Velocity>().unwrap();
+        assert_ulps_ne!(velocity.linear.y, 0.0, epsilon = FLOOR_VELOCITY_EPSILON);
 
-        assert!(
-            !is_on_floor(&physics_world, character, &collision_shape, &transform,),
-            "Character shouldn't be on floor"
-        );
+        let transform = app.world.entity(character).get::<Transform>().unwrap();
         assert!(
             DummyCharacterBundle::default().transform.translation.y > transform.translation.y,
             "Character should be affected by gravity"
@@ -235,16 +210,10 @@ mod tests {
 
         app.update();
 
-        // Clone collision because PhysicsWorld is a mutable SystemParam
-        let collision_shape = app.world.get::<CollisionShape>(character).unwrap().clone();
-        let transform = *app.world.get::<Transform>(character).unwrap();
-        let mut system_state: SystemState<PhysicsWorld> = SystemState::new(&mut app.world);
-        let physics_world = system_state.get_mut(&mut app.world);
+        let velocity = app.world.entity(character).get::<Velocity>().unwrap();
+        assert_ulps_eq!(velocity.linear.y, 0.0, epsilon = FLOOR_VELOCITY_EPSILON);
 
-        assert!(
-            is_on_floor(&physics_world, character, &collision_shape, &transform,),
-            "Character should be on floor"
-        );
+        let transform = app.world.entity(character).get::<Transform>().unwrap();
         assert_eq!(
             previous_translation.y, transform.translation.y,
             "Character shouldn't be affected by gravity"
@@ -340,7 +309,7 @@ mod tests {
         let time = app.world.get_resource::<Time>().unwrap().delta_seconds();
         let distance = app.world.get::<Transform>(character).unwrap().translation.z;
         assert_relative_eq!(
-            distance.abs() / time / MOVE_SPEED / VELOCITY_INTERPOLATE_SPEED / SPEED_MODIFIER,
+            distance.abs() / time / MOVE_SPEED / MOVEMENT_INTERPOLATION_SPEED / SPEED_MODIFIER,
             time,
         )
     }
