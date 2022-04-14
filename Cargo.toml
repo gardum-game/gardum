@@ -14,8 +14,8 @@ bevy-hikari = "0.1"
 heron = { version = "2.1", features = ["3d"] }
 leafwing_input_manager = { git = "https://github.com/Leafwing-Studios/leafwing_input_manager", branch = "dev", default-features = false }
 clap = { version = "3.1", features = ["derive"] }
-toml = "0.5"
 serde = "1.0"
+serde_json = "1.0"
 standard_paths = "1.1"
 derive_more = { version = "0.99", default-features = false, features = [
     "deref",

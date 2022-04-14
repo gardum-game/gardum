@@ -1419,9 +1419,9 @@ dependencies = [
  "heron",
  "leafwing_input_manager",
  "serde",
+ "serde_json",
  "standard_paths",
  "strum",
- "toml",
 ]
 
 [[package]]

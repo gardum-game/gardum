@@ -117,7 +117,6 @@ impl SettingApplyEvent {
 #[serde(default)]
 pub(crate) struct Settings {
     pub(crate) video: VideoSettings,
-    #[serde(skip)] // TODO: Remove after https://github.com/Leafwing-Studios/petitset/issues/15
     pub(crate) controls: ControlsSettings,
 }
 
@@ -127,7 +126,7 @@ impl Settings {
     fn read() -> Settings {
         match fs::read_to_string(Settings::file_path()) {
             Ok(content) => {
-                toml::from_str::<Settings>(&content).expect("Unable to parse setting file")
+                serde_json::from_str::<Settings>(&content).expect("Unable to parse setting file")
             }
             Err(_) => Settings::default(),
         }
@@ -135,7 +134,7 @@ impl Settings {
 
     /// Serialize [`Settings`] on disk under [`self.file_path`].
     fn write(&self) {
-        let content = toml::to_string_pretty(&self).expect("Unable to serialize settings");
+        let content = serde_json::to_string_pretty(&self).expect("Unable to serialize settings");
         fs::write(Settings::file_path(), content).expect("Unable to write settings");
     }
 
@@ -153,7 +152,7 @@ impl Settings {
         fs::create_dir_all(&location).expect("Unable to create applicaiton settings directory");
 
         location.push(env!("CARGO_PKG_NAME"));
-        location.set_extension("toml");
+        location.set_extension("json");
         location
     }
 }
