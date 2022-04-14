@@ -28,10 +28,13 @@ mod ingame_menu;
 mod main_menu;
 mod scoreboard;
 mod setting_menu;
-pub(super) mod ui_action;
 pub(super) mod ui_state;
 
 use bevy::prelude::*;
+use leafwing_input_manager::{
+    prelude::{ActionState, InputMap},
+    Actionlike,
+};
 
 use back_button::BackButtonPlugin;
 use chat::ChatPlugin;
@@ -43,7 +46,6 @@ use ingame_menu::InGameMenuPlugin;
 use main_menu::MainMenuPlugin;
 use scoreboard::ScoreboardPlugin;
 use setting_menu::SettingMenuPlugin;
-use ui_action::UiActionPlugin;
 use ui_state::UiStatePlugin;
 
 const UI_MARGIN: f32 = 20.0;
@@ -52,10 +54,17 @@ pub(super) struct UiPlugin;
 
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugin(UiStatePlugin)
+        let mut input_map = InputMap::default();
+        input_map
+            .insert(UiAction::Back, KeyCode::Escape)
+            .insert(UiAction::Scoreboard, KeyCode::Tab)
+            .insert(UiAction::Chat, KeyCode::Return);
+
+        app.init_resource::<ActionState<UiAction>>()
+            .insert_resource(input_map)
+            .add_plugin(UiStatePlugin)
             .add_plugin(ChatPlugin)
             .add_plugin(CursorPlugin)
-            .add_plugin(UiActionPlugin)
             .add_plugin(SettingMenuPlugin)
             .add_plugin(HeroSelectionPlugin)
             .add_plugin(HudPlugin)
@@ -65,4 +74,11 @@ impl Plugin for UiPlugin {
             .add_plugin(BackButtonPlugin)
             .add_plugin(InGameMenuPlugin);
     }
+}
+
+#[derive(Actionlike, Clone, Copy)]
+pub(super) enum UiAction {
+    Back,
+    Scoreboard,
+    Chat,
 }

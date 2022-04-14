@@ -26,8 +26,8 @@ use bevy_egui::{
 use leafwing_input_manager::{plugin::ToggleActions, prelude::ActionState};
 
 use super::{
-    back_button::BackButtonsSystems, ingame_menu::InGameMenuSystems, ui_action::UiAction,
-    ui_state::UiState, UI_MARGIN,
+    back_button::BackButtonsSystems, ingame_menu::InGameMenuSystems, ui_state::UiState, UiAction,
+    UI_MARGIN,
 };
 use crate::core::settings::ControlAction;
 
@@ -56,7 +56,7 @@ struct Chat {
 }
 
 fn chat_system(
-    mut ui_actions: Query<&mut ActionState<UiAction>>,
+    mut action_state: ResMut<ActionState<UiAction>>,
     mut chat: ResMut<Chat>,
     egui: ResMut<EguiContext>,
 ) {
@@ -79,11 +79,10 @@ fn chat_system(
                     .desired_rows(8),
             );
 
-            let mut ui_actions = ui_actions.single_mut();
             if chat.active {
                 let response = ui.text_edit_singleline(&mut chat.current_message);
-                if ui_actions.just_pressed(UiAction::Chat) {
-                    ui_actions.consume(UiAction::Chat);
+                if action_state.just_pressed(UiAction::Chat) {
+                    action_state.consume(UiAction::Chat);
                     let chat = &mut *chat; // Borrow from resource first
                     let message = chat.current_message.trim();
                     if !message.is_empty() {
@@ -92,14 +91,14 @@ fn chat_system(
                     }
                     chat.current_message.clear();
                     chat.active = false;
-                } else if response.lost_focus() || ui_actions.just_pressed(UiAction::Back) {
-                    ui_actions.consume(UiAction::Back);
+                } else if response.lost_focus() || action_state.just_pressed(UiAction::Back) {
+                    action_state.consume(UiAction::Back);
                     chat.active = false;
                 } else {
                     response.request_focus();
                 }
-            } else if ui.button("Chat").clicked() || ui_actions.just_pressed(UiAction::Chat) {
-                ui_actions.consume(UiAction::Chat);
+            } else if ui.button("Chat").clicked() || action_state.just_pressed(UiAction::Chat) {
+                action_state.consume(UiAction::Chat);
                 chat.active = true;
             }
         });

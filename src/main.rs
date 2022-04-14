@@ -38,7 +38,7 @@ use {
     bevy_atmosphere::AtmospherePlugin,
     bevy_hikari::VoxelConeTracingPlugin,
     leafwing_input_manager::prelude::InputManagerPlugin,
-    ui::{ui_action::UiAction, UiPlugin},
+    ui::{UiAction, UiPlugin},
 };
 
 #[cfg(feature = "inspector")]

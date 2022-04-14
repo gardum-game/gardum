@@ -36,9 +36,8 @@ use strum::{Display, EnumIter, IntoEnumIterator};
 
 use super::{
     back_button::BackButtonsSystems,
-    ui_action::UiAction,
     ui_state::{UiState, UiStateHistory},
-    UI_MARGIN,
+    UiAction, UI_MARGIN,
 };
 use crate::core::{
     settings::ControlAction,
@@ -179,7 +178,7 @@ fn binding_window_system(
     mut input_events: InputEvents,
     active_binding: Option<ResMut<ActiveBinding>>,
     mut settings: ResMut<Settings>,
-    mut ui_actions: Query<&mut ActionState<UiAction>>,
+    mut action_state: ResMut<ActionState<UiAction>>,
 ) {
     let mut active_binding = match active_binding {
         Some(active_binding) => active_binding,
@@ -215,7 +214,6 @@ fn binding_window_system(
                 });
             } else {
                 ui.label("Press any key now or Esc to cancel");
-                let mut action_state = ui_actions.single_mut();
                 if action_state.just_pressed(UiAction::Back) {
                     action_state.consume(UiAction::Back);
                     commands.remove_resource::<ActiveBinding>();

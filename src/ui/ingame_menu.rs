@@ -26,8 +26,8 @@ use bevy_egui::{
 use leafwing_input_manager::prelude::ActionState;
 
 use super::{
-    ui_action::UiAction,
     ui_state::{UiState, UiStateHistory},
+    UiAction,
 };
 
 #[derive(SystemLabel, PartialEq, Eq, Debug, Hash, Clone, Copy)]
@@ -77,10 +77,9 @@ fn ingame_menu_system(
 }
 
 fn show_ingame_menu_system(
-    mut ui_actions: Query<&mut ActionState<UiAction>>,
+    mut action_state: ResMut<ActionState<UiAction>>,
     mut ui_state_history: ResMut<UiStateHistory>,
 ) {
-    let mut action_state = ui_actions.single_mut();
     if action_state.just_pressed(UiAction::Back) {
         action_state.consume(UiAction::Back);
         ui_state_history.push(UiState::InGameMenu);
@@ -88,10 +87,9 @@ fn show_ingame_menu_system(
 }
 
 fn hide_ingame_menu_system(
-    mut ui_actions: Query<&mut ActionState<UiAction>>,
+    mut action_state: ResMut<ActionState<UiAction>>,
     mut ui_state_history: ResMut<UiStateHistory>,
 ) {
-    let mut action_state = ui_actions.single_mut();
     if action_state.just_pressed(UiAction::Back) {
         action_state.consume(UiAction::Back);
         ui_state_history.pop();
