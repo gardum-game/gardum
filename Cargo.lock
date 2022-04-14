@@ -1781,7 +1781,7 @@ checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 [[package]]
 name = "leafwing_input_manager"
 version = "0.3.0"
-source = "git+https://github.com/Leafwing-Studios/leafwing_input_manager?branch=dev#11373dd8ab6f58844d4e204106bf865371699f42"
+source = "git+https://github.com/Leafwing-Studios/leafwing_input_manager?branch=dev#4dd626c5878e3553eb9058f0749cd862a816684a"
 dependencies = [
  "bevy_app",
  "bevy_core",
@@ -1802,7 +1802,7 @@ dependencies = [
 [[package]]
 name = "leafwing_input_manager_macros"
 version = "0.2.0"
-source = "git+https://github.com/Leafwing-Studios/leafwing_input_manager?branch=dev#11373dd8ab6f58844d4e204106bf865371699f42"
+source = "git+https://github.com/Leafwing-Studios/leafwing_input_manager?branch=dev#4dd626c5878e3553eb9058f0749cd862a816684a"
 dependencies = [
  "proc-macro-crate",
  "proc-macro2",

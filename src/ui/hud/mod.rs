@@ -26,7 +26,7 @@ use bevy_egui::{
     egui::{Align2, Area},
     EguiContext,
 };
-use leafwing_input_manager::plugin::DisableInput;
+use leafwing_input_manager::plugin::ToggleActions;
 
 use super::{ui_state::UiState, UI_MARGIN};
 use crate::core::{
@@ -43,16 +43,15 @@ pub(super) struct HudPlugin;
 
 impl Plugin for HudPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<DisableInput<ControlAction>>() // Disable input by default
-            .add_system_set(
-                SystemSet::on_update(UiState::Hud).with_system(health_and_abilities_system),
-            )
-            .add_system_set(
-                SystemSet::on_enter(UiState::Hud).with_system(enable_control_actions_system),
-            )
-            .add_system_set(
-                SystemSet::on_exit(UiState::Hud).with_system(disable_control_actions_system),
-            );
+        app.add_system_set(
+            SystemSet::on_update(UiState::Hud).with_system(health_and_abilities_system),
+        )
+        .add_system_set(
+            SystemSet::on_enter(UiState::Hud).with_system(enable_control_actions_system),
+        )
+        .add_system_set(
+            SystemSet::on_exit(UiState::Hud).with_system(disable_control_actions_system),
+        );
     }
 }
 
@@ -98,10 +97,10 @@ fn health_and_abilities_system(
         });
 }
 
-fn enable_control_actions_system(mut commands: Commands) {
-    commands.remove_resource::<DisableInput<ControlAction>>();
+fn enable_control_actions_system(mut toggle_actions: ResMut<ToggleActions<ControlAction>>) {
+    toggle_actions.enabled = true;
 }
 
-fn disable_control_actions_system(mut commands: Commands) {
-    commands.insert_resource(DisableInput::<ControlAction>::default());
+fn disable_control_actions_system(mut toggle_actions: ResMut<ToggleActions<ControlAction>>) {
+    toggle_actions.enabled = false;
 }

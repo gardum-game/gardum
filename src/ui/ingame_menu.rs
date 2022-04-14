@@ -82,7 +82,7 @@ fn show_ingame_menu_system(
 ) {
     let mut action_state = ui_actions.single_mut();
     if action_state.just_pressed(UiAction::Back) {
-        action_state.make_held(UiAction::Back);
+        action_state.consume(UiAction::Back);
         ui_state_history.push(UiState::InGameMenu);
     }
 }
@@ -93,7 +93,7 @@ fn hide_ingame_menu_system(
 ) {
     let mut action_state = ui_actions.single_mut();
     if action_state.just_pressed(UiAction::Back) {
-        action_state.make_held(UiAction::Back);
+        action_state.consume(UiAction::Back);
         ui_state_history.pop();
     }
 }

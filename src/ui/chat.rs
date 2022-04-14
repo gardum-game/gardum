@@ -23,7 +23,7 @@ use bevy_egui::{
     egui::{Align2, Area, Color32, Stroke, TextEdit},
     EguiContext,
 };
-use leafwing_input_manager::{plugin::DisableInput, prelude::ActionState};
+use leafwing_input_manager::{plugin::ToggleActions, prelude::ActionState};
 
 use super::{
     back_button::BackButtonsSystems, ingame_menu::InGameMenuSystems, ui_action::UiAction,
@@ -44,7 +44,7 @@ impl Plugin for ChatPlugin {
                     .before(InGameMenuSystems::ShowInGameMenu)
                     .before(InGameMenuSystems::HideInGameMenu),
             )
-            .add_system_set(SystemSet::on_update(UiState::Hud).with_system(disable_input_system));
+            .add_system_set(SystemSet::on_update(UiState::Hud).with_system(toggle_control_actions));
     }
 }
 
@@ -83,7 +83,7 @@ fn chat_system(
             if chat.active {
                 let response = ui.text_edit_singleline(&mut chat.current_message);
                 if ui_actions.just_pressed(UiAction::Chat) {
-                    ui_actions.make_held(UiAction::Chat);
+                    ui_actions.consume(UiAction::Chat);
                     let chat = &mut *chat; // Borrow from resource first
                     let message = chat.current_message.trim();
                     if !message.is_empty() {
@@ -93,26 +93,24 @@ fn chat_system(
                     chat.current_message.clear();
                     chat.active = false;
                 } else if response.lost_focus() || ui_actions.just_pressed(UiAction::Back) {
-                    ui_actions.make_held(UiAction::Back);
+                    ui_actions.consume(UiAction::Back);
                     chat.active = false;
                 } else {
                     response.request_focus();
                 }
             } else if ui.button("Chat").clicked() || ui_actions.just_pressed(UiAction::Chat) {
-                ui_actions.make_held(UiAction::Chat);
+                ui_actions.consume(UiAction::Chat);
                 chat.active = true;
             }
         });
 }
 
-fn disable_input_system(mut commands: Commands, chat: Res<Chat>, mut last_active: Local<bool>) {
-    if chat.active != *last_active {
-        // Update resource only on activation / deactivation
-        *last_active = chat.active;
-        if chat.active {
-            commands.insert_resource(DisableInput::<ControlAction>::default());
-        } else {
-            commands.remove_resource::<DisableInput<ControlAction>>();
-        }
+fn toggle_control_actions(
+    mut toggle_actions: ResMut<ToggleActions<ControlAction>>,
+    chat: Res<Chat>,
+) {
+    // When chat is active, control actions should be disabled.
+    if chat.active == toggle_actions.enabled {
+        toggle_actions.enabled = !chat.active;
     }
 }

@@ -28,8 +28,8 @@ use bevy_egui::{
     EguiContext,
 };
 use leafwing_input_manager::{
-    buttonlike_user_input::InputButton,
     prelude::{ActionState, UserInput},
+    user_input::InputButton,
     Actionlike,
 };
 use strum::{Display, EnumIter, IntoEnumIterator};
@@ -217,7 +217,7 @@ fn binding_window_system(
                 ui.label("Press any key now or Esc to cancel");
                 let mut action_state = ui_actions.single_mut();
                 if action_state.just_pressed(UiAction::Back) {
-                    action_state.make_held(UiAction::Back);
+                    action_state.consume(UiAction::Back);
                     commands.remove_resource::<ActiveBinding>();
                 } else if let Some(input_button) = input_events.input_button() {
                     let conflict_action =
