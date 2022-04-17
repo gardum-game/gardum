@@ -21,7 +21,6 @@
 pub(crate) mod hero;
 
 use bevy::prelude::*;
-use bevy_hikari::NotGiCaster;
 use derive_more::{AddAssign, From, SubAssign};
 use heron::{CollisionLayers, CollisionShape, RigidBody, RotationConstraints, Velocity};
 use leafwing_input_manager::prelude::ActionState;
@@ -50,7 +49,6 @@ pub(super) struct CharacterBundle {
     collision_layers: CollisionLayers,
     velocity: Velocity,
     action_state: ActionState<ControlAction>,
-    not_gi_caster: NotGiCaster,
 
     #[bundle]
     pbr: PbrBundle,
@@ -71,7 +69,6 @@ impl Default for CharacterBundle {
                 .with_group(CollisionLayer::Character),
             velocity: Velocity::default(),
             action_state: ActionState::default(),
-            not_gi_caster: NotGiCaster,
             pbr: PbrBundle::default(),
         }
     }

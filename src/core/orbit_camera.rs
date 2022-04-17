@@ -24,7 +24,6 @@ use bevy::{
     render::camera::{ActiveCameras, CameraPlugin},
     transform::TransformSystem,
 };
-use bevy_hikari::Volume;
 use derive_more::{Deref, DerefMut, From};
 use heron::PhysicsSystem;
 
@@ -110,7 +109,6 @@ struct OrbitCameraBundle {
     name: Name,
     camera_target: CameraTarget,
     orbit_rotation: OrbitRotation,
-    volume: Volume,
 
     #[bundle]
     camera: PerspectiveCameraBundle,
@@ -122,7 +120,6 @@ impl OrbitCameraBundle {
             name: "Orbit Camera".into(),
             camera_target,
             orbit_rotation: OrbitRotation::default(),
-            volume: Volume::new(Vec3::new(0.0, -25.0, -25.0), Vec3::new(50.0, 25.0, 25.0)),
             camera: PerspectiveCameraBundle::default(),
         }
     }

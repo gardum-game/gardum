@@ -19,7 +19,6 @@
  */
 
 use bevy::prelude::*;
-use bevy_hikari::GiConfig;
 use derive_more::Display;
 use leafwing_input_manager::{prelude::InputMap, Actionlike};
 use serde::{Deserialize, Serialize};
@@ -51,9 +50,6 @@ fn apply_video_settings_system(
     if apply_events.iter().next().is_some() || settings.is_added() {
         commands.insert_resource(Msaa {
             samples: settings.video.msaa,
-        });
-        commands.insert_resource(GiConfig {
-            enabled: settings.video.global_illumination,
         });
     }
 }
@@ -162,15 +158,11 @@ impl Settings {
 #[serde(default)]
 pub(crate) struct VideoSettings {
     pub(crate) msaa: u32,
-    pub(crate) global_illumination: bool,
 }
 
 impl Default for VideoSettings {
     fn default() -> Self {
-        Self {
-            msaa: 1,
-            global_illumination: true,
-        }
+        Self { msaa: 1 }
     }
 }
 
@@ -279,7 +271,6 @@ mod tests {
         );
 
         settings.video.msaa += 1;
-        settings.video.global_illumination = !settings.video.global_illumination;
 
         let mut apply_events = app
             .world
@@ -294,11 +285,6 @@ mod tests {
         assert_eq!(
             settings.video.msaa, msaa.samples,
             "MSAA setting should be updated on apply event"
-        );
-        let gi_config = app.world.get_resource::<GiConfig>().unwrap();
-        assert_eq!(
-            settings.video.global_illumination, gi_config.enabled,
-            "Global illumination setting should be updated on apply event"
         );
     }
 

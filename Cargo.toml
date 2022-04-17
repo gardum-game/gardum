@@ -10,7 +10,6 @@ bevy = { version = "0.6", default-features = false }
 bevy_atmosphere = { version = "0.2", optional = true }
 bevy_egui = { version = "0.12", features = ["multi_threaded"], optional = true }
 bevy-inspector-egui = { version = "0.9", optional = true }
-bevy-hikari = "0.1"
 heron = { version = "2.1", features = ["3d"] }
 leafwing_input_manager = { git = "https://github.com/Leafwing-Studios/leafwing_input_manager", branch = "dev", default-features = false }
 clap = { version = "3.1", features = ["derive"] }

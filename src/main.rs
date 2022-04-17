@@ -36,7 +36,6 @@ use crate::core::CorePlugin;
 use {
     crate::core::settings::ControlAction,
     bevy_atmosphere::AtmospherePlugin,
-    bevy_hikari::VoxelConeTracingPlugin,
     leafwing_input_manager::prelude::InputManagerPlugin,
     ui::{UiAction, UiPlugin},
 };
@@ -63,7 +62,6 @@ fn main() {
             dynamic: false,
             sky_radius: 100.0,
         })
-        .add_plugin(VoxelConeTracingPlugin::default())
         .add_plugin(InputManagerPlugin::<ControlAction>::default())
         .add_plugin(InputManagerPlugin::<UiAction>::default())
         .add_plugin(UiPlugin);

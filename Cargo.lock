@@ -209,17 +209,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "bevy-hikari"
-version = "0.1.11"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5ed658b5226baa400d6f2a905f935ede2f7c015d457a511909085fce3994002b"
-dependencies = [
- "bevy",
- "itertools",
- "wgpu",
-]
-
-[[package]]
 name = "bevy-inspector-egui"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1409,7 +1398,6 @@ version = "0.1.0"
 dependencies = [
  "approx",
  "bevy",
- "bevy-hikari",
  "bevy-inspector-egui",
  "bevy_atmosphere",
  "bevy_egui",
