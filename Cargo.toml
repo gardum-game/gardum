@@ -9,7 +9,10 @@ rust-version = "1.58"
 bevy = { version = "0.7", default-features = false }
 bevy_atmosphere = { version = "0.3", optional = true }
 bevy_egui = { version = "0.13", features = ["multi_threaded"], optional = true }
-bevy-inspector-egui = { version = "0.10", default-features = false, features = ["clipboard", "bevy_pbr"], optional = true }
+bevy-inspector-egui = { version = "0.10", default-features = false, features = [
+  "clipboard",
+  "bevy_pbr",
+], optional = true }
 heron = { version = "3.0", features = ["3d"] }
 leafwing-input-manager = { version = "0.3", default-features = false }
 clap = { version = "3.1", features = ["derive"] }
@@ -17,10 +20,10 @@ serde = "1.0"
 serde_json = "1.0"
 standard_paths = "1.1"
 derive_more = { version = "0.99", default-features = false, features = [
-    "deref",
-    "deref_mut",
-    "from",
-    "add_assign",
+  "deref",
+  "deref_mut",
+  "from",
+  "add_assign",
 ] }
 strum = { version = "0.24", features = ["derive"] }
 approx = "0.5"
