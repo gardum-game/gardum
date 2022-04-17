@@ -306,7 +306,7 @@ mod tests {
 
         app.update();
 
-        let time = app.world.get_resource::<Time>().unwrap().delta_seconds();
+        let time = app.world.resource::<Time>().delta_seconds();
         let distance = app.world.get::<Transform>(character).unwrap().translation.z;
         assert_relative_eq!(
             distance.abs() / time / MOVE_SPEED / MOVEMENT_INTERPOLATION_SPEED / SPEED_MODIFIER,

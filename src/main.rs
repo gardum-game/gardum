@@ -87,7 +87,7 @@ mod tests {
         app.update();
 
         for state in GameState::iter().skip(1) {
-            let mut current_state = app.world.get_resource_mut::<State<GameState>>().unwrap();
+            let mut current_state = app.world.resource_mut::<State<GameState>>();
             current_state.set(state).unwrap();
             app.update();
         }

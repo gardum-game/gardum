@@ -77,7 +77,7 @@ mod tests {
         app.add_plugin(ServerSettingsPlugin);
 
         assert_eq!(
-            *app.world.get_resource::<ServerSettings>().unwrap(),
+            *app.world.resource::<ServerSettings>(),
             ServerSettings::default(),
             "Server settings should be initialized with defaults without host command"
         );
@@ -96,7 +96,7 @@ mod tests {
         app.add_plugin(ServerSettingsPlugin);
 
         assert_eq!(
-            *app.world.get_resource::<ServerSettings>().unwrap(),
+            *app.world.resource::<ServerSettings>(),
             server_settings,
             "Server settings should be initialized with parameters passed from host command"
         );

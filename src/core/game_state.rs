@@ -63,10 +63,7 @@ mod tests {
         app.add_plugin(AppStatePlugin);
 
         assert_eq!(
-            *app.world
-                .get_resource::<State<GameState>>()
-                .unwrap()
-                .current(),
+            *app.world.resource::<State<GameState>>().current(),
             GameState::InGame,
             "State should be in game when launched with a subcommand"
         );
@@ -79,10 +76,7 @@ mod tests {
         app.add_plugin(AppStatePlugin);
 
         assert_eq!(
-            *app.world
-                .get_resource::<State<GameState>>()
-                .unwrap()
-                .current(),
+            *app.world.resource::<State<GameState>>().current(),
             GameState::Menu,
             "State should be in menu when launched without a subcommand"
         );

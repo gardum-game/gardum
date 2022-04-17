@@ -324,10 +324,7 @@ mod tests {
     fn input_events_reads_keyboard() {
         let mut app = setup_app();
         const KEY: KeyCode = KeyCode::Space;
-        let mut keyboard_input = app
-            .world
-            .get_resource_mut::<Events<KeyboardInput>>()
-            .unwrap();
+        let mut keyboard_input = app.world.resource_mut::<Events<KeyboardInput>>();
         keyboard_input.send(KeyboardInput {
             scan_code: 0,
             key_code: Some(KEY),
@@ -350,10 +347,7 @@ mod tests {
     fn input_events_reads_mouse() {
         let mut app = setup_app();
         const BUTTON: MouseButton = MouseButton::Right;
-        let mut mouse_button = app
-            .world
-            .get_resource_mut::<Events<MouseButtonInput>>()
-            .unwrap();
+        let mut mouse_button = app.world.resource_mut::<Events<MouseButtonInput>>();
         mouse_button.send(MouseButtonInput {
             button: BUTTON,
             state: ElementState::Released,
@@ -376,10 +370,7 @@ mod tests {
         let mut app = setup_app();
         const BUTTON: GamepadButtonType = GamepadButtonType::Z;
         const PRESSED_STRENGTH: f32 = 0.6;
-        let mut gamepad_events = app
-            .world
-            .get_resource_mut::<Events<GamepadEvent>>()
-            .unwrap();
+        let mut gamepad_events = app.world.resource_mut::<Events<GamepadEvent>>();
         gamepad_events.send(GamepadEvent(
             Gamepad(0),
             GamepadEventType::ButtonChanged(BUTTON, PRESSED_STRENGTH),
@@ -394,10 +385,7 @@ mod tests {
         );
 
         const RELEASED_STRENGTH: f32 = 0.5;
-        let mut gamepad_events = app
-            .world
-            .get_resource_mut::<Events<GamepadEvent>>()
-            .unwrap();
+        let mut gamepad_events = app.world.resource_mut::<Events<GamepadEvent>>();
         gamepad_events.send(GamepadEvent(
             Gamepad(0),
             GamepadEventType::ButtonChanged(BUTTON, RELEASED_STRENGTH),

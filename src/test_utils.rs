@@ -45,12 +45,12 @@ impl Plugin for HeadlessRenderPlugin {
 }
 
 pub(super) fn wait_for_asset_loading(app: &mut App, path: &str, max_updates: u8) {
-    let asset_server = app.world.get_resource::<AssetServer>().unwrap();
+    let asset_server = app.world.resource::<AssetServer>();
     let handle: Handle<Scene> = asset_server.load(path);
 
     for _ in 0..max_updates {
         app.update();
-        let asset_server = app.world.get_resource::<AssetServer>().unwrap();
+        let asset_server = app.world.resource::<AssetServer>();
         match asset_server.get_load_state(handle.clone()) {
             LoadState::Loaded => return,
             LoadState::Failed => panic!("Unable to load {path}"),

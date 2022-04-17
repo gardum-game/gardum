@@ -220,7 +220,7 @@ mod tests {
     fn read_write() {
         let mut app = setup_app();
 
-        let mut settings = app.world.get_resource_mut::<Settings>().unwrap();
+        let mut settings = app.world.resource_mut::<Settings>();
         let file_path = Settings::file_path();
         assert!(
             !file_path.exists(),
@@ -235,15 +235,12 @@ mod tests {
         // Modify settings
         settings.video.msaa += 1;
 
-        let mut apply_events = app
-            .world
-            .get_resource_mut::<Events<SettingApplyEvent>>()
-            .unwrap();
+        let mut apply_events = app.world.resource_mut::<Events<SettingApplyEvent>>();
         apply_events.send(SettingApplyEvent::apply_and_write());
 
         app.update();
 
-        let settings = app.world.get_resource::<Settings>().unwrap();
+        let settings = app.world.resource::<Settings>();
         assert!(
             file_path.exists(),
             "Configuration file should be created on apply event"
@@ -263,8 +260,8 @@ mod tests {
         let mut app = setup_app();
         app.update();
 
-        let msaa = app.world.get_resource::<Msaa>().unwrap().clone();
-        let mut settings = app.world.get_resource_mut::<Settings>().unwrap();
+        let msaa = app.world.resource::<Msaa>().clone();
+        let mut settings = app.world.resource_mut::<Settings>();
         assert_eq!(
             settings.video.msaa, msaa.samples,
             "MSAA setting should be loaded at startup"
@@ -272,16 +269,13 @@ mod tests {
 
         settings.video.msaa += 1;
 
-        let mut apply_events = app
-            .world
-            .get_resource_mut::<Events<SettingApplyEvent>>()
-            .unwrap();
+        let mut apply_events = app.world.resource_mut::<Events<SettingApplyEvent>>();
         apply_events.send(SettingApplyEvent::apply_without_write());
 
         app.update();
 
-        let settings = app.world.get_resource::<Settings>().unwrap();
-        let msaa = app.world.get_resource::<Msaa>().unwrap();
+        let settings = app.world.resource::<Settings>();
+        let msaa = app.world.resource::<Msaa>();
         assert_eq!(
             settings.video.msaa, msaa.samples,
             "MSAA setting should be updated on apply event"
@@ -291,12 +285,12 @@ mod tests {
     #[test]
     fn controls_settings_applies() {
         let mut app = setup_app();
-        let mut game_state = app.world.get_resource_mut::<State<GameState>>().unwrap();
+        let mut game_state = app.world.resource_mut::<State<GameState>>();
         game_state
             .set(GameState::InGame)
             .expect("State should be switched to in game to test mappings initialization");
         let player = app.world.spawn().insert(Authority).insert(Player).id();
-        let mut settings = app.world.get_resource_mut::<Settings>().unwrap();
+        let mut settings = app.world.resource_mut::<Settings>();
         settings
             .controls
             .mappings
@@ -315,25 +309,22 @@ mod tests {
             .get::<InputMap<ControlAction>>()
             .expect("Mappings should be added to the local player");
 
-        let settings = app.world.get_resource::<Settings>().unwrap();
+        let settings = app.world.resource::<Settings>();
         assert_eq!(
             settings.controls.mappings, *mappings,
             "Added mappings should the same as in settings"
         );
 
         // Change settings again to test reloading
-        let mut settings = app.world.get_resource_mut::<Settings>().unwrap();
+        let mut settings = app.world.resource_mut::<Settings>();
         settings.controls.mappings = ControlsSettings::default().mappings;
 
-        let mut apply_events = app
-            .world
-            .get_resource_mut::<Events<SettingApplyEvent>>()
-            .unwrap();
+        let mut apply_events = app.world.resource_mut::<Events<SettingApplyEvent>>();
         apply_events.send(SettingApplyEvent::apply_without_write());
 
         app.update();
 
-        let settings = app.world.get_resource::<Settings>().unwrap();
+        let settings = app.world.resource::<Settings>();
         let mappings = app
             .world
             .entity(player)

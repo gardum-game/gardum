@@ -65,7 +65,7 @@ mod tests {
     #[test]
     fn loading_on_start() {
         let mut app = setup_app();
-        let map = *app.world.get_resource::<Map>().unwrap();
+        let map = *app.world.resource::<Map>();
 
         wait_for_asset_loading(&mut app, map.asset_path(), 25);
 

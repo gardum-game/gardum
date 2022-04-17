@@ -72,27 +72,18 @@ mod tests {
         app.update();
 
         assert_eq!(
-            *app.world
-                .get_resource::<State<UiState>>()
-                .unwrap()
-                .current(),
+            *app.world.resource::<State<UiState>>().current(),
             UiState::Empty,
             "Initial state should be empty"
         );
 
         const STATE: UiState = UiState::ServerBrowser;
-        app.world
-            .get_resource_mut::<UiStateHistory>()
-            .unwrap()
-            .push(STATE);
+        app.world.resource_mut::<UiStateHistory>().push(STATE);
 
         app.update();
 
         assert_eq!(
-            *app.world
-                .get_resource::<State<UiState>>()
-                .unwrap()
-                .current(),
+            *app.world.resource::<State<UiState>>().current(),
             STATE,
             "History change should modify current active state"
         );

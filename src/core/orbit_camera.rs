@@ -163,7 +163,7 @@ mod tests {
 
         app.update();
 
-        let active_camera = app.world.get_resource::<ActiveCamera<Camera3d>>().unwrap();
+        let active_camera = app.world.resource::<ActiveCamera<Camera3d>>();
         let camera = active_camera.get().expect("3D camera should present");
         let camera_target = app.world.get::<CameraTarget>(camera).unwrap();
         assert_eq!(
@@ -185,7 +185,7 @@ mod tests {
             "A new camera should be spawned for new hero"
         );
 
-        let active_camera = app.world.get_resource::<ActiveCamera<Camera3d>>().unwrap();
+        let active_camera = app.world.resource::<ActiveCamera<Camera3d>>();
         let current_camera = active_camera.get().expect("3D camera should present");
         assert_eq!(
             camera, current_camera,
@@ -202,7 +202,7 @@ mod tests {
 
         app.update();
 
-        let mut motion_events = app.world.get_resource_mut::<Events<MouseMotion>>().unwrap();
+        let mut motion_events = app.world.resource_mut::<Events<MouseMotion>>();
         motion_events.send(MouseMotion { delta: Vec2::ONE });
 
         app.update();

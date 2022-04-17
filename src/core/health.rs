@@ -151,10 +151,7 @@ mod tests {
             app.world.get_mut::<HealingModifier>(instigator).unwrap().0 = modifier;
             app.world.get_mut::<Healing>(instigator).unwrap().0 = 0;
 
-            let mut health_events = app
-                .world
-                .get_resource_mut::<Events<HealthChangeEvent>>()
-                .unwrap();
+            let mut health_events = app.world.resource_mut::<Events<HealthChangeEvent>>();
             health_events.send(HealthChangeEvent {
                 instigator,
                 target,
@@ -204,10 +201,7 @@ mod tests {
             app.world.get_mut::<Damage>(instigator).unwrap().0 = 0;
             app.world.get_mut::<DamageModifier>(instigator).unwrap().0 = modifier;
 
-            let mut health_events = app
-                .world
-                .get_resource_mut::<Events<HealthChangeEvent>>()
-                .unwrap();
+            let mut health_events = app.world.resource_mut::<Events<HealthChangeEvent>>();
             health_events.send(HealthChangeEvent {
                 instigator,
                 target,
@@ -264,10 +258,7 @@ mod tests {
             .id();
 
         let delta = -(Health::default().max as i32);
-        let mut health_events = app
-            .world
-            .get_resource_mut::<Events<HealthChangeEvent>>()
-            .unwrap();
+        let mut health_events = app.world.resource_mut::<Events<HealthChangeEvent>>();
         health_events.send(HealthChangeEvent {
             instigator: target,
             target,

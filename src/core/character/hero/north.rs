@@ -300,10 +300,7 @@ mod tests {
         app.update();
         app.update();
 
-        let health_events = app
-            .world
-            .get_resource::<Events<HealthChangeEvent>>()
-            .unwrap();
+        let health_events = app.world.resource::<Events<HealthChangeEvent>>();
         let mut reader = health_events.get_reader();
         let event = reader
             .iter(&health_events)
