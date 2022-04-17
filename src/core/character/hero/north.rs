@@ -84,7 +84,7 @@ fn frost_bolt_hit_system(
     health: Query<(), With<Health>>,
 ) {
     for (projectile, owner, collisions) in projectiles.iter() {
-        if let Some(first_collision) = collisions.iter().next() {
+        if let Some(first_collision) = collisions.entities().next() {
             commands.entity(projectile).despawn();
             if health.get(first_collision).is_ok() {
                 health_events.send(HealthChangeEvent {
@@ -222,7 +222,7 @@ impl<'w, 's> AssetCommands<'w, 's> {
 #[cfg(test)]
 mod tests {
     use approx::assert_relative_eq;
-    use bevy::app::Events;
+    use bevy::ecs::event::Events;
     use heron::PhysicsPlugin;
 
     use super::*;
@@ -253,7 +253,7 @@ mod tests {
         let mut projectiles = app
             .world
             .query_filtered::<&Transform, With<FrostBoltAbility>>();
-        let projectile_transform = *projectiles.iter(&app.world).next().unwrap(); // TODO 0.7: Use single
+        let projectile_transform = *projectiles.iter(&app.world).next().unwrap(); // TODO 0.8: Use single
         let character_transform = app.world.get::<Transform>(instigator).unwrap();
 
         assert_relative_eq!(

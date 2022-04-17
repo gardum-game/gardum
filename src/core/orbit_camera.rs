@@ -21,7 +21,7 @@
 use bevy::{
     input::mouse::MouseMotion,
     prelude::*,
-    render::camera::{ActiveCameras, CameraPlugin},
+    render::camera::{ActiveCamera, Camera3d},
     transform::TransformSystem,
 };
 use derive_more::{Deref, DerefMut, From};
@@ -52,15 +52,14 @@ impl Plugin for OrbitCameraPlugin {
 fn spawn_camera_system(
     mut commands: Commands,
     spawned_heroes: Query<(Entity, Option<&Authority>), Added<HeroKind>>,
-    mut active_cameras: ResMut<ActiveCameras>,
+    mut active_camera: ResMut<ActiveCamera<Camera3d>>,
 ) {
     for (hero, authority) in spawned_heroes.iter() {
         let mut entity_commands = commands.spawn_bundle(OrbitCameraBundle::new(hero.into()));
 
         if authority.is_some() {
             entity_commands.insert(Authority);
-            let active_camera = active_cameras.get_mut(CameraPlugin::CAMERA_3D).unwrap();
-            active_camera.entity = Some(entity_commands.id());
+            active_camera.set(entity_commands.id());
         }
     }
 }
@@ -111,7 +110,7 @@ struct OrbitCameraBundle {
     orbit_rotation: OrbitRotation,
 
     #[bundle]
-    camera: PerspectiveCameraBundle,
+    camera: PerspectiveCameraBundle<Camera3d>,
 }
 
 impl OrbitCameraBundle {
@@ -120,7 +119,7 @@ impl OrbitCameraBundle {
             name: "Orbit Camera".into(),
             camera_target,
             orbit_rotation: OrbitRotation::default(),
-            camera: PerspectiveCameraBundle::default(),
+            camera: PerspectiveCameraBundle::new_3d(),
         }
     }
 }
@@ -146,7 +145,7 @@ impl Default for OrbitRotation {
 #[cfg(test)]
 mod tests {
     use approx::assert_relative_eq;
-    use bevy::{app::Events, input::InputPlugin};
+    use bevy::{ecs::event::Events, input::InputPlugin};
     use heron::PhysicsPlugin;
     use std::f32::consts::PI;
 
@@ -164,13 +163,9 @@ mod tests {
 
         app.update();
 
-        let active_cameras = app.world.get_resource::<ActiveCameras>().unwrap();
-        let camera_3d = active_cameras
-            .get(CameraPlugin::CAMERA_3D)
-            .unwrap()
-            .entity
-            .expect("3D camera should present");
-        let camera_target = app.world.get::<CameraTarget>(camera_3d).unwrap();
+        let active_camera = app.world.get_resource::<ActiveCamera<Camera3d>>().unwrap();
+        let camera = active_camera.get().expect("3D camera should present");
+        let camera_target = app.world.get::<CameraTarget>(camera).unwrap();
         assert_eq!(
             camera_target.0, local_player,
             "Active camera should target local player"
@@ -190,14 +185,10 @@ mod tests {
             "A new camera should be spawned for new hero"
         );
 
-        let active_cameras = app.world.get_resource::<ActiveCameras>().unwrap();
-        let current_camera = active_cameras
-            .get(CameraPlugin::CAMERA_3D)
-            .unwrap()
-            .entity
-            .expect("3D camera should present");
+        let active_camera = app.world.get_resource::<ActiveCamera<Camera3d>>().unwrap();
+        let current_camera = active_camera.get().expect("3D camera should present");
         assert_eq!(
-            camera_3d, current_camera,
+            camera, current_camera,
             "Active camera should should remain the same because the new hero isn't local"
         );
     }
@@ -217,7 +208,7 @@ mod tests {
         app.update();
 
         let mut orbit_rotations = app.world.query::<&OrbitRotation>();
-        let orbit_rotation = orbit_rotations.iter(&app.world).next().unwrap(); // TODO 0.7: Use single
+        let orbit_rotation = orbit_rotations.iter(&app.world).next().unwrap(); // TODO 0.8: Use single
         assert_ne!(
             *orbit_rotation,
             OrbitRotation::default(),
@@ -243,7 +234,7 @@ mod tests {
             (Vec3::ONE, Vec2::ONE * 2.0 * PI),
         ] {
             let mut cameras = app.world.query_filtered::<Entity, With<OrbitRotation>>();
-            let camera = cameras.iter(&app.world).next().unwrap(); // TODO 0.7: Use single
+            let camera = cameras.iter(&app.world).next().unwrap(); // TODO 0.8: Use single
 
             app.world
                 .get_mut::<Transform>(character)

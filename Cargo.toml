@@ -6,12 +6,12 @@ license = "AGPL-3.0-or-later"
 rust-version = "1.58"
 
 [dependencies]
-bevy = { version = "0.6", default-features = false }
-bevy_atmosphere = { version = "0.2", optional = true }
-bevy_egui = { version = "0.12", features = ["multi_threaded"], optional = true }
-bevy-inspector-egui = { version = "0.9", optional = true }
-heron = { version = "2.1", features = ["3d"] }
-leafwing_input_manager = { git = "https://github.com/Leafwing-Studios/leafwing_input_manager", branch = "dev", default-features = false }
+bevy = { version = "0.7", default-features = false }
+bevy_atmosphere = { version = "0.3", optional = true }
+bevy_egui = { version = "0.13", features = ["multi_threaded"], optional = true }
+bevy-inspector-egui = { version = "0.10", default-features = false, features = ["clipboard", "bevy_pbr"], optional = true }
+heron = { version = "3.0", features = ["3d"] }
+leafwing-input-manager = { version = "0.3", default-features = false }
 clap = { version = "3.1", features = ["derive"] }
 serde = "1.0"
 serde_json = "1.0"

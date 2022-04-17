@@ -39,11 +39,10 @@ pub struct HeroSelectionPlugin;
 impl Plugin for HeroSelectionPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
-            SystemSet::on_update(UiState::HeroSelection)
-                .with_system(hero_selection_system.system()),
+            SystemSet::on_update(UiState::HeroSelection).with_system(hero_selection_system),
         )
         .add_system_set(
-            SystemSet::on_enter(GameState::InGame).with_system(show_hero_selection_system.system()),
+            SystemSet::on_enter(GameState::InGame).with_system(show_hero_selection_system),
         );
     }
 }

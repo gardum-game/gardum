@@ -91,7 +91,7 @@ mod tests {
     #[test]
     fn despawn_timer_destroys() {
         let mut app = setup_app();
-        app.world.spawn().insert(DespawnTimer::default()).id();
+        app.world.spawn().insert(DespawnTimer::default());
 
         app.update();
 

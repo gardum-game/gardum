@@ -31,7 +31,7 @@ use super::{
         EffectTarget, EffectTimer,
     },
     game_state::GameState,
-    AssetCommands, AssociatedAsset, CollisionLayer, TransformBundle,
+    AssetCommands, AssociatedAsset, CollisionLayer,
 };
 
 pub(super) struct PickupPlugin;
@@ -52,7 +52,7 @@ fn pickup_collision_system(
     children: Query<&Children>,
 ) {
     for (pickup, pickup_kind, mut cooldown, collisions) in pickups.iter_mut() {
-        let character = match collisions.iter().next() {
+        let character = match collisions.entities().next() {
             Some(character) => character,
             None => continue,
         };
@@ -344,7 +344,7 @@ mod tests {
             .entity_mut(mesh)
             .insert(Visibility { is_visible: false });
 
-        let mut cooldown = app.world.entity_mut(pickup).get_mut::<Cooldown>().unwrap();
+        let mut cooldown = app.world.get_mut::<Cooldown>(pickup).unwrap();
         cooldown.reset();
 
         app.world.spawn().insert_bundle(CharacterBundle::default());
@@ -360,7 +360,7 @@ mod tests {
             "Effect shouldn't be applied because of cooldown"
         );
 
-        let mut cooldown = app.world.entity_mut(pickup).get_mut::<Cooldown>().unwrap();
+        let mut cooldown = app.world.get_mut::<Cooldown>(pickup).unwrap();
         let duration_left = cooldown.duration() - cooldown.elapsed();
         cooldown.tick(duration_left - Duration::from_nanos(1)); // Tick to almost end to trigger just_finished inside the system
 
@@ -374,6 +374,7 @@ mod tests {
         let mut app = App::new();
         app.add_state(GameState::InGame)
             .add_plugin(HeadlessRenderPlugin)
+            .add_plugin(HierarchyPlugin)
             .add_plugin(ScenePlugin)
             .add_plugin(GltfPlugin)
             .add_plugin(TransformPlugin)

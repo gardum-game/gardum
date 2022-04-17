@@ -127,11 +127,7 @@ mod tests {
 
         app.update();
 
-        let mut timer = app
-            .world
-            .entity_mut(effect)
-            .get_mut::<EffectTimer>()
-            .unwrap();
+        let mut timer = app.world.get_mut::<EffectTimer>(effect).unwrap();
         let duration = timer.duration();
         timer.tick(duration);
 

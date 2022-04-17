@@ -25,7 +25,6 @@ use std::f32::consts::PI;
 use super::Map;
 use crate::core::{
     pickup::PickupKind, session::spawn::SpawnPoint, AssetCommands, AssociatedAsset, CollisionLayer,
-    TransformBundle,
 };
 
 impl<'w, 's> AssetCommands<'w, 's> {

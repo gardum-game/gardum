@@ -120,7 +120,7 @@ mod tests {
         local_player
             .iter(&app.world)
             .next()
-            .expect("Local player should be created without hero"); // TODO 0.7: Use single
+            .expect("Local player should be created without hero"); // TODO 0.8: Use single
     }
 
     #[test]
@@ -143,7 +143,7 @@ mod tests {
         local_player
             .iter(&app.world)
             .next()
-            .expect("Local player should be created with hero"); // TODO 0.7: Use single
+            .expect("Local player should be created with hero"); // TODO 0.8: Use single
     }
 
     fn setup_app() -> App {

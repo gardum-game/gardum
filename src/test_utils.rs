@@ -23,7 +23,7 @@ use bevy::{
     core::CorePlugin,
     pbr::PbrPlugin,
     prelude::*,
-    render::{options::WgpuOptions, RenderPlugin},
+    render::{settings::WgpuSettings, RenderPlugin},
     window::WindowPlugin,
 };
 
@@ -32,7 +32,7 @@ pub(super) struct HeadlessRenderPlugin;
 
 impl Plugin for HeadlessRenderPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(WgpuOptions {
+        app.insert_resource(WgpuSettings {
             backends: None,
             ..Default::default()
         })

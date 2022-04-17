@@ -76,6 +76,7 @@ mod tests {
         let mut app = App::new();
         app.add_state(GameState::InGame)
             .add_plugin(HeadlessRenderPlugin)
+            .add_plugin(HierarchyPlugin)
             .add_plugin(ScenePlugin)
             .add_plugin(GltfPlugin)
             .add_plugin(TransformPlugin)

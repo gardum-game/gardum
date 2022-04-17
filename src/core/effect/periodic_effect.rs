@@ -76,7 +76,7 @@ pub(crate) struct PeriodicHealthChange(i32);
 
 #[cfg(test)]
 mod tests {
-    use bevy::app::Events;
+    use bevy::ecs::event::Events;
     use std::time::Duration;
 
     use super::*;

@@ -316,7 +316,7 @@ impl InputEvents<'_, '_> {
 
 #[cfg(test)]
 mod tests {
-    use bevy::{app::Events, ecs::system::SystemState, input::InputPlugin};
+    use bevy::{ecs::event::Events, ecs::system::SystemState, input::InputPlugin};
 
     use super::*;
 

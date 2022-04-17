@@ -119,7 +119,7 @@ pub(super) struct Death;
 
 #[cfg(test)]
 mod tests {
-    use bevy::app::Events;
+    use bevy::ecs::event::Events;
 
     use super::*;
     use crate::core::player::PlayerBundle;

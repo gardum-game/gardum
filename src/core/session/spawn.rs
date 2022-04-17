@@ -107,7 +107,7 @@ mod tests {
     fn hero_spawns() {
         let mut app = setup_app();
         const SPAWN_POINT: Vec3 = Vec3::ONE;
-        app.world.spawn().insert(SpawnPoint(SPAWN_POINT)).id();
+        app.world.spawn().insert(SpawnPoint(SPAWN_POINT));
 
         for hero_kind in HeroKind::iter() {
             let player = app.world.spawn().insert(hero_kind).id();
@@ -171,11 +171,7 @@ mod tests {
             "Respawn timer should tick"
         );
 
-        let mut respawn_timer = app
-            .world
-            .entity_mut(player)
-            .get_mut::<RespawnTimer>()
-            .unwrap();
+        let mut respawn_timer = app.world.get_mut::<RespawnTimer>(player).unwrap();
         let duration_left = respawn_timer.duration() - respawn_timer.elapsed();
         respawn_timer.tick(duration_left - Duration::from_nanos(1)); // Tick to almost end to trigger just_finished inside the system
         app.update();

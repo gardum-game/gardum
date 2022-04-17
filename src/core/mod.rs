@@ -94,27 +94,6 @@ pub(super) enum CollisionLayer {
 #[derive(Component, From)]
 struct Owner(Entity);
 
-/// TODO 0.7: Replace with built-in
-#[derive(Bundle, Clone, Copy, Debug, Default)]
-struct TransformBundle {
-    pub local: Transform,
-    pub global: GlobalTransform,
-}
-
-impl TransformBundle {
-    /// Creates a new [`TransformBundle`] from a [`Transform`].
-    ///
-    /// This initializes [`GlobalTransform`] as identity, to be updated later by the
-    /// [`CoreStage::PostUpdate`](crate::CoreStage::PostUpdate) stage.
-    #[inline]
-    pub fn from_transform(transform: Transform) -> Self {
-        TransformBundle {
-            local: transform,
-            ..Self::default()
-        }
-    }
-}
-
 #[derive(Bundle)]
 pub(super) struct ProjectileBundle {
     name: Name,

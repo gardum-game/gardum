@@ -212,7 +212,7 @@ pub(crate) enum ControlAction {
 
 #[cfg(test)]
 mod tests {
-    use bevy::app::Events;
+    use bevy::ecs::event::Events;
 
     use super::*;
 
