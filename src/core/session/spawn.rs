@@ -19,7 +19,6 @@
  */
 
 use bevy::prelude::*;
-use derive_more::{Deref, DerefMut};
 
 use crate::core::{character::hero::HeroKind, game_state::GameState, health::Death, AssetCommands};
 

@@ -19,7 +19,7 @@
  */
 
 use bevy::prelude::*;
-use derive_more::{Deref, DerefMut, From};
+use derive_more::From;
 
 use super::EffectTarget;
 use crate::core::{game_state::GameState, health::HealthChangeEvent, Owner};

@@ -24,7 +24,7 @@ use bevy::{
     render::camera::{ActiveCamera, Camera3d},
     transform::TransformSystem,
 };
-use derive_more::{Deref, DerefMut, From};
+use derive_more::From;
 use heron::PhysicsSystem;
 
 use super::{character::hero::HeroKind, game_state::GameState, Authority};

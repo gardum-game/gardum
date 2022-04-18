@@ -19,7 +19,6 @@
  */
 
 use bevy::prelude::*;
-use derive_more::{Deref, DerefMut};
 use std::time::Duration;
 
 use super::game_state::GameState;

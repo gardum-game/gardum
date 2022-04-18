@@ -19,7 +19,7 @@
  */
 
 use bevy::prelude::*;
-use derive_more::{Deref, DerefMut, From};
+use derive_more::From;
 use leafwing_input_manager::prelude::ActionState;
 
 use super::{cooldown::Cooldown, game_state::GameState, settings::ControlAction};

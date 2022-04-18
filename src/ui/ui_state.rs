@@ -19,7 +19,6 @@
  */
 
 use bevy::prelude::*;
-use derive_more::{Deref, DerefMut};
 
 pub(super) struct UiStatePlugin;
 

@@ -22,7 +22,7 @@ pub(super) mod modifier_effect;
 pub(super) mod periodic_effect;
 
 use bevy::prelude::*;
-use derive_more::{Deref, DerefMut, From};
+use derive_more::From;
 
 use super::{
     character::{DamageModifier, HealingModifier, SpeedModifier},

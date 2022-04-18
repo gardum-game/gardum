@@ -19,7 +19,6 @@
  */
 
 use bevy::prelude::*;
-use derive_more::Deref;
 
 use super::{
     character::hero::HeroKind, cli::Opts, game_state::GameState, server_settings::ServerSettings,
