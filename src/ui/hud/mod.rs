@@ -43,6 +43,9 @@ pub(super) struct HudPlugin;
 
 impl Plugin for HudPlugin {
     fn build(&self, app: &mut App) {
+        app.world
+            .resource_mut::<ToggleActions<ControlAction>>()
+            .enabled = false; // Should be initialized in disabled state and enabled only on hud
         app.add_system_set(
             SystemSet::on_update(UiState::Hud).with_system(health_and_abilities_system),
         )
