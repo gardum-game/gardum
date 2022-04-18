@@ -30,44 +30,27 @@ use super::{
     UiAction, UI_MARGIN,
 };
 
-#[derive(SystemLabel, Debug, PartialEq, Eq, Hash, Clone, Copy)]
-pub(super) enum BackButtonsSystems {
-    BackButton,
-}
-
 pub(super) struct BackButtonPlugin;
 
 impl Plugin for BackButtonPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
-            SystemSet::on_update(UiState::SettingsMenu)
-                .with_system(back_button_system)
-                .label(BackButtonsSystems::BackButton),
+            SystemSet::on_update(UiState::SettingsMenu).with_system(back_button_system),
         )
         .add_system_set(
-            SystemSet::on_update(UiState::ServerBrowser)
-                .with_system(back_button_system)
-                .label(BackButtonsSystems::BackButton),
+            SystemSet::on_update(UiState::ServerBrowser).with_system(back_button_system),
         )
         .add_system_set(
-            SystemSet::on_update(UiState::DirectConnectMenu)
-                .with_system(back_button_system)
-                .label(BackButtonsSystems::BackButton),
+            SystemSet::on_update(UiState::DirectConnectMenu).with_system(back_button_system),
         )
         .add_system_set(
-            SystemSet::on_update(UiState::CrateLobbyMenu)
-                .with_system(back_button_system)
-                .label(BackButtonsSystems::BackButton),
+            SystemSet::on_update(UiState::CrateLobbyMenu).with_system(back_button_system),
         )
-        .add_system_set(
-            SystemSet::on_update(UiState::LobbyMenu)
-                .with_system(back_button_system)
-                .label(BackButtonsSystems::BackButton),
-        );
+        .add_system_set(SystemSet::on_update(UiState::LobbyMenu).with_system(back_button_system));
     }
 }
 
-fn back_button_system(
+pub(super) fn back_button_system(
     egui: ResMut<EguiContext>,
     action_state: Res<ActionState<UiAction>>,
     mut ui_state_history: ResMut<UiStateHistory>,

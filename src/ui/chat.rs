@@ -25,10 +25,7 @@ use bevy_egui::{
 };
 use leafwing_input_manager::{plugin::ToggleActions, prelude::ActionState};
 
-use super::{
-    back_button::BackButtonsSystems, ingame_menu::InGameMenuSystems, ui_state::UiState, UiAction,
-    UI_MARGIN,
-};
+use super::{back_button, ingame_menu, ui_state::UiState, UiAction, UI_MARGIN};
 use crate::core::settings::ControlAction;
 
 const CHAT_BOTTOM_MARGIN: f32 = 40.0;
@@ -40,9 +37,9 @@ impl Plugin for ChatPlugin {
         app.init_resource::<Chat>()
             .add_system(
                 chat_system
-                    .before(BackButtonsSystems::BackButton)
-                    .before(InGameMenuSystems::ShowInGameMenu)
-                    .before(InGameMenuSystems::HideInGameMenu),
+                    .before(back_button::back_button_system)
+                    .before(ingame_menu::hide_ingame_menu_system)
+                    .before(ingame_menu::show_ingame_menu_system),
             )
             .add_system_set(SystemSet::on_update(UiState::Hud).with_system(toggle_control_actions));
     }

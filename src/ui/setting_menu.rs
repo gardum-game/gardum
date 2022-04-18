@@ -35,7 +35,7 @@ use leafwing_input_manager::{
 use strum::{Display, EnumIter, IntoEnumIterator};
 
 use super::{
-    back_button::BackButtonsSystems,
+    back_button,
     ui_state::{UiState, UiStateHistory},
     UiAction, UI_MARGIN,
 };
@@ -55,8 +55,7 @@ impl Plugin for SettingMenuPlugin {
         )
         .add_system_set(
             SystemSet::on_update(UiState::SettingsMenu)
-                .with_system(binding_window_system)
-                .before(BackButtonsSystems::BackButton),
+                .with_system(binding_window_system.before(back_button::back_button_system)),
         );
     }
 }
