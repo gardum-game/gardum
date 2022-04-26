@@ -28,7 +28,11 @@ pub(super) struct AbilityPlugin;
 
 impl Plugin for AbilityPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(SystemSet::on_update(GameState::InGame).with_system(activation_system));
+        app.add_system_set(
+            SystemSet::on_update(GameState::InGame)
+                .with_system(activation_system)
+                .with_system(abilities_to_children_system),
+        );
     }
 }
 
@@ -57,6 +61,15 @@ fn activation_system(
                 break;
             }
         }
+    }
+}
+
+fn abilities_to_children_system(
+    mut commands: Commands,
+    characters: Query<(Entity, &Abilities), Added<Abilities>>,
+) {
+    for (character, abilities) in characters.iter() {
+        commands.entity(character).push_children(&abilities.0);
     }
 }
 
@@ -180,6 +193,22 @@ mod tests {
         assert!(
             !app.world.entity(ability).contains::<Activator>(),
             "Ability shouldn't be triggered because of cooldown"
+        );
+    }
+
+    #[test]
+    fn abilities_are_children() {
+        let mut app = setup_app();
+        let ability = app.world.spawn().id();
+        let character = app.world.spawn().insert(Abilities(vec![ability])).id();
+
+        app.update();
+
+        let parent = app.world.entity(ability).get::<Parent>().unwrap();
+
+        assert_eq!(
+            character, parent.0,
+            "Ability should have its character as a parent"
         );
     }
 
