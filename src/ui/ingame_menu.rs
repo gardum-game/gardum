@@ -25,6 +25,8 @@ use bevy_egui::{
 };
 use leafwing_input_manager::prelude::ActionState;
 
+use crate::core::game_state::GameState;
+
 use super::{
     ui_state::{UiState, UiStateHistory},
     UiAction,
@@ -47,6 +49,7 @@ fn ingame_menu_system(
     egui: ResMut<EguiContext>,
     mut exit_event: EventWriter<AppExit>,
     mut ui_state_history: ResMut<UiStateHistory>,
+    mut game_state: ResMut<State<GameState>>,
 ) {
     Area::new("Main Menu")
         .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
@@ -58,8 +61,7 @@ fn ingame_menu_system(
                 ui_state_history.push(UiState::SettingsMenu);
             }
             if ui.button("Main menu").clicked() {
-                ui_state_history.clear();
-                ui_state_history.push(UiState::MainMenu);
+                game_state.set(GameState::Menu).unwrap();
             }
             if ui.button("Exit").clicked() {
                 exit_event.send(AppExit);
