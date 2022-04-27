@@ -30,7 +30,7 @@ use super::{
         periodic_effect::{PeriodicEffectTimer, PeriodicHealthChange},
         EffectTarget, EffectTimer,
     },
-    game_state::GameState,
+    game_state::{GameState, InGameOnly},
     AssetCommands, AssociatedAsset, CollisionLayer,
 };
 
@@ -114,6 +114,7 @@ struct PickupBundle {
     collision: Collisions,
     transform: Transform,
     global_transform: GlobalTransform,
+    ingame_only: InGameOnly,
 }
 
 impl PickupBundle {
@@ -131,6 +132,7 @@ impl PickupBundle {
             collision: Collisions::default(),
             transform: Transform::from_translation(translation),
             global_transform: GlobalTransform::default(),
+            ingame_only: InGameOnly,
         }
     }
 }

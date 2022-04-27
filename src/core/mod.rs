@@ -46,6 +46,7 @@ use despawn_timer::DespawnTimer;
 use despawn_timer::DespawnTimerPlugin;
 use effect::EffectPlugin;
 use game_state::AppStatePlugin;
+use game_state::InGameOnly;
 use health::HealthPlugin;
 use map::MapsPlugin;
 use movement::MovementPlugin;
@@ -103,6 +104,7 @@ pub(super) struct ProjectileBundle {
     velocity: Velocity,
     despawn_timer: DespawnTimer,
     collisions: Collisions,
+    ingame_only: InGameOnly,
 
     #[bundle]
     pbr: PbrBundle,
@@ -120,6 +122,7 @@ impl Default for ProjectileBundle {
             velocity: Velocity::default(),
             despawn_timer: DespawnTimer::from_secs(4),
             collisions: Collisions::default(),
+            ingame_only: InGameOnly,
             pbr: PbrBundle::default(),
         }
     }

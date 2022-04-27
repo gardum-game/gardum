@@ -20,7 +20,11 @@
 
 use bevy::prelude::*;
 
-use super::{cli::Opts, game_state::GameState, Authority};
+use super::{
+    cli::Opts,
+    game_state::{GameState, InGameOnly},
+    Authority,
+};
 
 pub(super) struct PlayerPlugin;
 
@@ -54,6 +58,7 @@ pub(crate) struct PlayerBundle {
     deaths: Deaths,
     damage: Damage,
     healing: Healing,
+    ingame_only: InGameOnly,
 }
 
 impl Default for PlayerBundle {
@@ -65,6 +70,7 @@ impl Default for PlayerBundle {
             deaths: Deaths::default(),
             damage: Damage::default(),
             healing: Healing::default(),
+            ingame_only: InGameOnly,
         }
     }
 }

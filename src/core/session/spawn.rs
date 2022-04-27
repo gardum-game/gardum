@@ -19,10 +19,15 @@
  */
 
 use bevy::prelude::*;
+use derive_more::From;
 
 use crate::core::{
-    character::hero::HeroKind, game_state::GameState, health::Death, player::Player,
-    server_settings::ServerSettings, AssetCommands,
+    character::hero::HeroKind,
+    game_state::{GameState, InGameOnly},
+    health::Death,
+    player::Player,
+    server_settings::ServerSettings,
+    AssetCommands,
 };
 
 pub(super) struct SpawnPlugin;
@@ -109,8 +114,23 @@ impl Default for RespawnTimer {
     }
 }
 
-#[derive(Component)]
-pub(crate) struct SpawnPoint(pub(crate) Vec3);
+#[derive(Component, From)]
+struct SpawnPoint(pub(crate) Vec3);
+
+#[derive(Bundle)]
+pub(crate) struct SpawnPointBundle {
+    spawn_point: SpawnPoint,
+    ingame_only: InGameOnly,
+}
+
+impl SpawnPointBundle {
+    pub(crate) fn new(translation: Vec3) -> Self {
+        Self {
+            spawn_point: translation.into(),
+            ingame_only: InGameOnly,
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {

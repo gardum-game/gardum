@@ -27,7 +27,11 @@ use bevy::{
 use derive_more::From;
 use heron::PhysicsSystem;
 
-use super::{character::hero::HeroKind, game_state::GameState, Authority};
+use super::{
+    character::hero::HeroKind,
+    game_state::{GameState, InGameOnly},
+    Authority,
+};
 
 const CAMERA_DISTANCE: f32 = 10.0;
 const CAMERA_SENSETIVITY: f32 = 0.2;
@@ -108,6 +112,7 @@ struct OrbitCameraBundle {
     name: Name,
     camera_target: CameraTarget,
     orbit_rotation: OrbitRotation,
+    ingame_only: InGameOnly,
 
     #[bundle]
     camera: PerspectiveCameraBundle<Camera3d>,
@@ -119,6 +124,7 @@ impl OrbitCameraBundle {
             name: "Orbit Camera".into(),
             camera_target,
             orbit_rotation: OrbitRotation::default(),
+            ingame_only: InGameOnly,
             camera: PerspectiveCameraBundle::new_3d(),
         }
     }

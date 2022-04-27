@@ -24,37 +24,39 @@ use std::f32::consts::PI;
 
 use super::Map;
 use crate::core::{
-    pickup::PickupKind, session::spawn::SpawnPoint, AssetCommands, AssociatedAsset, CollisionLayer,
+    game_state::InGameOnly, pickup::PickupKind, session::spawn::SpawnPointBundle, AssetCommands,
+    AssociatedAsset, CollisionLayer,
 };
 
 impl<'w, 's> AssetCommands<'w, 's> {
     pub(super) fn spawn_sky_roof<'a>(&'a mut self) -> EntityCommands<'w, 's, 'a> {
         const PROJECTION: f32 = 45.0;
-        self.commands.spawn_bundle(DirectionalLightBundle {
-            directional_light: DirectionalLight {
-                illuminance: 30000.0,
-                shadow_projection: OrthographicProjection {
-                    left: -PROJECTION,
-                    right: PROJECTION,
-                    bottom: -PROJECTION,
-                    top: PROJECTION,
-                    near: -10.0 * PROJECTION,
-                    far: 10.0 * PROJECTION,
+        self.commands
+            .spawn_bundle(DirectionalLightBundle {
+                directional_light: DirectionalLight {
+                    illuminance: 30000.0,
+                    shadow_projection: OrthographicProjection {
+                        left: -PROJECTION,
+                        right: PROJECTION,
+                        bottom: -PROJECTION,
+                        top: PROJECTION,
+                        near: -10.0 * PROJECTION,
+                        far: 10.0 * PROJECTION,
+                        ..Default::default()
+                    },
+                    shadows_enabled: true,
                     ..Default::default()
                 },
-                shadows_enabled: true,
+                transform: Transform {
+                    rotation: Quat::from_euler(EulerRot::XYZ, -PI / 4.0, -PI / 4.0, 0.0),
+                    ..Default::default()
+                },
                 ..Default::default()
-            },
-            transform: Transform {
-                rotation: Quat::from_euler(EulerRot::XYZ, -PI / 4.0, -PI / 4.0, 0.0),
-                ..Default::default()
-            },
-            ..Default::default()
-        });
+            })
+            .insert(InGameOnly);
 
         self.commands
-            .spawn()
-            .insert(SpawnPoint(Vec3::new(0.0, 5.0, 0.0)));
+            .spawn_bundle(SpawnPointBundle::new(Vec3::new(0.0, 5.0, 0.0)));
 
         self.spawn_pickup(PickupKind::Healing, Vec3::new(4.0, 0.1, -1.0));
         self.spawn_pickup(PickupKind::Speed, Vec3::new(4.0, 0.1, 0.0));
@@ -67,6 +69,7 @@ impl<'w, 's> AssetCommands<'w, 's> {
             .insert(
                 CollisionLayers::all_masks::<CollisionLayer>().with_group(CollisionLayer::World),
             )
+            .insert(InGameOnly)
             .with_children(|parent| {
                 parent.spawn_scene(self.asset_server.load(Map::SkyRoof.asset_path()));
             });
