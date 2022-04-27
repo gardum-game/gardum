@@ -20,10 +20,7 @@
 
 use bevy::prelude::*;
 
-use super::{
-    character::hero::HeroKind, cli::Opts, game_state::GameState, server_settings::ServerSettings,
-    Authority,
-};
+use super::{cli::Opts, game_state::GameState, Authority};
 
 pub(super) struct PlayerPlugin;
 
@@ -36,17 +33,10 @@ impl Plugin for PlayerPlugin {
     }
 }
 
-fn create_local_player_from_opts_system(
-    mut commands: Commands,
-    opts: Res<Opts>,
-    server_settings: Res<ServerSettings>,
-) {
+fn create_local_player_from_opts_system(mut commands: Commands, opts: Res<Opts>) {
     if opts.subcommand.is_some() {
         let mut player = commands.spawn_bundle(PlayerBundle::default());
         player.insert(Authority);
-        if server_settings.random_heroes {
-            player.insert(HeroKind::North); // TODO: Implement random selection when there are more than one hero
-        }
     }
 }
 
@@ -102,7 +92,7 @@ pub(crate) struct Healing(pub(crate) u32);
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::core::{character::hero::HeroKind, cli::SubCommand};
+    use crate::core::{cli::SubCommand, server_settings::ServerSettings};
 
     #[test]
     fn player_spawns_in_lobby() {
@@ -115,11 +105,11 @@ mod tests {
 
         let mut local_player = app
             .world
-            .query_filtered::<(), (With<Authority>, With<Player>, Without<HeroKind>)>();
+            .query_filtered::<(), (With<Authority>, With<Player>)>();
         local_player
             .iter(&app.world)
             .next()
-            .expect("Local player should be created without hero"); // TODO 0.8: Use single
+            .expect("Local player should be created"); // TODO 0.8: Use single
     }
 
     #[test]
@@ -138,11 +128,11 @@ mod tests {
 
         let mut local_player = app
             .world
-            .query_filtered::<(), (With<Authority>, With<Player>, With<HeroKind>)>();
+            .query_filtered::<(), (With<Authority>, With<Player>)>();
         local_player
             .iter(&app.world)
             .next()
-            .expect("Local player should be created with hero"); // TODO 0.8: Use single
+            .expect("Local player should be created"); // TODO 0.8: Use single
     }
 
     fn setup_app() -> App {

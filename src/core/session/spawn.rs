@@ -20,18 +20,36 @@
 
 use bevy::prelude::*;
 
-use crate::core::{character::hero::HeroKind, game_state::GameState, health::Death, AssetCommands};
+use crate::core::{
+    character::hero::HeroKind, game_state::GameState, health::Death, player::Player,
+    server_settings::ServerSettings, AssetCommands,
+};
 
 pub(super) struct SpawnPlugin;
 
 impl Plugin for SpawnPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
+            SystemSet::on_enter(GameState::InGame).with_system(hero_randomization_system),
+        )
+        .add_system_set(
             SystemSet::on_update(GameState::InGame)
                 .with_system(spawn_system)
                 .with_system(assign_respawn_system)
                 .with_system(respawn_system),
         );
+    }
+}
+
+fn hero_randomization_system(
+    mut commands: Commands,
+    server_settings: Res<ServerSettings>,
+    players: Query<Entity, Added<Player>>,
+) {
+    if server_settings.random_heroes {
+        for player in players.iter() {
+            commands.entity(player).insert(HeroKind::North); // TODO: Implement random selection when there are more than one hero
+        }
     }
 }
 
@@ -101,6 +119,25 @@ mod tests {
 
     use super::*;
     use crate::{core::game_state::GameState, test_utils::HeadlessRenderPlugin};
+
+    #[test]
+    fn heroes_randomization() {
+        let mut app = setup_app();
+        app.insert_resource(ServerSettings {
+            random_heroes: true,
+            ..ServerSettings::default()
+        });
+        app.world.spawn().insert(SpawnPoint(Vec3::ZERO));
+
+        let player = app.world.spawn().insert(Player).id();
+
+        app.update();
+
+        assert!(
+            app.world.entity(player).get::<HeroKind>().is_some(),
+            "Hero must be randomized if heroes randomization is enabled on the server"
+        );
+    }
 
     #[test]
     fn hero_spawns() {
@@ -195,7 +232,8 @@ mod tests {
 
     fn setup_app() -> App {
         let mut app = App::new();
-        app.add_state(GameState::InGame)
+        app.init_resource::<ServerSettings>()
+            .add_state(GameState::InGame)
             .add_plugin(HeadlessRenderPlugin)
             .add_plugin(SpawnPlugin);
 
