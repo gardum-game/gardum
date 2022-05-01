@@ -45,7 +45,6 @@ impl Plugin for LobbyMenuPlugin {
 fn create_lobby_menu_system(
     egui: ResMut<EguiContext>,
     mut server_settings: ResMut<ServerSettings>,
-    mut game_mode: ResMut<GameMode>,
     mut game_state: ResMut<State<GameState>>,
 ) {
     Window::new("Create lobby")
@@ -54,7 +53,7 @@ fn create_lobby_menu_system(
         .resizable(false)
         .show(egui.ctx(), |ui| {
             ui.vertical(|ui| {
-                show_game_settings(ui, &mut server_settings, &mut game_mode);
+                show_game_settings(ui, &mut server_settings);
                 if ui.button("Create").clicked() {
                     game_state.set(GameState::Lobby).unwrap();
                 }
@@ -66,7 +65,6 @@ fn lobby_menu_system(
     egui: ResMut<EguiContext>,
     names: Query<&Name>,
     mut server_settings: ResMut<ServerSettings>,
-    mut game_mode: ResMut<GameMode>,
     mut game_state: ResMut<State<GameState>>,
 ) {
     Window::new("Lobby")
@@ -76,9 +74,13 @@ fn lobby_menu_system(
         .show(egui.ctx(), |ui| {
             ui.vertical_centered(|ui| {
                 ui.horizontal(|ui| {
-                    show_teams(ui, *game_mode, names.iter().collect());
+                    show_teams(
+                        ui,
+                        server_settings.game_mode.slots_count(),
+                        names.iter().collect(),
+                    );
                     SidePanel::right("Server settings").show_inside(ui, |ui| {
-                        show_game_settings(ui, &mut server_settings, &mut game_mode);
+                        show_game_settings(ui, &mut server_settings);
                     })
                 });
                 if ui.button("Start").clicked() {
@@ -88,11 +90,7 @@ fn lobby_menu_system(
         });
 }
 
-fn show_game_settings(
-    ui: &mut Ui,
-    server_settings: &mut ServerSettings,
-    current_game_mode: &mut GameMode,
-) {
+fn show_game_settings(ui: &mut Ui, server_settings: &mut ServerSettings) {
     Grid::new("Server settings grid").show(ui, |ui| {
         ui.heading("Settings");
         ui.end_row();
@@ -104,10 +102,14 @@ fn show_game_settings(
         ui.end_row();
         ui.label("Game mode:");
         ComboBox::from_id_source("Game mode")
-            .selected_text(format!("{:?}", current_game_mode))
+            .selected_text(format!("{:?}", &mut server_settings.game_mode))
             .show_ui(ui, |ui| {
-                for mode in GameMode::iter() {
-                    ui.selectable_value(current_game_mode, mode, format!("{:?}", mode));
+                for game_mode in GameMode::iter() {
+                    ui.selectable_value(
+                        &mut server_settings.game_mode,
+                        game_mode,
+                        format!("{:?}", game_mode),
+                    );
                 }
             });
         ui.end_row();
@@ -125,10 +127,10 @@ fn show_game_settings(
     });
 }
 
-fn show_teams(ui: &mut Ui, current_game_mode: GameMode, names: Vec<&Name>) {
+fn show_teams(ui: &mut Ui, slots_count: u8, names: Vec<&Name>) {
     ui.vertical(|ui| {
         ui.heading("Players");
-        for i in 0..current_game_mode.slots_count() {
+        for i in 0..slots_count {
             if let Some(name) = names.get(i as usize) {
                 ui.label(name.as_str());
             } else {

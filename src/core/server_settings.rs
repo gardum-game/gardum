@@ -24,6 +24,7 @@ use clap::Args;
 use super::{
     cli::{Opts, SubCommand},
     map::Map,
+    session::GameMode,
 };
 
 pub(super) struct ServerSettingsPlugin;
@@ -54,6 +55,10 @@ pub(crate) struct ServerSettings {
     #[clap(short, long, default_value_t = ServerSettings::default().port)]
     pub(crate) port: u16,
 
+    /// Game mode.
+    #[clap(short, long)]
+    pub(crate) game_mode: GameMode,
+
     /// Game map.
     #[clap(short, long)]
     pub(crate) map: Map,
@@ -68,6 +73,7 @@ impl Default for ServerSettings {
         Self {
             game_name: "My game".to_string(),
             port: 4761,
+            game_mode: GameMode::Deathmatch,
             map: Map::SkyRoof,
             random_heroes: false,
         }
