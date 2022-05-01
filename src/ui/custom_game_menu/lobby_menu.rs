@@ -46,7 +46,6 @@ fn create_lobby_menu_system(
     egui: ResMut<EguiContext>,
     mut server_settings: ResMut<ServerSettings>,
     mut game_mode: ResMut<GameMode>,
-    mut map: ResMut<Map>,
     mut game_state: ResMut<State<GameState>>,
 ) {
     Window::new("Create lobby")
@@ -55,7 +54,7 @@ fn create_lobby_menu_system(
         .resizable(false)
         .show(egui.ctx(), |ui| {
             ui.vertical(|ui| {
-                show_game_settings(ui, &mut server_settings, &mut game_mode, &mut map);
+                show_game_settings(ui, &mut server_settings, &mut game_mode);
                 if ui.button("Create").clicked() {
                     game_state.set(GameState::Lobby).unwrap();
                 }
@@ -68,7 +67,6 @@ fn lobby_menu_system(
     names: Query<&Name>,
     mut server_settings: ResMut<ServerSettings>,
     mut game_mode: ResMut<GameMode>,
-    mut map: ResMut<Map>,
     mut game_state: ResMut<State<GameState>>,
 ) {
     Window::new("Lobby")
@@ -80,7 +78,7 @@ fn lobby_menu_system(
                 ui.horizontal(|ui| {
                     show_teams(ui, *game_mode, names.iter().collect());
                     SidePanel::right("Server settings").show_inside(ui, |ui| {
-                        show_game_settings(ui, &mut server_settings, &mut game_mode, &mut map);
+                        show_game_settings(ui, &mut server_settings, &mut game_mode);
                     })
                 });
                 if ui.button("Start").clicked() {
@@ -94,7 +92,6 @@ fn show_game_settings(
     ui: &mut Ui,
     server_settings: &mut ServerSettings,
     current_game_mode: &mut GameMode,
-    current_map: &mut Map,
 ) {
     Grid::new("Server settings grid").show(ui, |ui| {
         ui.heading("Settings");
@@ -116,10 +113,10 @@ fn show_game_settings(
         ui.end_row();
         ui.label("Map:");
         ComboBox::from_id_source("Map")
-            .selected_text(format!("{:?}", current_map))
+            .selected_text(format!("{:?}", &mut server_settings.map))
             .show_ui(ui, |ui| {
                 for map in Map::iter() {
-                    ui.selectable_value(current_map, map, format!("{:?}", map));
+                    ui.selectable_value(&mut server_settings.map, map, format!("{:?}", map));
                 }
             });
         ui.end_row();

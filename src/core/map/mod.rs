@@ -22,27 +22,26 @@ mod sky_roof;
 
 use bevy::prelude::*;
 
-use strum::EnumIter;
+use strum::{EnumIter, EnumString};
 
-use super::{AssetCommands, AssociatedAsset};
+use super::{server_settings::ServerSettings, AssetCommands, AssociatedAsset};
 use crate::core::game_state::GameState;
 
 pub(super) struct MapsPlugin;
 
 impl Plugin for MapsPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(Map::SkyRoof)
-            .add_system_set(SystemSet::on_enter(GameState::InGame).with_system(load_map_system));
+        app.add_system_set(SystemSet::on_enter(GameState::InGame).with_system(load_map_system));
     }
 }
 
-fn load_map_system(map: Res<Map>, mut asset_commands: AssetCommands) {
-    match *map {
+fn load_map_system(server_settings: Res<ServerSettings>, mut asset_commands: AssetCommands) {
+    match server_settings.map {
         Map::SkyRoof => asset_commands.spawn_sky_roof(),
     };
 }
 
-#[derive(Clone, Copy, Debug, EnumIter, PartialEq)]
+#[derive(Clone, Copy, Debug, EnumIter, EnumString, PartialEq)]
 pub(crate) enum Map {
     SkyRoof,
 }
@@ -65,7 +64,7 @@ mod tests {
     #[test]
     fn loading_on_start() {
         let mut app = setup_app();
-        let map = *app.world.resource::<Map>();
+        let map = app.world.resource::<ServerSettings>().map;
 
         wait_for_asset_loading(&mut app, map.asset_path(), 25);
 
@@ -75,6 +74,7 @@ mod tests {
     fn setup_app() -> App {
         let mut app = App::new();
         app.add_state(GameState::InGame)
+            .init_resource::<ServerSettings>()
             .add_plugin(HeadlessRenderPlugin)
             .add_plugin(HierarchyPlugin)
             .add_plugin(ScenePlugin)
