@@ -26,7 +26,10 @@ use bevy_egui::{
 use strum::IntoEnumIterator;
 
 use crate::{
-    core::{game_state::GameState, map::Map, server_settings::ServerSettings, session::GameMode},
+    core::{
+        game_state::GameState, map::Map, player::Player, server_settings::ServerSettings,
+        session::GameMode,
+    },
     ui::ui_state::{UiState, UiStateHistory},
 };
 
@@ -63,7 +66,7 @@ fn create_lobby_menu_system(
 
 fn lobby_menu_system(
     egui: ResMut<EguiContext>,
-    names: Query<&Name>,
+    player_names: Query<&Name, With<Player>>,
     mut server_settings: ResMut<ServerSettings>,
     mut game_state: ResMut<State<GameState>>,
 ) {
@@ -77,7 +80,7 @@ fn lobby_menu_system(
                     show_teams(
                         ui,
                         server_settings.game_mode.slots_count(),
-                        names.iter().collect(),
+                        player_names.iter().collect(),
                     );
                     SidePanel::right("Server settings").show_inside(ui, |ui| {
                         show_game_settings(ui, &mut server_settings);
