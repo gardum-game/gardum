@@ -51,7 +51,7 @@ pub(crate) struct ServerSettings {
     #[clap(short, long, default_value_t = ServerSettings::default().port)]
     pub(crate) port: u16,
 
-    /// Port to use.
+    /// Choose heroes randomly.
     #[clap(short, long)]
     pub(crate) random_heroes: bool,
 }
