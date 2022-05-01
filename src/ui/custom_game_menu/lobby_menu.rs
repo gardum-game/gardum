@@ -122,6 +122,9 @@ fn show_game_settings(
                     ui.selectable_value(current_map, map, format!("{:?}", map));
                 }
             });
+        ui.end_row();
+        ui.checkbox(&mut server_settings.random_heroes, "Random heroes:");
+        ui.end_row();
     });
 }
 
