@@ -97,8 +97,8 @@ fn show_game_settings(ui: &mut Ui, server_settings: &mut ServerSettings) {
     Grid::new("Server settings grid").show(ui, |ui| {
         ui.heading("Settings");
         ui.end_row();
-        ui.label("Game name:");
-        ui.text_edit_singleline(&mut server_settings.game_name);
+        ui.label("Server name:");
+        ui.text_edit_singleline(&mut server_settings.server_name);
         ui.end_row();
         ui.label("Port:");
         ui.add(DragValue::new(&mut server_settings.port));

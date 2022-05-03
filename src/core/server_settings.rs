@@ -48,8 +48,8 @@ impl Plugin for ServerSettingsPlugin {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub(crate) struct ServerSettings {
     /// Server name that will be visible to other players.
-    #[clap(short, long, default_value_t = ServerSettings::default().game_name)]
-    pub(crate) game_name: String,
+    #[clap(short, long, default_value_t = ServerSettings::default().server_name)]
+    pub(crate) server_name: String,
 
     /// Port to use.
     #[clap(short, long, default_value_t = ServerSettings::default().port)]
@@ -71,7 +71,7 @@ pub(crate) struct ServerSettings {
 impl Default for ServerSettings {
     fn default() -> Self {
         Self {
-            game_name: "My game".to_string(),
+            server_name: "My game".to_string(),
             port: 4761,
             game_mode: GameMode::Deathmatch,
             map: Map::SkyRoof,
