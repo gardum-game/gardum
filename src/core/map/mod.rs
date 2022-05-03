@@ -22,7 +22,7 @@ mod sky_roof;
 
 use bevy::prelude::*;
 
-use strum::{EnumIter, EnumString};
+use strum::{Display, EnumIter, EnumString};
 
 use super::{server_settings::ServerSettings, AssetCommands, AssociatedAsset};
 use crate::core::game_state::GameState;
@@ -41,7 +41,7 @@ fn load_map_system(server_settings: Res<ServerSettings>, mut asset_commands: Ass
     };
 }
 
-#[derive(Clone, Copy, Debug, EnumIter, EnumString, PartialEq)]
+#[derive(Clone, Copy, Debug, Display, EnumIter, EnumString, PartialEq)]
 pub(crate) enum Map {
     SkyRoof,
 }

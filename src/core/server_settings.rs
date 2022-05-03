@@ -56,11 +56,11 @@ pub(crate) struct ServerSettings {
     pub(crate) port: u16,
 
     /// Game mode.
-    #[clap(short, long)]
+    #[clap(short, long, default_value_t = ServerSettings::default().game_mode)]
     pub(crate) game_mode: GameMode,
 
     /// Game map.
-    #[clap(short, long)]
+    #[clap(short, long, default_value_t = ServerSettings::default().map)]
     pub(crate) map: Map,
 
     /// Choose heroes randomly.

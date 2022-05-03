@@ -21,7 +21,7 @@
 pub(super) mod spawn;
 
 use bevy::prelude::*;
-use strum::{EnumIter, EnumString};
+use strum::{Display, EnumIter, EnumString};
 
 use spawn::SpawnPlugin;
 
@@ -33,7 +33,7 @@ impl Plugin for SessionPlugin {
     }
 }
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash, EnumIter, EnumString)]
+#[derive(Debug, Display, Clone, Copy, Eq, PartialEq, Hash, EnumIter, EnumString)]
 pub(crate) enum GameMode {
     Deathmatch,
 }
