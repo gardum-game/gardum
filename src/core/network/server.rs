@@ -21,6 +21,7 @@
 use bevy::prelude::*;
 use clap::Args;
 
+use super::DEFAULT_PORT;
 use crate::core::{
     cli::{Opts, SubCommand},
     map::Map,
@@ -72,7 +73,7 @@ impl Default for ServerSettings {
     fn default() -> Self {
         Self {
             server_name: "My game".to_string(),
-            port: 4761,
+            port: DEFAULT_PORT,
             game_mode: GameMode::Deathmatch,
             map: Map::SkyRoof,
             random_heroes: false,

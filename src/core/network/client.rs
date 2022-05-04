@@ -21,6 +21,7 @@
 use bevy::prelude::*;
 use clap::Args;
 
+use super::DEFAULT_PORT;
 use crate::core::cli::{Opts, SubCommand};
 
 pub(super) struct ClientPlugin;
@@ -46,12 +47,17 @@ pub(crate) struct ConnectionSettings {
     /// Server name that will be visible to other players.
     #[clap(short, long, default_value_t = ConnectionSettings::default().server_address)]
     pub(crate) server_address: String,
+
+    /// Port to use.
+    #[clap(short, long, default_value_t = ConnectionSettings::default().port)]
+    pub(crate) port: u16,
 }
 
 impl Default for ConnectionSettings {
     fn default() -> Self {
         Self {
             server_address: "127.0.0.1".to_string(),
+            port: DEFAULT_PORT,
         }
     }
 }
@@ -78,6 +84,7 @@ mod tests {
         let mut app = App::new();
         let connection_settings = ConnectionSettings {
             server_address: "0.0.0.0".to_string(),
+            ..Default::default()
         };
         app.world.insert_resource(Opts {
             subcommand: Some(SubCommand::Connect(connection_settings.clone())),

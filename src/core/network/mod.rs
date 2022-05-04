@@ -26,6 +26,8 @@ use bevy::prelude::*;
 use client::ClientPlugin;
 use server::ServerPlugin;
 
+const DEFAULT_PORT: u16 = 4761;
+
 pub(super) struct NetworkPlugin;
 
 impl Plugin for NetworkPlugin {
