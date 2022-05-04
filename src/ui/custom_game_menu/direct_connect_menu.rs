@@ -20,11 +20,14 @@
 
 use bevy::prelude::*;
 use bevy_egui::{
-    egui::{Align2, Grid, Window},
+    egui::{Align2, DragValue, Grid, Window},
     EguiContext,
 };
 
-use crate::{core::game_state::GameState, ui::ui_state::UiState};
+use crate::{
+    core::{game_state::GameState, network::client::ConnectionSettings},
+    ui::ui_state::UiState,
+};
 
 pub(super) struct DirectConnectMenuPlugin;
 
@@ -37,23 +40,9 @@ impl Plugin for DirectConnectMenuPlugin {
     }
 }
 
-struct DirectConnectData {
-    ip: String,
-    port: String,
-}
-
-impl Default for DirectConnectData {
-    fn default() -> Self {
-        Self {
-            ip: "127.0.0.1".to_string(),
-            port: "4761".to_string(),
-        }
-    }
-}
-
 fn direct_connect_menu_system(
     egui: ResMut<EguiContext>,
-    mut data: Local<DirectConnectData>,
+    mut data: ResMut<ConnectionSettings>,
     mut game_state: ResMut<State<GameState>>,
 ) {
     Window::new("Direct connect")
@@ -68,7 +57,7 @@ fn direct_connect_menu_system(
                     ui.text_edit_singleline(&mut data.ip);
                     ui.end_row();
                     ui.label("Port:");
-                    ui.text_edit_singleline(&mut data.port);
+                    ui.add(DragValue::new(&mut data.port).clamp_range(0..=65535));
                     ui.end_row();
                 });
             ui.vertical_centered(|ui| {
