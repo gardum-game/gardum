@@ -45,8 +45,8 @@ impl Plugin for ClientPlugin {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub(crate) struct ConnectionSettings {
     /// Server name that will be visible to other players.
-    #[clap(short, long, default_value_t = ConnectionSettings::default().server_address)]
-    pub(crate) server_address: String,
+    #[clap(short, long, default_value_t = ConnectionSettings::default().ip)]
+    pub(crate) ip: String,
 
     /// Port to use.
     #[clap(short, long, default_value_t = ConnectionSettings::default().port)]
@@ -56,7 +56,7 @@ pub(crate) struct ConnectionSettings {
 impl Default for ConnectionSettings {
     fn default() -> Self {
         Self {
-            server_address: "127.0.0.1".to_string(),
+            ip: "127.0.0.1".to_string(),
             port: DEFAULT_PORT,
         }
     }
@@ -83,7 +83,7 @@ mod tests {
     fn initializes_from_connect() {
         let mut app = App::new();
         let connection_settings = ConnectionSettings {
-            server_address: "0.0.0.0".to_string(),
+            ip: "0.0.0.0".to_string(),
             ..Default::default()
         };
         app.world.insert_resource(Opts {
