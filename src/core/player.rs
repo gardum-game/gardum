@@ -98,7 +98,10 @@ pub(crate) struct Healing(pub(crate) u32);
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::core::{cli::SubCommand, server_settings::ServerSettings};
+    use crate::core::{
+        cli::SubCommand,
+        network::{client::ConnectionSettings, server::ServerSettings},
+    };
 
     #[test]
     fn player_spawns_in_lobby() {
@@ -126,7 +129,7 @@ mod tests {
             ..ServerSettings::default()
         })
         .insert_resource(Opts {
-            subcommand: Some(SubCommand::Connect),
+            subcommand: Some(SubCommand::Connect(ConnectionSettings::default())),
         })
         .add_state(GameState::Menu);
 

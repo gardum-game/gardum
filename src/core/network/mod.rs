@@ -18,30 +18,18 @@
  *
  */
 
-use clap::{Parser, Subcommand};
+pub(crate) mod client;
+pub(crate) mod server;
 
-use super::network::{client::ConnectionSettings, server::ServerSettings};
+use bevy::prelude::*;
 
-#[derive(Parser)]
-#[clap(author, version, about)]
-pub(crate) struct Opts {
-    #[clap(subcommand)]
-    pub(crate) subcommand: Option<SubCommand>,
-}
+use client::ClientPlugin;
+use server::ServerPlugin;
 
-impl Default for Opts {
-    fn default() -> Self {
-        if cfg!(test) {
-            // Do not parse command line in tests
-            Opts { subcommand: None }
-        } else {
-            Opts::parse()
-        }
+pub(super) struct NetworkPlugin;
+
+impl Plugin for NetworkPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_plugin(ServerPlugin).add_plugin(ClientPlugin);
     }
-}
-
-#[derive(Subcommand)]
-pub(crate) enum SubCommand {
-    Connect(ConnectionSettings),
-    Host(ServerSettings),
 }

@@ -25,8 +25,8 @@ use crate::core::{
     character::hero::HeroKind,
     game_state::{GameState, InGameOnly},
     health::Death,
+    network::server::ServerSettings,
     player::Player,
-    server_settings::ServerSettings,
     AssetCommands,
 };
 

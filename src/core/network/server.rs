@@ -21,15 +21,15 @@
 use bevy::prelude::*;
 use clap::Args;
 
-use super::{
+use crate::core::{
     cli::{Opts, SubCommand},
     map::Map,
     session::GameMode,
 };
 
-pub(super) struct ServerSettingsPlugin;
+pub(super) struct ServerPlugin;
 
-impl Plugin for ServerSettingsPlugin {
+impl Plugin for ServerPlugin {
     fn build(&self, app: &mut App) {
         let opts = app
             .world
@@ -88,7 +88,7 @@ mod tests {
     fn defaulted_without_host() {
         let mut app = App::new();
         app.init_resource::<Opts>();
-        app.add_plugin(ServerSettingsPlugin);
+        app.add_plugin(ServerPlugin);
 
         assert_eq!(
             *app.world.resource::<ServerSettings>(),
@@ -107,7 +107,7 @@ mod tests {
         app.world.insert_resource(Opts {
             subcommand: Some(SubCommand::Host(server_settings.clone())),
         });
-        app.add_plugin(ServerSettingsPlugin);
+        app.add_plugin(ServerPlugin);
 
         assert_eq!(
             *app.world.resource::<ServerSettings>(),

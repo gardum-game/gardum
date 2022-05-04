@@ -66,14 +66,14 @@ pub(crate) enum GameState {
 
 #[cfg(test)]
 mod tests {
-    use crate::core::cli::SubCommand;
+    use crate::core::{cli::SubCommand, network::client::ConnectionSettings};
 
     use super::*;
 
     #[test]
     fn in_game_with_subcommand() {
         let app = setup_app(Opts {
-            subcommand: Some(SubCommand::Connect),
+            subcommand: Some(SubCommand::Connect(ConnectionSettings::default())),
         });
 
         assert_eq!(
@@ -97,7 +97,7 @@ mod tests {
     #[test]
     fn ingame_entities_cleanup() {
         let mut app = setup_app(Opts {
-            subcommand: Some(SubCommand::Connect),
+            subcommand: Some(SubCommand::Connect(ConnectionSettings::default())),
         });
 
         let child_entity = app.world.spawn().id();

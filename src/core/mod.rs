@@ -28,10 +28,10 @@ pub(super) mod game_state;
 pub(super) mod health;
 pub(super) mod map;
 mod movement;
+pub(super) mod network;
 mod orbit_camera;
 mod pickup;
 pub(super) mod player;
-pub(super) mod server_settings;
 pub(super) mod session;
 pub(super) mod settings;
 
@@ -50,10 +50,10 @@ use game_state::InGameOnly;
 use health::HealthPlugin;
 use map::MapsPlugin;
 use movement::MovementPlugin;
+use network::NetworkPlugin;
 use orbit_camera::OrbitCameraPlugin;
 use pickup::PickupPlugin;
 use player::PlayerPlugin;
-use server_settings::ServerSettingsPlugin;
 use session::SessionPlugin;
 use settings::SettingsPlugin;
 
@@ -62,7 +62,7 @@ pub(super) struct CorePlugin;
 impl Plugin for CorePlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<Opts>()
-            .add_plugin(ServerSettingsPlugin)
+            .add_plugin(NetworkPlugin)
             .add_plugin(SettingsPlugin)
             .add_plugin(AppStatePlugin)
             .add_plugin(HealthPlugin)

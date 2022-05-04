@@ -24,7 +24,7 @@ use bevy::prelude::*;
 
 use strum::{Display, EnumIter, EnumString};
 
-use super::{server_settings::ServerSettings, AssetCommands, AssociatedAsset};
+use super::{network::server::ServerSettings, AssetCommands, AssociatedAsset};
 use crate::core::game_state::GameState;
 
 pub(super) struct MapsPlugin;

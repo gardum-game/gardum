@@ -27,7 +27,7 @@ use strum::IntoEnumIterator;
 
 use crate::{
     core::{
-        game_state::GameState, map::Map, player::Player, server_settings::ServerSettings,
+        game_state::GameState, map::Map, network::server::ServerSettings, player::Player,
         session::GameMode,
     },
     ui::ui_state::{UiState, UiStateHistory},

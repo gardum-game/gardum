@@ -30,8 +30,8 @@ use super::{
     UI_MARGIN,
 };
 use crate::core::{
-    character::hero::HeroKind, game_state::GameState, player::Player,
-    server_settings::ServerSettings, Authority,
+    character::hero::HeroKind, game_state::GameState, network::server::ServerSettings,
+    player::Player, Authority,
 };
 
 pub struct HeroSelectionPlugin;
