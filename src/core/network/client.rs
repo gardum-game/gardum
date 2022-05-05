@@ -75,7 +75,7 @@ mod tests {
         assert_eq!(
             *app.world.resource::<ConnectionSettings>(),
             ConnectionSettings::default(),
-            "Server settings should be initialized with defaults without host command"
+            "Connection settings should be initialized with defaults without host command"
         );
     }
 
@@ -94,7 +94,7 @@ mod tests {
         assert_eq!(
             *app.world.resource::<ConnectionSettings>(),
             connection_settings,
-            "Server settings should be initialized with parameters passed from host command"
+            "Connection settings should be initialized with parameters passed from host command"
         );
     }
 }
