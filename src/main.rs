@@ -38,7 +38,7 @@ use {
     bevy::diagnostic::FrameTimeDiagnosticsPlugin,
     bevy_atmosphere::AtmospherePlugin,
     leafwing_input_manager::prelude::InputManagerPlugin,
-    ui::{UiAction, UiPlugin},
+    ui::{ui_actions::UiAction, UiPlugin},
 };
 
 #[cfg(feature = "inspector")]

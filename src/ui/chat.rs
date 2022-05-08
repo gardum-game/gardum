@@ -25,7 +25,7 @@ use bevy_egui::{
 };
 use leafwing_input_manager::{plugin::ToggleActions, prelude::ActionState};
 
-use super::{back_button, ingame_menu, ui_state::UiState, UiAction, UI_MARGIN};
+use super::{back_button, ingame_menu, ui_actions::UiAction, ui_state::UiState, UI_MARGIN};
 use crate::core::control_actions::ControlAction;
 
 const CHAT_BOTTOM_MARGIN: f32 = 40.0;

@@ -25,7 +25,7 @@ use bevy_egui::{
 };
 use leafwing_input_manager::prelude::ActionState;
 
-use super::{ui_state::UiState, UiAction};
+use super::{ui_actions::UiAction, ui_state::UiState};
 use crate::core::player::{Damage, Deaths, Healing, Kills};
 
 pub(super) struct ScoreboardPlugin;

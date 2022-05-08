@@ -26,8 +26,9 @@ use bevy_egui::{
 use leafwing_input_manager::prelude::ActionState;
 
 use super::{
+    ui_actions::UiAction,
     ui_state::{UiState, UiStateHistory},
-    UiAction, UI_MARGIN,
+    UI_MARGIN,
 };
 
 pub(super) struct BackButtonPlugin;

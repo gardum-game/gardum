@@ -28,8 +28,8 @@ use leafwing_input_manager::prelude::ActionState;
 use crate::core::game_state::GameState;
 
 use super::{
+    ui_actions::UiAction,
     ui_state::{UiState, UiStateHistory},
-    UiAction,
 };
 
 pub(super) struct InGameMenuPlugin;

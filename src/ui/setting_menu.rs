@@ -36,8 +36,9 @@ use strum::{Display, EnumIter, IntoEnumIterator};
 
 use super::{
     back_button,
+    ui_actions::UiAction,
     ui_state::{UiState, UiStateHistory},
-    UiAction, UI_MARGIN,
+    UI_MARGIN,
 };
 use crate::core::{
     control_actions::ControlAction,
