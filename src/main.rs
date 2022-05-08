@@ -35,6 +35,7 @@ use crate::core::CorePlugin;
 #[cfg(feature = "client")]
 use {
     crate::core::settings::ControlAction,
+    bevy::diagnostic::FrameTimeDiagnosticsPlugin,
     bevy_atmosphere::AtmospherePlugin,
     leafwing_input_manager::prelude::InputManagerPlugin,
     ui::{UiAction, UiPlugin},
@@ -57,7 +58,8 @@ fn main() {
         .add_plugin(CorePlugin);
 
     #[cfg(feature = "client")]
-    app.add_plugin(EguiPlugin)
+    app.add_plugin(FrameTimeDiagnosticsPlugin::default())
+        .add_plugin(EguiPlugin)
         .add_plugin(AtmospherePlugin {
             dynamic: false,
             sky_radius: 100.0,

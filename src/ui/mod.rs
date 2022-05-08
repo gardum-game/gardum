@@ -26,6 +26,7 @@ mod hero_selection;
 mod hud;
 mod ingame_menu;
 mod main_menu;
+mod perf_stats;
 mod scoreboard;
 mod setting_menu;
 pub(super) mod ui_state;
@@ -44,6 +45,7 @@ use hero_selection::HeroSelectionPlugin;
 use hud::HudPlugin;
 use ingame_menu::InGameMenuPlugin;
 use main_menu::MainMenuPlugin;
+use perf_stats::PerfStatsPlugin;
 use scoreboard::ScoreboardPlugin;
 use setting_menu::SettingMenuPlugin;
 use ui_state::UiStatePlugin;
@@ -69,6 +71,7 @@ impl Plugin for UiPlugin {
             .add_plugin(HeroSelectionPlugin)
             .add_plugin(HudPlugin)
             .add_plugin(ScoreboardPlugin)
+            .add_plugin(PerfStatsPlugin)
             .add_plugin(MainMenuPlugin)
             .add_plugin(CustomGameMenuPlugin)
             .add_plugin(BackButtonPlugin)

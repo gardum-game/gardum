@@ -158,11 +158,15 @@ impl Settings {
 #[serde(default)]
 pub(crate) struct VideoSettings {
     pub(crate) msaa: u32,
+    pub(crate) perf_stats: bool,
 }
 
 impl Default for VideoSettings {
     fn default() -> Self {
-        Self { msaa: 1 }
+        Self {
+            msaa: 1,
+            perf_stats: false,
+        }
     }
 }
 
