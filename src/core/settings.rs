@@ -19,13 +19,12 @@
  */
 
 use bevy::prelude::*;
-use derive_more::Display;
-use leafwing_input_manager::{prelude::InputMap, Actionlike};
+use leafwing_input_manager::prelude::InputMap;
 use serde::{Deserialize, Serialize};
 use standard_paths::{LocationType, StandardPaths};
 use std::{fs, path::PathBuf};
 
-use super::{game_state::GameState, player::Player, Authority};
+use super::control_actions::ControlAction;
 
 pub(super) struct SettingsPlugin;
 
@@ -33,36 +32,7 @@ impl Plugin for SettingsPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<SettingApplyEvent>()
             .insert_resource(Settings::read())
-            .add_system(apply_video_settings_system)
-            .add_system(apply_controls_settings_system)
-            .add_system(write_settings_system)
-            .add_system_set(
-                SystemSet::on_enter(GameState::InGame).with_system(apply_mappings_system),
-            );
-    }
-}
-
-fn apply_video_settings_system(
-    mut commands: Commands,
-    mut apply_events: EventReader<SettingApplyEvent>,
-    settings: Res<Settings>,
-) {
-    if apply_events.iter().next().is_some() || settings.is_added() {
-        commands.insert_resource(Msaa {
-            samples: settings.video.msaa,
-        });
-    }
-}
-
-fn apply_controls_settings_system(
-    mut apply_events: EventReader<SettingApplyEvent>,
-    mut local_player: Query<&mut InputMap<ControlAction>, With<Authority>>,
-    settings: Res<Settings>,
-) {
-    if apply_events.iter().next().is_some() {
-        if let Ok(mut mappings) = local_player.get_single_mut() {
-            *mappings = settings.controls.mappings.clone();
-        }
+            .add_system(write_settings_system);
     }
 }
 
@@ -70,43 +40,13 @@ fn write_settings_system(
     mut apply_events: EventReader<SettingApplyEvent>,
     settings: Res<Settings>,
 ) {
-    if let Some(apply_event) = apply_events.iter().next() {
-        if apply_event.write {
-            settings.write();
-        }
+    if apply_events.iter().next().is_some() {
+        settings.write();
     }
-}
-
-/// Setup player input on game start
-fn apply_mappings_system(
-    mut commands: Commands,
-    settings: Res<Settings>,
-    local_player: Query<Entity, (With<Authority>, With<Player>)>,
-) {
-    let local_player = local_player.single();
-    commands
-        .entity(local_player)
-        .insert(settings.controls.mappings.clone());
 }
 
 /// An event that applies the specified settings in the [`Settings`] resource.
-pub(crate) struct SettingApplyEvent {
-    /// Specifies whether to write settings to disk or not
-    write: bool,
-}
-
-impl SettingApplyEvent {
-    pub(crate) fn apply_and_write() -> Self {
-        Self { write: true }
-    }
-
-    // Currently used only in tests, but in future could be used to confirm settings in resolution
-    // change
-    #[cfg(test)]
-    fn apply_without_write() -> Self {
-        Self { write: false }
-    }
-}
+pub(crate) struct SettingApplyEvent;
 
 #[derive(Default, Deserialize, Serialize, Clone)]
 #[cfg_attr(test, derive(Debug, PartialEq))]
@@ -196,24 +136,6 @@ impl Default for ControlsSettings {
     }
 }
 
-#[derive(Actionlike, Component, Clone, Copy, PartialEq, Hash, Display, Serialize, Deserialize)]
-#[cfg_attr(test, derive(Debug))]
-pub(crate) enum ControlAction {
-    // Movement
-    Forward,
-    Backward,
-    Left,
-    Right,
-    Jump,
-
-    // Abilities activation
-    BaseAttack,
-    Ability1,
-    Ability2,
-    Ability3,
-    Ultimate,
-}
-
 #[cfg(test)]
 mod tests {
     use bevy::ecs::event::Events;
@@ -240,7 +162,7 @@ mod tests {
         settings.video.msaa += 1;
 
         let mut apply_events = app.world.resource_mut::<Events<SettingApplyEvent>>();
-        apply_events.send(SettingApplyEvent::apply_and_write());
+        apply_events.send(SettingApplyEvent);
 
         app.update();
 
@@ -259,90 +181,9 @@ mod tests {
         fs::remove_file(file_path).expect("Saved file should be removed after the test");
     }
 
-    #[test]
-    fn video_settings_applies() {
-        let mut app = setup_app();
-        app.update();
-
-        let msaa = app.world.resource::<Msaa>().clone();
-        let mut settings = app.world.resource_mut::<Settings>();
-        assert_eq!(
-            settings.video.msaa, msaa.samples,
-            "MSAA setting should be loaded at startup"
-        );
-
-        settings.video.msaa += 1;
-
-        let mut apply_events = app.world.resource_mut::<Events<SettingApplyEvent>>();
-        apply_events.send(SettingApplyEvent::apply_without_write());
-
-        app.update();
-
-        let settings = app.world.resource::<Settings>();
-        let msaa = app.world.resource::<Msaa>();
-        assert_eq!(
-            settings.video.msaa, msaa.samples,
-            "MSAA setting should be updated on apply event"
-        );
-    }
-
-    #[test]
-    fn controls_settings_applies() {
-        let mut app = setup_app();
-        let mut game_state = app.world.resource_mut::<State<GameState>>();
-        game_state
-            .set(GameState::InGame)
-            .expect("State should be switched to in game to test mappings initialization");
-        let player = app.world.spawn().insert(Authority).insert(Player).id();
-        let mut settings = app.world.resource_mut::<Settings>();
-        settings
-            .controls
-            .mappings
-            .insert(ControlAction::Jump, KeyCode::Q);
-        assert_ne!(
-            settings.controls.mappings,
-            ControlsSettings::default().mappings,
-            "Settings shouldn't be default for proper applying testing"
-        );
-
-        app.update();
-
-        let mappings = app
-            .world
-            .entity(player)
-            .get::<InputMap<ControlAction>>()
-            .expect("Mappings should be added to the local player");
-
-        let settings = app.world.resource::<Settings>();
-        assert_eq!(
-            settings.controls.mappings, *mappings,
-            "Added mappings should the same as in settings"
-        );
-
-        // Change settings again to test reloading
-        let mut settings = app.world.resource_mut::<Settings>();
-        settings.controls.mappings = ControlsSettings::default().mappings;
-
-        let mut apply_events = app.world.resource_mut::<Events<SettingApplyEvent>>();
-        apply_events.send(SettingApplyEvent::apply_without_write());
-
-        app.update();
-
-        let settings = app.world.resource::<Settings>();
-        let mappings = app
-            .world
-            .entity(player)
-            .get::<InputMap<ControlAction>>()
-            .unwrap();
-        assert_eq!(
-            settings.controls.mappings, *mappings,
-            "Mappings should be updated on apply event"
-        );
-    }
-
     fn setup_app() -> App {
         let mut app = App::new();
-        app.add_state(GameState::Menu).add_plugin(SettingsPlugin);
+        app.add_plugin(SettingsPlugin);
         app
     }
 }

@@ -40,7 +40,7 @@ use super::{
     UiAction, UI_MARGIN,
 };
 use crate::core::{
-    settings::ControlAction,
+    control_actions::ControlAction,
     settings::{ControlsSettings, SettingApplyEvent, Settings, VideoSettings},
 };
 
@@ -106,13 +106,13 @@ fn settings_buttons_system(
             ui.horizontal(|ui| {
                 if ui.button("Restore defaults").clicked() {
                     *settings = Settings::default();
-                    apply_events.send(SettingApplyEvent::apply_and_write());
+                    apply_events.send(SettingApplyEvent);
                 }
                 if ui.button("Apply").clicked() {
-                    apply_events.send(SettingApplyEvent::apply_and_write());
+                    apply_events.send(SettingApplyEvent);
                 }
                 if ui.button("Ok").clicked() {
-                    apply_events.send(SettingApplyEvent::apply_and_write());
+                    apply_events.send(SettingApplyEvent);
                     ui_state_history.pop();
                 }
             })

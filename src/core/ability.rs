@@ -22,7 +22,7 @@ use bevy::prelude::*;
 use derive_more::From;
 use leafwing_input_manager::prelude::ActionState;
 
-use super::{cooldown::Cooldown, game_state::GameState, settings::ControlAction};
+use super::{control_actions::ControlAction, cooldown::Cooldown, game_state::GameState};
 
 pub(super) struct AbilityPlugin;
 

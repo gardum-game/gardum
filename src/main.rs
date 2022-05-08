@@ -34,7 +34,7 @@ use heron::{Gravity, PhysicsPlugin};
 use crate::core::CorePlugin;
 #[cfg(feature = "client")]
 use {
-    crate::core::settings::ControlAction,
+    crate::core::control_actions::ControlAction,
     bevy::diagnostic::FrameTimeDiagnosticsPlugin,
     bevy_atmosphere::AtmospherePlugin,
     leafwing_input_manager::prelude::InputManagerPlugin,

@@ -24,8 +24,8 @@ use heron::Velocity;
 use leafwing_input_manager::prelude::ActionState;
 
 use super::{
-    character::SpeedModifier, game_state::GameState, orbit_camera::CameraTarget,
-    settings::ControlAction,
+    character::SpeedModifier, control_actions::ControlAction, game_state::GameState,
+    orbit_camera::CameraTarget,
 };
 
 const MOVE_SPEED: f32 = 10.0;

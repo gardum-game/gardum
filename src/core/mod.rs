@@ -21,10 +21,12 @@
 pub(super) mod ability;
 pub(super) mod character;
 pub(super) mod cli;
+pub(super) mod control_actions;
 pub(super) mod cooldown;
 mod despawn_timer;
 mod effect;
 pub(super) mod game_state;
+mod graphics;
 pub(super) mod health;
 pub(super) mod map;
 mod movement;
@@ -42,6 +44,7 @@ use heron::{CollisionLayers, CollisionShape, Collisions, PhysicsLayer, RigidBody
 use ability::AbilityPlugin;
 use character::CharactersPlugin;
 use cli::Opts;
+use control_actions::ControlActionsPlugin;
 use despawn_timer::DespawnTimer;
 use despawn_timer::DespawnTimerPlugin;
 use effect::EffectPlugin;
@@ -67,6 +70,7 @@ impl Plugin for CorePlugin {
             .add_plugin(AppStatePlugin)
             .add_plugin(HealthPlugin)
             .add_plugin(CharactersPlugin)
+            .add_plugin(ControlActionsPlugin)
             .add_plugin(AbilityPlugin)
             .add_plugin(OrbitCameraPlugin)
             .add_plugin(PickupPlugin)

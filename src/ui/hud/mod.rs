@@ -31,9 +31,9 @@ use leafwing_input_manager::plugin::ToggleActions;
 use super::{ui_state::UiState, UI_MARGIN};
 use crate::core::{
     ability::{Abilities, IconPath},
+    control_actions::ControlAction,
     cooldown::Cooldown,
     health::Health,
-    settings::ControlAction,
     Authority,
 };
 use ability_icon::AbilityIcon;

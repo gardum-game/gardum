@@ -24,10 +24,10 @@ use heron::{CollisionShape, Collisions, Velocity};
 use crate::core::{
     ability::{Activator, IconPath},
     character::{character_direction, CharacterBundle},
+    control_actions::ControlAction,
     cooldown::Cooldown,
     game_state::GameState,
     health::{Health, HealthChangeEvent},
-    settings::ControlAction,
     AssetCommands, Owner, ProjectileBundle,
 };
 
