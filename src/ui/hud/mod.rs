@@ -50,10 +50,14 @@ impl Plugin for HudPlugin {
             SystemSet::on_update(UiState::Hud).with_system(health_and_abilities_system),
         )
         .add_system_set(
-            SystemSet::on_enter(UiState::Hud).with_system(enable_control_actions_system),
+            SystemSet::on_enter(UiState::Hud)
+                .with_system(enable_control_actions_system)
+                .with_system(hide_cursor_system),
         )
         .add_system_set(
-            SystemSet::on_exit(UiState::Hud).with_system(disable_control_actions_system),
+            SystemSet::on_exit(UiState::Hud)
+                .with_system(disable_control_actions_system)
+                .with_system(show_cursor_system),
         );
     }
 }
@@ -106,4 +110,18 @@ fn enable_control_actions_system(mut toggle_actions: ResMut<ToggleActions<Contro
 
 fn disable_control_actions_system(mut toggle_actions: ResMut<ToggleActions<ControlAction>>) {
     toggle_actions.enabled = false;
+}
+
+fn hide_cursor_system(mut windows: ResMut<Windows>) {
+    let window = windows.get_primary_mut().unwrap();
+
+    window.set_cursor_lock_mode(true);
+    window.set_cursor_visibility(false);
+}
+
+fn show_cursor_system(mut windows: ResMut<Windows>) {
+    let window = windows.get_primary_mut().unwrap();
+
+    window.set_cursor_lock_mode(false);
+    window.set_cursor_visibility(true);
 }

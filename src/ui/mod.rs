@@ -20,7 +20,6 @@
 
 mod back_button;
 mod chat;
-mod cursor;
 mod custom_game_menu;
 mod hero_selection;
 mod hud;
@@ -36,7 +35,6 @@ use bevy::prelude::*;
 
 use back_button::BackButtonPlugin;
 use chat::ChatPlugin;
-use cursor::CursorPlugin;
 use custom_game_menu::CustomGameMenuPlugin;
 use hero_selection::HeroSelectionPlugin;
 use hud::HudPlugin;
@@ -57,7 +55,6 @@ impl Plugin for UiPlugin {
         app.add_plugin(UiActionsPlugin)
             .add_plugin(UiStatePlugin)
             .add_plugin(ChatPlugin)
-            .add_plugin(CursorPlugin)
             .add_plugin(SettingMenuPlugin)
             .add_plugin(HeroSelectionPlugin)
             .add_plugin(HudPlugin)
