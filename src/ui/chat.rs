@@ -23,6 +23,7 @@ use bevy_egui::{
     egui::{Align2, Area, Color32, Frame, Response, ScrollArea, TextEdit, TextStyle, Ui},
     EguiContext,
 };
+use bevy_renet::renet::ServerEvent;
 use leafwing_input_manager::{plugin::ToggleActions, prelude::ActionState};
 
 use super::{back_button, ingame_menu, ui_actions::UiAction, ui_state::UiState, UI_MARGIN};
@@ -39,6 +40,7 @@ impl Plugin for ChatPlugin {
                     .before(ingame_menu::hide_ingame_menu_system)
                     .before(ingame_menu::show_ingame_menu_system),
             )
+            .add_system(announce_connected)
             .add_system_set(SystemSet::on_update(UiState::Hud).with_system(toggle_controls_system));
     }
 }
@@ -165,5 +167,18 @@ fn toggle_controls_system(
         let window = windows.get_primary_mut().unwrap();
         window.set_cursor_lock_mode(!chat.active);
         window.set_cursor_visibility(chat.active);
+    }
+}
+
+fn announce_connected(mut server_events: EventReader<ServerEvent>, mut chat: ResMut<Chat>) {
+    for event in server_events.iter() {
+        match event {
+            ServerEvent::ClientConnected(id, _) => {
+                chat.add_message(format!("Client connected: {}", id).as_str());
+            }
+            ServerEvent::ClientDisconnected(id) => {
+                chat.add_message(format!("Client disconnected: {}", id).as_str());
+            }
+        }
     }
 }

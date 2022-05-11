@@ -29,6 +29,7 @@ mod ui;
 use bevy::{prelude::*, winit::WinitPlugin};
 #[cfg(feature = "client")]
 use bevy_egui::EguiPlugin;
+use bevy_renet::RenetServerPlugin;
 use heron::{Gravity, PhysicsPlugin};
 
 use crate::core::CorePlugin;
@@ -37,6 +38,7 @@ use {
     crate::core::control_actions::ControlAction,
     bevy::diagnostic::FrameTimeDiagnosticsPlugin,
     bevy_atmosphere::AtmospherePlugin,
+    bevy_renet::RenetClientPlugin,
     leafwing_input_manager::prelude::InputManagerPlugin,
     ui::{ui_actions::UiAction, UiPlugin},
 };
@@ -55,7 +57,8 @@ fn main() {
 
     app.insert_resource(Gravity::from(Vec3::Y * -9.81))
         .add_plugin(PhysicsPlugin::default())
-        .add_plugin(CorePlugin);
+        .add_plugin(CorePlugin)
+        .add_plugin(RenetServerPlugin);
 
     #[cfg(feature = "client")]
     app.add_plugin(FrameTimeDiagnosticsPlugin::default())
@@ -66,6 +69,7 @@ fn main() {
         })
         .add_plugin(InputManagerPlugin::<ControlAction>::default())
         .add_plugin(InputManagerPlugin::<UiAction>::default())
+        .add_plugin(RenetClientPlugin)
         .add_plugin(UiPlugin);
 
     #[cfg(feature = "inspector")]

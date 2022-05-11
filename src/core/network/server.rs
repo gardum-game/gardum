@@ -19,9 +19,15 @@
  */
 
 use bevy::prelude::*;
+use bevy_renet::renet::{RenetConnectionConfig, RenetServer, ServerConfig};
 use clap::Args;
+use std::{
+    error::Error,
+    net::{SocketAddr, UdpSocket},
+    time::SystemTime,
+};
 
-use super::DEFAULT_PORT;
+use super::{DEFAULT_PORT, PROTOCOL_ID, PUBLIC_GAME_KEY};
 use crate::core::{
     cli::{Opts, SubCommand},
     map::Map,
@@ -37,11 +43,13 @@ impl Plugin for ServerPlugin {
             .get_resource::<Opts>()
             .expect("Command line options should be initialized before server settings resource");
 
-        let server_settings = match &opts.subcommand {
-            Some(SubCommand::Host(server_settings)) => server_settings.clone(),
-            _ => ServerSettings::default(),
-        };
-        app.insert_resource(server_settings);
+        if let Some(SubCommand::Host(server_settings)) = &opts.subcommand {
+            let settings = server_settings.clone();
+            app.insert_resource(settings.create_server().expect("Unable to create server"));
+            app.insert_resource(settings);
+        } else {
+            app.insert_resource(ServerSettings::default());
+        }
     }
 }
 
@@ -51,6 +59,10 @@ pub(crate) struct ServerSettings {
     /// Server name that will be visible to other players.
     #[clap(short, long, default_value_t = ServerSettings::default().server_name)]
     pub(crate) server_name: String,
+
+    /// IP address to bind.
+    #[clap(short, long, default_value_t = ServerSettings::default().ip)]
+    pub(crate) ip: String,
 
     /// Port to use.
     #[clap(short, long, default_value_t = ServerSettings::default().port)]
@@ -73,11 +85,25 @@ impl Default for ServerSettings {
     fn default() -> Self {
         Self {
             server_name: "My game".to_string(),
+            ip: "127.0.0.1".to_string(),
             port: DEFAULT_PORT,
             game_mode: GameMode::Deathmatch,
             map: Map::SkyRoof,
             random_heroes: false,
         }
+    }
+}
+
+impl ServerSettings {
+    fn create_server(&self) -> Result<RenetServer, Box<dyn Error>> {
+        let server_addr = SocketAddr::new(self.ip.parse()?, self.port);
+        RenetServer::new(
+            SystemTime::now().duration_since(SystemTime::UNIX_EPOCH)?,
+            ServerConfig::new(64, PROTOCOL_ID, server_addr, PUBLIC_GAME_KEY),
+            RenetConnectionConfig::default(),
+            UdpSocket::bind(server_addr)?,
+        )
+        .map_err(From::from)
     }
 }
 
@@ -96,13 +122,17 @@ mod tests {
             ServerSettings::default(),
             "Server settings should be initialized with defaults without host command"
         );
+        assert!(
+            app.world.get_resource::<RenetServer>().is_none(),
+            "Server should't be created"
+        )
     }
 
     #[test]
     fn initializes_from_host() {
         let mut app = App::new();
         let server_settings = ServerSettings {
-            random_heroes: !ServerSettings::default().random_heroes,
+            port: ServerSettings::default().port - 1,
             ..Default::default()
         };
         app.world.insert_resource(Opts {
@@ -114,6 +144,10 @@ mod tests {
             *app.world.resource::<ServerSettings>(),
             server_settings,
             "Server settings should be initialized with parameters passed from host command"
+        );
+        assert!(
+            app.world.get_resource::<RenetServer>().is_some(),
+            "Server should be created"
         );
     }
 }

@@ -19,9 +19,15 @@
  */
 
 use bevy::prelude::*;
+use bevy_renet::renet::{ConnectToken, RenetClient, RenetConnectionConfig};
 use clap::Args;
+use std::{
+    error::Error,
+    net::{SocketAddr, UdpSocket},
+    time::SystemTime,
+};
 
-use super::DEFAULT_PORT;
+use super::{DEFAULT_PORT, PROTOCOL_ID, PUBLIC_GAME_KEY};
 use crate::core::cli::{Opts, SubCommand};
 
 pub(super) struct ClientPlugin;
@@ -33,22 +39,24 @@ impl Plugin for ClientPlugin {
             .get_resource::<Opts>()
             .expect("Command line options should be initialized before client plugin");
 
-        let connectioin_settings = match &opts.subcommand {
-            Some(SubCommand::Connect(connectioin_settings)) => connectioin_settings.clone(),
-            _ => ConnectionSettings::default(),
-        };
-        app.insert_resource(connectioin_settings);
+        if let Some(SubCommand::Connect(connectioin_settings)) = &opts.subcommand {
+            let settings = connectioin_settings.clone();
+            app.insert_resource(settings.create_client().expect("Unable to open connection"));
+            app.insert_resource(settings);
+        } else {
+            app.insert_resource(ConnectionSettings::default());
+        }
     }
 }
 
 #[derive(Args, Clone)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub(crate) struct ConnectionSettings {
-    /// Server name that will be visible to other players.
+    /// Server IP address.
     #[clap(short, long, default_value_t = ConnectionSettings::default().ip)]
     pub(crate) ip: String,
 
-    /// Port to use.
+    /// Server port.
     #[clap(short, long, default_value_t = ConnectionSettings::default().port)]
     pub(crate) port: u16,
 }
@@ -59,6 +67,32 @@ impl Default for ConnectionSettings {
             ip: "127.0.0.1".to_string(),
             port: DEFAULT_PORT,
         }
+    }
+}
+
+impl ConnectionSettings {
+    fn create_client(&self) -> Result<RenetClient, Box<dyn Error>> {
+        let current_time = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH)?;
+        let client_id = current_time.as_millis() as u64;
+        let ip = self.ip.parse()?;
+        let token = ConnectToken::generate(
+            current_time,
+            PROTOCOL_ID,
+            300,
+            client_id,
+            15,
+            vec![SocketAddr::new(ip, self.port)],
+            None,
+            &PUBLIC_GAME_KEY,
+        )?;
+        RenetClient::new(
+            current_time,
+            UdpSocket::bind((ip, 0))?,
+            client_id,
+            token,
+            RenetConnectionConfig::default(),
+        )
+        .map_err(From::from)
     }
 }
 
@@ -77,13 +111,17 @@ mod tests {
             ConnectionSettings::default(),
             "Connection settings should be initialized with defaults without host command"
         );
+        assert!(
+            app.world.get_resource::<RenetClient>().is_none(),
+            "Connection should't be opened"
+        );
     }
 
     #[test]
     fn initializes_from_connect() {
         let mut app = App::new();
         let connection_settings = ConnectionSettings {
-            ip: "0.0.0.0".to_string(),
+            port: ConnectionSettings::default().port + 1,
             ..Default::default()
         };
         app.world.insert_resource(Opts {
@@ -95,6 +133,10 @@ mod tests {
             *app.world.resource::<ConnectionSettings>(),
             connection_settings,
             "Connection settings should be initialized with parameters passed from host command"
+        );
+        assert!(
+            app.world.get_resource::<RenetClient>().is_some(),
+            "Connection should be opened"
         );
     }
 }
