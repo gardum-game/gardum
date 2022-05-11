@@ -39,7 +39,7 @@ impl Plugin for ChatPlugin {
                     .before(ingame_menu::hide_ingame_menu_system)
                     .before(ingame_menu::show_ingame_menu_system),
             )
-            .add_system_set(SystemSet::on_update(UiState::Hud).with_system(toggle_control_actions));
+            .add_system_set(SystemSet::on_update(UiState::Hud).with_system(toggle_controls_system));
     }
 }
 
@@ -153,12 +153,17 @@ fn show_chat(ui: &mut Ui, chat: &mut Chat) -> Response {
         .inner
 }
 
-fn toggle_control_actions(
+fn toggle_controls_system(
     mut toggle_actions: ResMut<ToggleActions<ControlAction>>,
+    mut windows: ResMut<Windows>,
     chat: Res<Chat>,
 ) {
-    // When chat is active, control actions should be disabled.
+    // When controls are enabled and chat is active, we should disable them
     if chat.active == toggle_actions.enabled {
         toggle_actions.enabled = !chat.active;
+
+        let window = windows.get_primary_mut().unwrap();
+        window.set_cursor_lock_mode(!chat.active);
+        window.set_cursor_visibility(chat.active);
     }
 }
