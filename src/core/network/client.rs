@@ -71,7 +71,7 @@ impl Default for ConnectionSettings {
 }
 
 impl ConnectionSettings {
-    fn create_client(&self) -> Result<RenetClient, Box<dyn Error>> {
+    pub(crate) fn create_client(&self) -> Result<RenetClient, Box<dyn Error>> {
         let current_time = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH)?;
         let client_id = current_time.as_millis() as u64;
         let ip = self.ip.parse()?;

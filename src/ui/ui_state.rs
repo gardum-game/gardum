@@ -53,12 +53,19 @@ pub(super) enum UiState {
     MainMenu,
     ServerBrowser,
     SettingsMenu,
+    ErrorDialog,
     DirectConnectMenu,
     CrateLobbyMenu,
     LobbyMenu,
     HeroSelection,
     Hud,
     InGameMenu,
+}
+
+impl Default for UiState {
+    fn default() -> Self {
+        Self::Empty
+    }
 }
 
 #[cfg(test)]

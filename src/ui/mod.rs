@@ -21,6 +21,7 @@
 mod back_button;
 mod chat;
 mod custom_game_menu;
+mod error_dialog;
 mod hero_selection;
 mod hud;
 mod ingame_menu;
@@ -36,6 +37,7 @@ use bevy::prelude::*;
 use back_button::BackButtonPlugin;
 use chat::ChatPlugin;
 use custom_game_menu::CustomGameMenuPlugin;
+use error_dialog::ErrorDialogPlugin;
 use hero_selection::HeroSelectionPlugin;
 use hud::HudPlugin;
 use ingame_menu::InGameMenuPlugin;
@@ -62,6 +64,7 @@ impl Plugin for UiPlugin {
             .add_plugin(PerfStatsPlugin)
             .add_plugin(MainMenuPlugin)
             .add_plugin(CustomGameMenuPlugin)
+            .add_plugin(ErrorDialogPlugin)
             .add_plugin(BackButtonPlugin)
             .add_plugin(InGameMenuPlugin);
     }
