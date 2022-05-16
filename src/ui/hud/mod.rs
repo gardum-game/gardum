@@ -26,9 +26,13 @@ use bevy_egui::{
     egui::{Align2, Area},
     EguiContext,
 };
-use leafwing_input_manager::plugin::ToggleActions;
+use leafwing_input_manager::{plugin::ToggleActions, prelude::ActionState};
 
-use super::{ui_state::UiState, UI_MARGIN};
+use super::{
+    ui_actions::UiAction,
+    ui_state::{UiState, UiStateHistory},
+    UI_MARGIN,
+};
 use crate::core::{
     ability::{Abilities, IconPath},
     control_actions::ControlAction,
@@ -47,7 +51,9 @@ impl Plugin for HudPlugin {
             .resource_mut::<ToggleActions<ControlAction>>()
             .enabled = false; // Should be initialized in disabled state and enabled only on hud
         app.add_system_set(
-            SystemSet::on_update(UiState::Hud).with_system(health_and_abilities_system),
+            SystemSet::on_update(UiState::Hud)
+                .with_system(health_and_abilities_system)
+                .with_system(show_ingame_menu_system),
         )
         .add_system_set(
             SystemSet::on_enter(UiState::Hud)
@@ -124,4 +130,14 @@ fn show_cursor_system(mut windows: ResMut<Windows>) {
 
     window.set_cursor_lock_mode(false);
     window.set_cursor_visibility(true);
+}
+
+pub(super) fn show_ingame_menu_system(
+    mut action_state: ResMut<ActionState<UiAction>>,
+    mut ui_state_history: ResMut<UiStateHistory>,
+) {
+    if action_state.just_pressed(UiAction::Back) {
+        action_state.consume(UiAction::Back);
+        ui_state_history.push(UiState::InGameMenu);
+    }
 }

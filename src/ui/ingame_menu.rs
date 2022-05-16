@@ -40,8 +40,7 @@ impl Plugin for InGameMenuPlugin {
             SystemSet::on_update(UiState::InGameMenu)
                 .with_system(ingame_menu_system)
                 .with_system(hide_ingame_menu_system),
-        )
-        .add_system_set(SystemSet::on_update(UiState::Hud).with_system(show_ingame_menu_system));
+        );
     }
 }
 
@@ -67,16 +66,6 @@ fn ingame_menu_system(
                 exit_event.send(AppExit);
             }
         });
-}
-
-pub(super) fn show_ingame_menu_system(
-    mut action_state: ResMut<ActionState<UiAction>>,
-    mut ui_state_history: ResMut<UiStateHistory>,
-) {
-    if action_state.just_pressed(UiAction::Back) {
-        action_state.consume(UiAction::Back);
-        ui_state_history.push(UiState::InGameMenu);
-    }
 }
 
 pub(super) fn hide_ingame_menu_system(

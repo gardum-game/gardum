@@ -26,7 +26,7 @@ use bevy_egui::{
 use bevy_renet::renet::ServerEvent;
 use leafwing_input_manager::{plugin::ToggleActions, prelude::ActionState};
 
-use super::{back_button, ingame_menu, ui_actions::UiAction, ui_state::UiState, UI_MARGIN};
+use super::{back_button, hud, ingame_menu, ui_actions::UiAction, ui_state::UiState, UI_MARGIN};
 use crate::core::control_actions::ControlAction;
 
 pub(super) struct ChatPlugin;
@@ -38,7 +38,7 @@ impl Plugin for ChatPlugin {
                 chat_system
                     .before(back_button::back_button_system)
                     .before(ingame_menu::hide_ingame_menu_system)
-                    .before(ingame_menu::show_ingame_menu_system),
+                    .before(hud::show_ingame_menu_system),
             )
             .add_system(announce_connected)
             .add_system_set(SystemSet::on_update(UiState::Hud).with_system(toggle_controls_system));
