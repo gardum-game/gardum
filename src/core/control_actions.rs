@@ -34,34 +34,36 @@ pub(super) struct ControlActionsPlugin;
 
 impl Plugin for ControlActionsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(apply_mappings_system).add_system_set(
-            SystemSet::on_enter(GameState::InGame).with_system(setup_mappings_system),
+        app.add_system(Self::load_mappings_system).add_system_set(
+            SystemSet::on_enter(GameState::InGame).with_system(Self::setup_mappings_system),
         );
     }
 }
 
-fn apply_mappings_system(
-    mut apply_events: EventReader<SettingApplyEvent>,
-    mut local_player: Query<&mut InputMap<ControlAction>, With<Authority>>,
-    settings: Res<Settings>,
-) {
-    if apply_events.iter().next().is_some() {
-        if let Ok(mut mappings) = local_player.get_single_mut() {
-            *mappings = settings.controls.mappings.clone();
+impl ControlActionsPlugin {
+    fn load_mappings_system(
+        mut apply_events: EventReader<SettingApplyEvent>,
+        mut local_player: Query<&mut InputMap<ControlAction>, With<Authority>>,
+        settings: Res<Settings>,
+    ) {
+        if apply_events.iter().next().is_some() {
+            if let Ok(mut mappings) = local_player.get_single_mut() {
+                *mappings = settings.controls.mappings.clone();
+            }
         }
     }
-}
 
-/// Setup player input on game start
-fn setup_mappings_system(
-    mut commands: Commands,
-    settings: Res<Settings>,
-    local_player: Query<Entity, (With<Authority>, With<Player>)>,
-) {
-    let local_player = local_player.single();
-    commands
-        .entity(local_player)
-        .insert(settings.controls.mappings.clone());
+    /// Setup player input on game start
+    fn setup_mappings_system(
+        mut commands: Commands,
+        settings: Res<Settings>,
+        local_player: Query<Entity, (With<Authority>, With<Player>)>,
+    ) {
+        let local_player = local_player.single();
+        commands
+            .entity(local_player)
+            .insert(settings.controls.mappings.clone());
+    }
 }
 
 #[derive(Actionlike, Component, Clone, Copy, PartialEq, Hash, Display, Serialize, Deserialize)]

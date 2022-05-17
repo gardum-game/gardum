@@ -32,56 +32,58 @@ impl Plugin for HealthPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<HealthChangeEvent>().add_system_set(
             SystemSet::on_update(GameState::InGame)
-                .with_system(heal_system)
-                .with_system(damage_system),
+                .with_system(Self::healing_system)
+                .with_system(Self::damage_system),
         );
     }
 }
 
-fn heal_system(
-    mut health_events: EventReader<HealthChangeEvent>,
-    mut targets: Query<&mut Health>,
-    mut instigators: Query<(&mut Healing, &HealingModifier)>,
-) {
-    for event in health_events.iter().filter(|event| event.delta > 0) {
-        let mut health = targets.get_mut(event.target).unwrap();
-        if health.current == 0 {
-            continue;
-        }
-
-        let (mut healing, healing_modifier) = instigators.get_mut(event.instigator).unwrap();
-        let delta = health
-            .missing()
-            .min((event.delta as f32 * healing_modifier.0) as u32);
-        health.current += delta;
-        healing.0 += delta;
-    }
-}
-
-fn damage_system(
-    mut health_events: EventReader<HealthChangeEvent>,
-    mut targets: Query<(&mut Health, &mut Deaths)>,
-    mut instigators: Query<(&mut Damage, &mut Kills, &DamageModifier)>,
-    mut commands: Commands,
-) {
-    for event in health_events.iter().filter(|event| event.delta < 0) {
-        let (mut health, mut deaths) = targets.get_mut(event.target).unwrap();
-        let (mut damage, mut kills, damage_modifier) =
-            instigators.get_mut(event.instigator).unwrap();
-
-        let delta = health
-            .current
-            .min((event.delta.abs() as f32 * damage_modifier.0) as u32);
-        health.current -= delta;
-        if health.current == 0 {
-            deaths.0 += 1;
-            commands.entity(event.target).insert(Death);
-        }
-
-        if event.target != event.instigator {
-            damage.0 += delta;
+impl HealthPlugin {
+    fn healing_system(
+        mut health_events: EventReader<HealthChangeEvent>,
+        mut targets: Query<&mut Health>,
+        mut instigators: Query<(&mut Healing, &HealingModifier)>,
+    ) {
+        for event in health_events.iter().filter(|event| event.delta > 0) {
+            let mut health = targets.get_mut(event.target).unwrap();
             if health.current == 0 {
-                kills.0 += 1;
+                continue;
+            }
+
+            let (mut healing, healing_modifier) = instigators.get_mut(event.instigator).unwrap();
+            let delta = health
+                .missing()
+                .min((event.delta as f32 * healing_modifier.0) as u32);
+            health.current += delta;
+            healing.0 += delta;
+        }
+    }
+
+    fn damage_system(
+        mut health_events: EventReader<HealthChangeEvent>,
+        mut targets: Query<(&mut Health, &mut Deaths)>,
+        mut instigators: Query<(&mut Damage, &mut Kills, &DamageModifier)>,
+        mut commands: Commands,
+    ) {
+        for event in health_events.iter().filter(|event| event.delta < 0) {
+            let (mut health, mut deaths) = targets.get_mut(event.target).unwrap();
+            let (mut damage, mut kills, damage_modifier) =
+                instigators.get_mut(event.instigator).unwrap();
+
+            let delta = health
+                .current
+                .min((event.delta.abs() as f32 * damage_modifier.0) as u32);
+            health.current -= delta;
+            if health.current == 0 {
+                deaths.0 += 1;
+                commands.entity(event.target).insert(Death);
+            }
+
+            if event.target != event.instigator {
+                damage.0 += delta;
+                if health.current == 0 {
+                    kills.0 += 1;
+                }
             }
         }
     }

@@ -32,40 +32,42 @@ pub(super) struct ScoreboardPlugin;
 
 impl Plugin for ScoreboardPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(SystemSet::on_update(UiState::Hud).with_system(scoreboard_system));
+        app.add_system_set(SystemSet::on_update(UiState::Hud).with_system(Self::scoreboard_system));
     }
 }
 
-fn scoreboard_system(
-    action_state: Res<ActionState<UiAction>>,
-    egui: ResMut<EguiContext>,
-    players: Query<(&Name, &Kills, &Deaths, &Damage, &Healing)>,
-) {
-    if !action_state.pressed(UiAction::Scoreboard) {
-        return;
-    }
+impl ScoreboardPlugin {
+    fn scoreboard_system(
+        action_state: Res<ActionState<UiAction>>,
+        egui: ResMut<EguiContext>,
+        players: Query<(&Name, &Kills, &Deaths, &Damage, &Healing)>,
+    ) {
+        if !action_state.pressed(UiAction::Scoreboard) {
+            return;
+        }
 
-    Window::new("Scoreboard")
-        .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
-        .collapsible(false)
-        .resizable(false)
-        .show(egui.ctx(), |ui| {
-            Grid::new("Scoreboard grid").striped(true).show(ui, |ui| {
-                ui.label("Player");
-                ui.label("Kills");
-                ui.label("Deaths");
-                ui.label("Damage");
-                ui.label("Healing");
-                ui.end_row();
-
-                for (name, kills, deaths, damage, healing) in players.iter() {
-                    ui.label(name.as_str());
-                    ui.label(kills.to_string());
-                    ui.label(deaths.to_string());
-                    ui.label(damage.to_string());
-                    ui.label(healing.to_string());
+        Window::new("Scoreboard")
+            .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
+            .collapsible(false)
+            .resizable(false)
+            .show(egui.ctx(), |ui| {
+                Grid::new("Scoreboard grid").striped(true).show(ui, |ui| {
+                    ui.label("Player");
+                    ui.label("Kills");
+                    ui.label("Deaths");
+                    ui.label("Damage");
+                    ui.label("Healing");
                     ui.end_row();
-                }
-            })
-        });
+
+                    for (name, kills, deaths, damage, healing) in players.iter() {
+                        ui.label(name.as_str());
+                        ui.label(kills.to_string());
+                        ui.label(deaths.to_string());
+                        ui.label(damage.to_string());
+                        ui.label(healing.to_string());
+                        ui.end_row();
+                    }
+                })
+            });
+    }
 }

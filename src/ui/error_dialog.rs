@@ -31,26 +31,28 @@ pub(super) struct ErrorDialogPlugin;
 impl Plugin for ErrorDialogPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<ErrorDialog>().add_system_set(
-            SystemSet::on_update(UiState::ErrorDialog).with_system(error_dialog_system),
+            SystemSet::on_update(UiState::ErrorDialog).with_system(Self::error_dialog_system),
         );
     }
 }
 
-fn error_dialog_system(
-    egui: ResMut<EguiContext>,
-    error_dialog: Res<ErrorDialog>,
-    mut ui_state_history: ResMut<UiStateHistory>,
-) {
-    Window::new(&error_dialog.title)
-        .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
-        .collapsible(false)
-        .resizable(false)
-        .show(egui.ctx(), |ui| {
-            ui.label(&error_dialog.message);
-            if ui.button("Ok").clicked() {
-                ui_state_history.pop();
-            }
-        });
+impl ErrorDialogPlugin {
+    fn error_dialog_system(
+        egui: ResMut<EguiContext>,
+        error_dialog: Res<ErrorDialog>,
+        mut ui_state_history: ResMut<UiStateHistory>,
+    ) {
+        Window::new(&error_dialog.title)
+            .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
+            .collapsible(false)
+            .resizable(false)
+            .show(egui.ctx(), |ui| {
+                ui.label(&error_dialog.message);
+                if ui.button("Ok").clicked() {
+                    ui_state_history.pop();
+                }
+            });
+    }
 }
 
 #[derive(Default)]

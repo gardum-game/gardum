@@ -30,46 +30,48 @@ impl Plugin for AbilityPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
             SystemSet::on_update(GameState::InGame)
-                .with_system(activation_system)
-                .with_system(abilities_to_children_system),
+                .with_system(Self::activation_system)
+                .with_system(Self::abilities_to_children_system),
         );
     }
 }
 
-fn activation_system(
-    mut commands: Commands,
-    time: Res<Time>,
-    characters: Query<(Entity, &Abilities, &ActionState<ControlAction>)>,
-    mut abilities: Query<(&ControlAction, Option<&mut Cooldown>)>,
-) {
-    for (character, character_abilities, action_state) in characters.iter() {
-        for ability in character_abilities.iter() {
-            let (action, cooldown) = abilities.get_mut(*ability).unwrap();
+impl AbilityPlugin {
+    fn activation_system(
+        mut commands: Commands,
+        time: Res<Time>,
+        characters: Query<(Entity, &Abilities, &ActionState<ControlAction>)>,
+        mut abilities: Query<(&ControlAction, Option<&mut Cooldown>)>,
+    ) {
+        for (character, character_abilities, action_state) in characters.iter() {
+            for ability in character_abilities.iter() {
+                let (action, cooldown) = abilities.get_mut(*ability).unwrap();
 
-            if let Some(mut cooldown) = cooldown {
-                cooldown.tick(time.delta());
-                if action_state.just_pressed(*action) {
-                    if !cooldown.finished() {
-                        break;
+                if let Some(mut cooldown) = cooldown {
+                    cooldown.tick(time.delta());
+                    if action_state.just_pressed(*action) {
+                        if !cooldown.finished() {
+                            break;
+                        }
+                        cooldown.reset();
                     }
-                    cooldown.reset();
                 }
-            }
 
-            if action_state.just_pressed(*action) {
-                commands.entity(*ability).insert(Activator(character));
-                break;
+                if action_state.just_pressed(*action) {
+                    commands.entity(*ability).insert(Activator(character));
+                    break;
+                }
             }
         }
     }
-}
 
-fn abilities_to_children_system(
-    mut commands: Commands,
-    characters: Query<(Entity, &Abilities), Added<Abilities>>,
-) {
-    for (character, abilities) in characters.iter() {
-        commands.entity(character).push_children(&abilities.0);
+    fn abilities_to_children_system(
+        mut commands: Commands,
+        characters: Query<(Entity, &Abilities), Added<Abilities>>,
+    ) {
+        for (character, abilities) in characters.iter() {
+            commands.entity(character).push_children(&abilities.0);
+        }
     }
 }
 

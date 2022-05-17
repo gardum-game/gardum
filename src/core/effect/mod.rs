@@ -42,45 +42,44 @@ impl Plugin for EffectPlugin {
             .add_plugin(PeriodicEffectPlugin)
             .add_system_set(
                 SystemSet::on_update(GameState::InGame)
-                    .with_system(dispell_on_death_system)
-                    .with_system(effect_timer_system)
-                    .with_system(effect_removal_system),
+                    .with_system(Self::dispell_on_death_system)
+                    .with_system(Self::timer_system)
+                    .with_system(Self::despawn_system),
             );
     }
 }
 
-fn effect_removal_system(
-    mut commands: Commands,
-    dispelled_effects: Query<Entity, Added<Dispelled>>,
-) {
-    for effect in dispelled_effects.iter() {
-        commands.entity(effect).despawn();
+impl EffectPlugin {
+    fn despawn_system(mut commands: Commands, dispelled_effects: Query<Entity, Added<Dispelled>>) {
+        for effect in dispelled_effects.iter() {
+            commands.entity(effect).despawn();
+        }
     }
-}
 
-fn dispell_on_death_system(
-    mut commands: Commands,
-    died_characters: Query<Entity, Added<Death>>,
-    effects: Query<(Entity, &EffectTarget)>,
-) {
-    for character in died_characters.iter() {
-        for (effect, target) in effects.iter() {
-            if character == target.0 {
-                commands.entity(effect).insert(Dispelled);
+    fn dispell_on_death_system(
+        mut commands: Commands,
+        died_characters: Query<Entity, Added<Death>>,
+        effects: Query<(Entity, &EffectTarget)>,
+    ) {
+        for character in died_characters.iter() {
+            for (effect, target) in effects.iter() {
+                if character == target.0 {
+                    commands.entity(effect).insert(Dispelled);
+                }
             }
         }
     }
-}
 
-fn effect_timer_system(
-    mut commands: Commands,
-    time: Res<Time>,
-    mut effects: Query<(Entity, &mut EffectTimer)>,
-) {
-    for (effect, mut timer) in effects.iter_mut() {
-        timer.tick(time.delta());
-        if timer.finished() {
-            commands.entity(effect).despawn();
+    fn timer_system(
+        mut commands: Commands,
+        time: Res<Time>,
+        mut effects: Query<(Entity, &mut EffectTimer)>,
+    ) {
+        for (effect, mut timer) in effects.iter_mut() {
+            timer.tick(time.delta());
+            if timer.finished() {
+                commands.entity(effect).despawn();
+            }
         }
     }
 }

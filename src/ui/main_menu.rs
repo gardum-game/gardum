@@ -34,55 +34,61 @@ pub(super) struct MainMenuPlugin;
 
 impl Plugin for MainMenuPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(SystemSet::on_update(UiState::MainMenu).with_system(main_menu_system))
-            .add_system_set(SystemSet::on_enter(GameState::Menu).with_system(show_main_menu));
+        app.add_system_set(
+            SystemSet::on_update(UiState::MainMenu).with_system(Self::main_menu_system),
+        )
+        .add_system_set(
+            SystemSet::on_enter(GameState::Menu).with_system(Self::show_main_menu_system),
+        );
     }
 }
 
-fn main_menu_system(
-    egui: ResMut<EguiContext>,
-    mut exit_event: EventWriter<AppExit>,
-    mut ui_state_history: ResMut<UiStateHistory>,
-) {
-    Area::new("Main Menu")
-        .anchor(Align2::LEFT_CENTER, (UI_MARGIN, 0.0))
-        .show(egui.ctx(), |ui| {
-            ui.add_enabled(
-                false,
-                Button::new(RichText::new("Play").text_style(TextStyle::Heading)),
-            );
-            if ui
-                .add(Button::new(
-                    RichText::new("Custom game").text_style(TextStyle::Heading),
-                ))
-                .clicked()
-            {
-                ui_state_history.push(UiState::ServerBrowser);
-            }
-            ui.add_enabled(
-                false,
-                Button::new(RichText::new("Characters").text_style(TextStyle::Heading)),
-            );
-            if ui
-                .add(Button::new(
-                    RichText::new("Settings").text_style(TextStyle::Heading),
-                ))
-                .clicked()
-            {
-                ui_state_history.push(UiState::SettingsMenu);
-            }
-            if ui
-                .add(Button::new(
-                    RichText::new("Exit").text_style(TextStyle::Heading),
-                ))
-                .clicked()
-            {
-                exit_event.send(AppExit);
-            }
-        });
-}
+impl MainMenuPlugin {
+    fn main_menu_system(
+        egui: ResMut<EguiContext>,
+        mut exit_event: EventWriter<AppExit>,
+        mut ui_state_history: ResMut<UiStateHistory>,
+    ) {
+        Area::new("Main Menu")
+            .anchor(Align2::LEFT_CENTER, (UI_MARGIN, 0.0))
+            .show(egui.ctx(), |ui| {
+                ui.add_enabled(
+                    false,
+                    Button::new(RichText::new("Play").text_style(TextStyle::Heading)),
+                );
+                if ui
+                    .add(Button::new(
+                        RichText::new("Custom game").text_style(TextStyle::Heading),
+                    ))
+                    .clicked()
+                {
+                    ui_state_history.push(UiState::ServerBrowser);
+                }
+                ui.add_enabled(
+                    false,
+                    Button::new(RichText::new("Characters").text_style(TextStyle::Heading)),
+                );
+                if ui
+                    .add(Button::new(
+                        RichText::new("Settings").text_style(TextStyle::Heading),
+                    ))
+                    .clicked()
+                {
+                    ui_state_history.push(UiState::SettingsMenu);
+                }
+                if ui
+                    .add(Button::new(
+                        RichText::new("Exit").text_style(TextStyle::Heading),
+                    ))
+                    .clicked()
+                {
+                    exit_event.send(AppExit);
+                }
+            });
+    }
 
-fn show_main_menu(mut ui_state_history: ResMut<UiStateHistory>) {
-    ui_state_history.clear();
-    ui_state_history.push(UiState::MainMenu);
+    fn show_main_menu_system(mut ui_state_history: ResMut<UiStateHistory>) {
+        ui_state_history.clear();
+        ui_state_history.push(UiState::MainMenu);
+    }
 }

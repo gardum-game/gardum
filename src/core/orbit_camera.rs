@@ -41,69 +41,72 @@ pub(super) struct OrbitCameraPlugin;
 impl Plugin for OrbitCameraPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
-            SystemSet::on_update(GameState::InGame).with_system(spawn_camera_system),
+            SystemSet::on_update(GameState::InGame)
+                .with_system(Self::spawn_system)
+                .with_system(Self::input_system),
         )
-        .add_system_set(SystemSet::on_update(GameState::InGame).with_system(camera_input_system))
         .add_system_to_stage(
             CoreStage::PostUpdate,
-            camera_position_system
+            Self::position_system
                 .after(PhysicsSystem::TransformUpdate)
                 .before(TransformSystem::TransformPropagate),
         );
     }
 }
 
-fn spawn_camera_system(
-    mut commands: Commands,
-    spawned_heroes: Query<(Entity, Option<&Authority>), Added<HeroKind>>,
-    mut active_camera: ResMut<ActiveCamera<Camera3d>>,
-) {
-    for (hero, authority) in spawned_heroes.iter() {
-        let mut entity_commands = commands.spawn_bundle(OrbitCameraBundle::new(hero.into()));
+impl OrbitCameraPlugin {
+    fn spawn_system(
+        mut commands: Commands,
+        spawned_heroes: Query<(Entity, Option<&Authority>), Added<HeroKind>>,
+        mut active_camera: ResMut<ActiveCamera<Camera3d>>,
+    ) {
+        for (hero, authority) in spawned_heroes.iter() {
+            let mut entity_commands = commands.spawn_bundle(OrbitCameraBundle::new(hero.into()));
 
-        if authority.is_some() {
-            entity_commands.insert(Authority);
-            active_camera.set(entity_commands.id());
+            if authority.is_some() {
+                entity_commands.insert(Authority);
+                active_camera.set(entity_commands.id());
+            }
         }
     }
-}
 
-fn camera_input_system(
-    time: Res<Time>,
-    #[cfg(not(test))] windows: ResMut<Windows>,
-    mut motion_events: EventReader<MouseMotion>,
-    mut orbit_rotations: Query<&mut OrbitRotation, With<Authority>>,
-) {
-    #[cfg(not(test))] // Can't run tests with windows, ignore.
-    if !windows.get_primary().unwrap().cursor_locked() {
-        return;
-    }
-
-    if let Ok(mut orbit_rotation) = orbit_rotations.get_single_mut() {
-        for event in motion_events.iter() {
-            orbit_rotation.0 -= event.delta * CAMERA_SENSETIVITY * time.delta_seconds();
+    fn input_system(
+        time: Res<Time>,
+        #[cfg(not(test))] windows: ResMut<Windows>,
+        mut motion_events: EventReader<MouseMotion>,
+        mut orbit_rotations: Query<&mut OrbitRotation, With<Authority>>,
+    ) {
+        #[cfg(not(test))] // Can't run tests with windows, ignore.
+        if !windows.get_primary().unwrap().cursor_locked() {
+            return;
         }
 
-        orbit_rotation.y = orbit_rotation
-            .y
-            .clamp(10_f32.to_radians(), 90_f32.to_radians());
-    }
-}
+        if let Ok(mut orbit_rotation) = orbit_rotations.get_single_mut() {
+            for event in motion_events.iter() {
+                orbit_rotation.0 -= event.delta * CAMERA_SENSETIVITY * time.delta_seconds();
+            }
 
-fn camera_position_system(
-    game_state: Res<State<GameState>>,
-    transforms: Query<&Transform, Without<OrbitRotation>>,
-    mut cameras: Query<(&mut Transform, &OrbitRotation, &CameraTarget)>,
-) {
-    if *game_state.current() != GameState::InGame {
-        return;
+            orbit_rotation.y = orbit_rotation
+                .y
+                .clamp(10_f32.to_radians(), 90_f32.to_radians());
+        }
     }
 
-    for (mut camera_transform, orbit_rotation, target) in cameras.iter_mut() {
-        let character_translation = transforms.get(target.0).unwrap().translation;
-        camera_transform.translation =
-            orbit_rotation.to_quat() * Vec3::Y * CAMERA_DISTANCE + character_translation;
-        camera_transform.look_at(character_translation, Vec3::Y);
+    fn position_system(
+        game_state: Res<State<GameState>>,
+        transforms: Query<&Transform, Without<OrbitRotation>>,
+        mut cameras: Query<(&mut Transform, &OrbitRotation, &CameraTarget)>,
+    ) {
+        if *game_state.current() != GameState::InGame {
+            return;
+        }
+
+        for (mut camera_transform, orbit_rotation, target) in cameras.iter_mut() {
+            let character_translation = transforms.get(target.0).unwrap().translation;
+            camera_transform.translation =
+                orbit_rotation.to_quat() * Vec3::Y * CAMERA_DISTANCE + character_translation;
+            camera_transform.look_at(character_translation, Vec3::Y);
+        }
     }
 }
 

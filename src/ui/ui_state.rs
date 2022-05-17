@@ -26,21 +26,23 @@ impl Plugin for UiStatePlugin {
     fn build(&self, app: &mut App) {
         app.add_state(UiState::Empty)
             .init_resource::<UiStateHistory>()
-            .add_system(update_ui_state_system);
+            .add_system(Self::update_ui_state_system);
     }
 }
 
-fn update_ui_state_system(
-    mut ui_state_history: ResMut<UiStateHistory>,
-    mut ui_state: ResMut<State<UiState>>,
-) {
-    if ui_state_history.is_added() && ui_state_history.is_empty() {
-        ui_state_history.push(*ui_state.current());
-    } else if ui_state_history.is_changed() {
-        let last_state = *ui_state_history
-            .last()
-            .expect("State history should always contain at least one element");
-        ui_state.set(last_state).unwrap();
+impl UiStatePlugin {
+    fn update_ui_state_system(
+        mut ui_state_history: ResMut<UiStateHistory>,
+        mut ui_state: ResMut<State<UiState>>,
+    ) {
+        if ui_state_history.is_added() && ui_state_history.is_empty() {
+            ui_state_history.push(*ui_state.current());
+        } else if ui_state_history.is_changed() {
+            let last_state = *ui_state_history
+                .last()
+                .expect("State history should always contain at least one element");
+            ui_state.set(last_state).unwrap();
+        }
     }
 }
 

@@ -38,42 +38,44 @@ impl Plugin for InGameMenuPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
             SystemSet::on_update(UiState::InGameMenu)
-                .with_system(ingame_menu_system)
-                .with_system(hide_ingame_menu_system),
+                .with_system(Self::ingame_menu_system)
+                .with_system(Self::hide_ingame_menu_system),
         );
     }
 }
 
-fn ingame_menu_system(
-    egui: ResMut<EguiContext>,
-    mut exit_event: EventWriter<AppExit>,
-    mut ui_state_history: ResMut<UiStateHistory>,
-    mut game_state: ResMut<State<GameState>>,
-) {
-    Area::new("Main Menu")
-        .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
-        .show(egui.ctx(), |ui| {
-            if ui.button("Resume").clicked() {
-                ui_state_history.pop();
-            }
-            if ui.button("Settings").clicked() {
-                ui_state_history.push(UiState::SettingsMenu);
-            }
-            if ui.button("Main menu").clicked() {
-                game_state.set(GameState::Menu).unwrap();
-            }
-            if ui.button("Exit").clicked() {
-                exit_event.send(AppExit);
-            }
-        });
-}
+impl InGameMenuPlugin {
+    fn ingame_menu_system(
+        egui: ResMut<EguiContext>,
+        mut exit_event: EventWriter<AppExit>,
+        mut ui_state_history: ResMut<UiStateHistory>,
+        mut game_state: ResMut<State<GameState>>,
+    ) {
+        Area::new("Main Menu")
+            .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
+            .show(egui.ctx(), |ui| {
+                if ui.button("Resume").clicked() {
+                    ui_state_history.pop();
+                }
+                if ui.button("Settings").clicked() {
+                    ui_state_history.push(UiState::SettingsMenu);
+                }
+                if ui.button("Main menu").clicked() {
+                    game_state.set(GameState::Menu).unwrap();
+                }
+                if ui.button("Exit").clicked() {
+                    exit_event.send(AppExit);
+                }
+            });
+    }
 
-pub(super) fn hide_ingame_menu_system(
-    mut action_state: ResMut<ActionState<UiAction>>,
-    mut ui_state_history: ResMut<UiStateHistory>,
-) {
-    if action_state.just_pressed(UiAction::Back) {
-        action_state.consume(UiAction::Back);
-        ui_state_history.pop();
+    pub(super) fn hide_ingame_menu_system(
+        mut action_state: ResMut<ActionState<UiAction>>,
+        mut ui_state_history: ResMut<UiStateHistory>,
+    ) {
+        if action_state.just_pressed(UiAction::Back) {
+            action_state.consume(UiAction::Back);
+            ui_state_history.pop();
+        }
     }
 }

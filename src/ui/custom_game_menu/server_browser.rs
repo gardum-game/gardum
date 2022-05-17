@@ -31,36 +31,38 @@ pub(super) struct ServerBrowserPlugin;
 impl Plugin for ServerBrowserPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<SearchText>().add_system_set(
-            SystemSet::on_update(UiState::ServerBrowser).with_system(game_browser_system),
+            SystemSet::on_update(UiState::ServerBrowser).with_system(Self::game_browser_system),
         );
+    }
+}
+
+impl ServerBrowserPlugin {
+    fn game_browser_system(
+        egui: ResMut<EguiContext>,
+        mut search_text: Local<SearchText>,
+        mut ui_state_history: ResMut<UiStateHistory>,
+    ) {
+        Window::new("Game browser")
+            .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
+            .collapsible(false)
+            .resizable(false)
+            .show(egui.ctx(), |ui| {
+                ui.horizontal(|ui| {
+                    ui.add_enabled(
+                        false,
+                        TextEdit::singleline(&mut search_text.0).hint_text("Search servers"),
+                    );
+                    if ui.button("Connect").clicked() {
+                        ui_state_history.push(UiState::DirectConnectMenu);
+                    }
+                    if ui.button("Create").clicked() {
+                        ui_state_history.push(UiState::CrateLobbyMenu);
+                    }
+                });
+                ui.add_space(ui.available_height());
+            });
     }
 }
 
 #[derive(Default)]
 struct SearchText(String);
-
-fn game_browser_system(
-    egui: ResMut<EguiContext>,
-    mut search_text: Local<SearchText>,
-    mut ui_state_history: ResMut<UiStateHistory>,
-) {
-    Window::new("Game browser")
-        .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
-        .collapsible(false)
-        .resizable(false)
-        .show(egui.ctx(), |ui| {
-            ui.horizontal(|ui| {
-                ui.add_enabled(
-                    false,
-                    TextEdit::singleline(&mut search_text.0).hint_text("Search servers"),
-                );
-                if ui.button("Connect").clicked() {
-                    ui_state_history.push(UiState::DirectConnectMenu);
-                }
-                if ui.button("Create").clicked() {
-                    ui_state_history.push(UiState::CrateLobbyMenu);
-                }
-            });
-            ui.add_space(ui.available_height());
-        });
-}

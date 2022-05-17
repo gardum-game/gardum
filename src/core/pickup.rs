@@ -40,67 +40,71 @@ impl Plugin for PickupPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
             SystemSet::on_update(GameState::InGame)
-                .with_system(pickup_collision_system)
-                .with_system(pickup_cooldown_system),
+                .with_system(Self::collision_system)
+                .with_system(Self::cooldown_system),
         );
     }
 }
 
-fn pickup_collision_system(
-    mut commands: Commands,
-    mut pickups: Query<(Entity, &PickupKind, &mut Cooldown, &Collisions), Changed<Collisions>>,
-    children: Query<&Children>,
-) {
-    for (pickup, pickup_kind, mut cooldown, collisions) in pickups.iter_mut() {
-        let character = match collisions.entities().next() {
-            Some(character) => character,
-            None => continue,
-        };
+impl PickupPlugin {
+    fn collision_system(
+        mut commands: Commands,
+        mut pickups: Query<(Entity, &PickupKind, &mut Cooldown, &Collisions), Changed<Collisions>>,
+        children: Query<&Children>,
+    ) {
+        for (pickup, pickup_kind, mut cooldown, collisions) in pickups.iter_mut() {
+            let character = match collisions.entities().next() {
+                Some(character) => character,
+                None => continue,
+            };
 
-        if !cooldown.finished() {
-            continue;
-        }
-        cooldown.reset();
-
-        match pickup_kind {
-            PickupKind::Healing => {
-                commands.spawn_bundle(HealingEffectBundle::new(character.into()))
+            if !cooldown.finished() {
+                continue;
             }
-            PickupKind::Rage => commands.spawn_bundle(RageEffectBundle::new(character.into())),
-            PickupKind::Speed => commands.spawn_bundle(SpeedEffectBundle::new(character.into())),
-        };
+            cooldown.reset();
 
-        let mesh_child = pickup_child_mesh(pickup, &children);
-        commands
-            .entity(mesh_child)
-            .insert(Visibility { is_visible: false });
-    }
-}
+            match pickup_kind {
+                PickupKind::Healing => {
+                    commands.spawn_bundle(HealingEffectBundle::new(character.into()))
+                }
+                PickupKind::Rage => commands.spawn_bundle(RageEffectBundle::new(character.into())),
+                PickupKind::Speed => {
+                    commands.spawn_bundle(SpeedEffectBundle::new(character.into()))
+                }
+            };
 
-fn pickup_cooldown_system(
-    time: Res<Time>,
-    mut cooldowns: Query<(Entity, &mut Cooldown), With<PickupKind>>,
-    children: Query<&Children>,
-    mut visibility: Query<&mut Visibility>,
-) {
-    for (pickup, mut cooldown) in cooldowns.iter_mut() {
-        cooldown.tick(time.delta());
-        if cooldown.just_finished() {
-            let child_mesh = pickup_child_mesh(pickup, &children);
-            visibility.get_mut(child_mesh).unwrap().is_visible = true;
+            let mesh_child = Self::pickup_child_mesh(pickup, &children);
+            commands
+                .entity(mesh_child)
+                .insert(Visibility { is_visible: false });
         }
     }
-}
 
-/// Returns children entity with pickup mesh from the specified entity
-fn pickup_child_mesh(pickup: Entity, children: &Query<&Children>) -> Entity {
-    let mut mesh_entity = pickup;
-    // Child entity with mesh located deeply in children hierarchy
-    for _ in 0..4 {
-        let children = children.get(mesh_entity).unwrap();
-        mesh_entity = *children.iter().next().unwrap();
+    fn cooldown_system(
+        time: Res<Time>,
+        mut cooldowns: Query<(Entity, &mut Cooldown), With<PickupKind>>,
+        children: Query<&Children>,
+        mut visibility: Query<&mut Visibility>,
+    ) {
+        for (pickup, mut cooldown) in cooldowns.iter_mut() {
+            cooldown.tick(time.delta());
+            if cooldown.just_finished() {
+                let child_mesh = Self::pickup_child_mesh(pickup, &children);
+                visibility.get_mut(child_mesh).unwrap().is_visible = true;
+            }
+        }
     }
-    mesh_entity
+
+    /// Returns children entity with pickup mesh from the specified entity
+    fn pickup_child_mesh(pickup: Entity, children: &Query<&Children>) -> Entity {
+        let mut mesh_entity = pickup;
+        // Child entity with mesh located deeply in children hierarchy
+        for _ in 0..4 {
+            let children = children.get(mesh_entity).unwrap();
+            mesh_entity = *children.iter().next().unwrap();
+        }
+        mesh_entity
+    }
 }
 
 #[derive(Bundle)]
@@ -340,7 +344,7 @@ mod tests {
 
         let mut system_state: SystemState<Query<&Children>> = SystemState::new(&mut app.world);
         let children = system_state.get(&mut app.world);
-        let mesh = pickup_child_mesh(pickup, &children);
+        let mesh = PickupPlugin::pickup_child_mesh(pickup, &children);
 
         app.world
             .entity_mut(mesh)

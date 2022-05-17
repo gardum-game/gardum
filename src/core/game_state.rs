@@ -38,17 +38,19 @@ impl Plugin for AppStatePlugin {
             app.add_state(GameState::Menu);
         }
         app.add_system_set(
-            SystemSet::on_exit(GameState::InGame).with_system(remove_ingame_entities_system),
+            SystemSet::on_exit(GameState::InGame).with_system(Self::cleanup_ingame_entities_system),
         );
     }
 }
 
-fn remove_ingame_entities_system(
-    mut commands: Commands,
-    ingame_entities: Query<Entity, With<InGameOnly>>,
-) {
-    for entity in ingame_entities.iter() {
-        commands.entity(entity).despawn_recursive();
+impl AppStatePlugin {
+    fn cleanup_ingame_entities_system(
+        mut commands: Commands,
+        ingame_entities: Query<Entity, With<InGameOnly>>,
+    ) {
+        for entity in ingame_entities.iter() {
+            commands.entity(entity).despawn_recursive();
+        }
     }
 }
 

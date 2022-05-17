@@ -38,60 +38,64 @@ pub(super) struct MovementPlugin;
 
 impl Plugin for MovementPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(SystemSet::on_update(GameState::InGame).with_system(movement_system));
+        app.add_system_set(
+            SystemSet::on_update(GameState::InGame).with_system(Self::movement_system),
+        );
     }
 }
 
-fn movement_system(
-    time: Res<Time>,
-    cameras: Query<(&Transform, &CameraTarget)>,
-    mut characters: Query<(&SpeedModifier, &ActionState<ControlAction>, &mut Velocity)>,
-) {
-    for (camera_transform, camera_target) in cameras.iter() {
-        let (speed_modifier, action_state, mut velocity) =
-            characters.get_mut(camera_target.0).unwrap();
+impl MovementPlugin {
+    fn movement_system(
+        time: Res<Time>,
+        cameras: Query<(&Transform, &CameraTarget)>,
+        mut characters: Query<(&SpeedModifier, &ActionState<ControlAction>, &mut Velocity)>,
+    ) {
+        for (camera_transform, camera_target) in cameras.iter() {
+            let (speed_modifier, action_state, mut velocity) =
+                characters.get_mut(camera_target.0).unwrap();
 
-        let falling_velocity = velocity.linear.y; // Save Y velocity to avoid it interpolation
-        let on_floor = ulps_eq!(falling_velocity, 0.0, epsilon = FLOOR_VELOCITY_EPSILON);
-        let interpolation_speed = if on_floor {
-            MOVEMENT_INTERPOLATION_SPEED
-        } else {
-            AIR_INTERPOLATION_SPEED
-        };
+            let falling_velocity = velocity.linear.y; // Save Y velocity to avoid it interpolation
+            let on_floor = ulps_eq!(falling_velocity, 0.0, epsilon = FLOOR_VELOCITY_EPSILON);
+            let interpolation_speed = if on_floor {
+                MOVEMENT_INTERPOLATION_SPEED
+            } else {
+                AIR_INTERPOLATION_SPEED
+            };
 
-        let motion = movement_direction(action_state, camera_transform.rotation)
-            * MOVE_SPEED
-            * speed_modifier.0;
-        velocity.linear = velocity
-            .linear
-            .lerp(motion, interpolation_speed * time.delta_seconds());
-        velocity.linear.y = falling_velocity;
+            let motion = Self::movement_direction(action_state, camera_transform.rotation)
+                * MOVE_SPEED
+                * speed_modifier.0;
+            velocity.linear = velocity
+                .linear
+                .lerp(motion, interpolation_speed * time.delta_seconds());
+            velocity.linear.y = falling_velocity;
 
-        if on_floor && action_state.pressed(ControlAction::Jump) {
-            velocity.linear.y += JUMP_IMPULSE;
+            if on_floor && action_state.pressed(ControlAction::Jump) {
+                velocity.linear.y += JUMP_IMPULSE;
+            }
         }
     }
-}
 
-fn movement_direction(action_state: &ActionState<ControlAction>, rotation: Quat) -> Vec3 {
-    let mut direction = Vec3::ZERO;
-    if action_state.pressed(ControlAction::Left) {
-        direction.x -= 1.0;
-    }
-    if action_state.pressed(ControlAction::Right) {
-        direction.x += 1.0;
-    }
-    if action_state.pressed(ControlAction::Forward) {
-        direction.z -= 1.0;
-    }
-    if action_state.pressed(ControlAction::Backward) {
-        direction.z += 1.0;
-    }
+    fn movement_direction(action_state: &ActionState<ControlAction>, rotation: Quat) -> Vec3 {
+        let mut direction = Vec3::ZERO;
+        if action_state.pressed(ControlAction::Left) {
+            direction.x -= 1.0;
+        }
+        if action_state.pressed(ControlAction::Right) {
+            direction.x += 1.0;
+        }
+        if action_state.pressed(ControlAction::Forward) {
+            direction.z -= 1.0;
+        }
+        if action_state.pressed(ControlAction::Backward) {
+            direction.z += 1.0;
+        }
 
-    direction = rotation * direction;
-    direction.y = 0.0;
+        direction = rotation * direction;
+        direction.y = 0.0;
 
-    direction.normalize_or_zero()
+        direction.normalize_or_zero()
+    }
 }
 
 #[cfg(test)]
@@ -110,7 +114,7 @@ mod tests {
         action_state.press(ControlAction::Forward);
         action_state.press(ControlAction::Right);
 
-        let direction = movement_direction(&action_state, Quat::IDENTITY);
+        let direction = MovementPlugin::movement_direction(&action_state, Quat::IDENTITY);
         assert!(direction.is_normalized(), "Should be normalized");
         assert_eq!(direction.y, 0.0, "Shouldn't point up");
     }
@@ -123,7 +127,7 @@ mod tests {
         action_state.press(ControlAction::Right);
         action_state.press(ControlAction::Left);
 
-        let direction = movement_direction(&action_state, Quat::IDENTITY);
+        let direction = MovementPlugin::movement_direction(&action_state, Quat::IDENTITY);
         assert_eq!(
             direction.x, 0.0,
             "Should be 0 when opposite buttons are pressed"
@@ -138,7 +142,7 @@ mod tests {
     fn movement_direction_empty() {
         let action_state = ActionState::<ControlAction>::default();
 
-        let direction = movement_direction(&action_state, Quat::IDENTITY);
+        let direction = MovementPlugin::movement_direction(&action_state, Quat::IDENTITY);
         assert_eq!(
             direction,
             Vec3::ZERO,

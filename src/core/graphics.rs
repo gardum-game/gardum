@@ -26,19 +26,21 @@ pub(super) struct GraphicsPlugin;
 
 impl Plugin for GraphicsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(apply_graphics_system);
+        app.add_system(Self::apply_graphics_system);
     }
 }
 
-fn apply_graphics_system(
-    mut commands: Commands,
-    mut apply_events: EventReader<SettingApplyEvent>,
-    settings: Res<Settings>,
-) {
-    if apply_events.iter().next().is_some() || settings.is_added() {
-        commands.insert_resource(Msaa {
-            samples: settings.video.msaa,
-        });
+impl GraphicsPlugin {
+    fn apply_graphics_system(
+        mut commands: Commands,
+        mut apply_events: EventReader<SettingApplyEvent>,
+        settings: Res<Settings>,
+    ) {
+        if apply_events.iter().next().is_some() || settings.is_added() {
+            commands.insert_resource(Msaa {
+                samples: settings.video.msaa,
+            });
+        }
     }
 }
 

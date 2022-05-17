@@ -34,30 +34,32 @@ pub(super) struct PerfStatsPlugin;
 
 impl Plugin for PerfStatsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(display_perf_stats_system);
+        app.add_system(Self::perf_stats_system);
     }
 }
 
-fn display_perf_stats_system(
-    mut enabled: Local<bool>,
-    egui: ResMut<EguiContext>,
-    diagnostics: Res<Diagnostics>,
-    mut apply_events: EventReader<SettingApplyEvent>,
-    settings: Res<Settings>,
-) {
-    if apply_events.iter().next().is_some() || settings.is_added() {
-        *enabled = settings.video.perf_stats;
-    }
-    if !*enabled {
-        return;
-    }
+impl PerfStatsPlugin {
+    fn perf_stats_system(
+        mut enabled: Local<bool>,
+        egui: ResMut<EguiContext>,
+        diagnostics: Res<Diagnostics>,
+        mut apply_events: EventReader<SettingApplyEvent>,
+        settings: Res<Settings>,
+    ) {
+        if apply_events.iter().next().is_some() || settings.is_added() {
+            *enabled = settings.video.perf_stats;
+        }
+        if !*enabled {
+            return;
+        }
 
-    let fps = diagnostics.get(FrameTimeDiagnosticsPlugin::FPS).unwrap();
-    Area::new("Performance stats")
-        .anchor(Align2::LEFT_TOP, (UI_MARGIN, UI_MARGIN))
-        .show(egui.ctx(), |ui| {
-            if let Some(fps) = fps.value() {
-                ui.strong(format!("FPS: {:.0}", fps));
-            }
-        });
+        let fps = diagnostics.get(FrameTimeDiagnosticsPlugin::FPS).unwrap();
+        Area::new("Performance stats")
+            .anchor(Align2::LEFT_TOP, (UI_MARGIN, UI_MARGIN))
+            .show(egui.ctx(), |ui| {
+                if let Some(fps) = fps.value() {
+                    ui.strong(format!("FPS: {:.0}", fps));
+                }
+            });
+    }
 }

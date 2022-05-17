@@ -36,27 +36,29 @@ impl<T: Component + AddAssign + SubAssign + Copy> Plugin for ModifierEffectPlugi
     fn build(&self, app: &mut App) {
         app.add_system_set(
             SystemSet::on_update(GameState::InGame)
-                .with_system(effect_modifier_activation_system::<T>)
-                .with_system(effect_modifier_removal_system::<T>),
+                .with_system(Self::apply_modifier_system)
+                .with_system(Self::remove_modifier_system),
         );
     }
 }
 
-fn effect_modifier_activation_system<T: Component + AddAssign + Copy>(
-    added_effects: Query<(&EffectTarget, &T), Added<EffectTarget>>,
-    mut characters: Query<&mut T, Without<EffectTarget>>,
-) {
-    for (target, effect_modifier) in added_effects.iter() {
-        *characters.get_mut(target.0).unwrap() += *effect_modifier;
+impl<T: Component + AddAssign + SubAssign + Copy> ModifierEffectPlugin<T> {
+    fn apply_modifier_system(
+        added_effects: Query<(&EffectTarget, &T), Added<EffectTarget>>,
+        mut characters: Query<&mut T, Without<EffectTarget>>,
+    ) {
+        for (target, effect_modifier) in added_effects.iter() {
+            *characters.get_mut(target.0).unwrap() += *effect_modifier;
+        }
     }
-}
 
-fn effect_modifier_removal_system<T: Component + SubAssign + Copy>(
-    dispelled_effects: Query<(&EffectTarget, &T), Added<Dispelled>>,
-    mut characters: Query<&mut T, Without<EffectTarget>>,
-) {
-    for (target, effect_modifier) in dispelled_effects.iter() {
-        *characters.get_mut(target.0).unwrap() -= *effect_modifier;
+    fn remove_modifier_system(
+        dispelled_effects: Query<(&EffectTarget, &T), Added<Dispelled>>,
+        mut characters: Query<&mut T, Without<EffectTarget>>,
+    ) {
+        for (target, effect_modifier) in dispelled_effects.iter() {
+            *characters.get_mut(target.0).unwrap() -= *effect_modifier;
+        }
     }
 }
 

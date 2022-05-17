@@ -42,73 +42,75 @@ impl Plugin for NorthPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
             SystemSet::on_update(GameState::InGame)
-                .with_system(frost_bolt_system)
-                .with_system(frost_bolt_hit_system)
-                .with_system(frost_path_system),
+                .with_system(Self::frost_bolt_system)
+                .with_system(Self::frost_bolt_hit_system)
+                .with_system(Self::frost_path_system),
         );
     }
 }
 
-fn frost_bolt_system(
-    mut asset_commands: AssetCommands,
-    abilities: Query<(Entity, &Activator), With<FrostBoltAbility>>,
-    characters: Query<&Transform>,
-    cameras: Query<&Transform, With<Camera>>,
-) {
-    for (ability, activator) in abilities.iter() {
-        let camera_transform = cameras.single();
-        let character_transform = characters.get(activator.0).unwrap();
+impl NorthPlugin {
+    fn frost_bolt_system(
+        mut asset_commands: AssetCommands,
+        abilities: Query<(Entity, &Activator), With<FrostBoltAbility>>,
+        characters: Query<&Transform>,
+        cameras: Query<&Transform, With<Camera>>,
+    ) {
+        for (ability, activator) in abilities.iter() {
+            let camera_transform = cameras.single();
+            let character_transform = characters.get(activator.0).unwrap();
 
-        let transform = Transform {
-            translation: character_transform.translation
-                + camera_transform.rotation * -Vec3::Z * FROST_BOLT_SPAWN_OFFSET,
-            rotation: camera_transform.rotation * Quat::from_rotation_x(90.0_f32.to_radians()),
-            scale: character_transform.scale,
-        };
+            let transform = Transform {
+                translation: character_transform.translation
+                    + camera_transform.rotation * -Vec3::Z * FROST_BOLT_SPAWN_OFFSET,
+                rotation: camera_transform.rotation * Quat::from_rotation_x(90.0_f32.to_radians()),
+                scale: character_transform.scale,
+            };
 
-        asset_commands.spawn_frost_bolt(activator.0, transform);
-        asset_commands
-            .commands
-            .entity(ability)
-            .remove::<Activator>();
+            asset_commands.spawn_frost_bolt(activator.0, transform);
+            asset_commands
+                .commands
+                .entity(ability)
+                .remove::<Activator>();
+        }
     }
-}
 
-fn frost_bolt_hit_system(
-    mut commands: Commands,
-    mut health_events: EventWriter<HealthChangeEvent>,
-    projectiles: Query<
-        (Entity, &Owner, &Collisions),
-        (With<FrostBoltAbility>, Changed<Collisions>),
-    >,
-    health: Query<(), With<Health>>,
-) {
-    for (projectile, owner, collisions) in projectiles.iter() {
-        if let Some(first_collision) = collisions.entities().next() {
-            commands.entity(projectile).despawn();
-            if health.get(first_collision).is_ok() {
-                health_events.send(HealthChangeEvent {
-                    instigator: owner.0,
-                    target: first_collision,
-                    delta: FROST_BOLT_DAMAGE,
-                });
+    fn frost_bolt_hit_system(
+        mut commands: Commands,
+        mut health_events: EventWriter<HealthChangeEvent>,
+        projectiles: Query<
+            (Entity, &Owner, &Collisions),
+            (With<FrostBoltAbility>, Changed<Collisions>),
+        >,
+        health: Query<(), With<Health>>,
+    ) {
+        for (projectile, owner, collisions) in projectiles.iter() {
+            if let Some(first_collision) = collisions.entities().next() {
+                commands.entity(projectile).despawn();
+                if health.get(first_collision).is_ok() {
+                    health_events.send(HealthChangeEvent {
+                        instigator: owner.0,
+                        target: first_collision,
+                        delta: FROST_BOLT_DAMAGE,
+                    });
+                }
             }
         }
     }
-}
 
-fn frost_path_system(
-    mut commands: Commands,
-    abilities: Query<(Entity, &Activator), With<FrostPathAbility>>,
-    mut characters: Query<&mut Velocity>,
-    cameras: Query<&Transform, With<Camera>>,
-) {
-    for (ability, activator) in abilities.iter() {
-        let camera_transform = cameras.single();
-        let mut velocity = characters.get_mut(activator.0).unwrap();
-        velocity.linear += character_direction(camera_transform.rotation) * FROST_PATH_IMPULSE;
+    fn frost_path_system(
+        mut commands: Commands,
+        abilities: Query<(Entity, &Activator), With<FrostPathAbility>>,
+        mut characters: Query<&mut Velocity>,
+        cameras: Query<&Transform, With<Camera>>,
+    ) {
+        for (ability, activator) in abilities.iter() {
+            let camera_transform = cameras.single();
+            let mut velocity = characters.get_mut(activator.0).unwrap();
+            velocity.linear += character_direction(camera_transform.rotation) * FROST_PATH_IMPULSE;
 
-        commands.entity(ability).remove::<Activator>();
+            commands.entity(ability).remove::<Activator>();
+        }
     }
 }
 

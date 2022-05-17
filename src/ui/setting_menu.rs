@@ -35,7 +35,7 @@ use leafwing_input_manager::{
 use strum::{Display, EnumIter, IntoEnumIterator};
 
 use super::{
-    back_button,
+    back_button::BackButtonPlugin,
     ui_actions::UiAction,
     ui_state::{UiState, UiStateHistory},
     UI_MARGIN,
@@ -51,199 +51,200 @@ impl Plugin for SettingMenuPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
             SystemSet::on_update(UiState::SettingsMenu)
-                .with_system(settings_menu_system)
-                .with_system(settings_buttons_system),
-        )
-        .add_system_set(
-            SystemSet::on_update(UiState::SettingsMenu)
-                .with_system(binding_window_system.before(back_button::back_button_system)),
+                .with_system(Self::settings_menu_system)
+                .with_system(Self::buttons_system)
+                .with_system(
+                    Self::binding_window_system.before(BackButtonPlugin::back_button_system),
+                ),
         );
     }
 }
 
-fn settings_menu_system(
-    mut commands: Commands,
-    egui: ResMut<EguiContext>,
-    windows: Res<Windows>,
-    mut settings: ResMut<Settings>,
-    mut current_tab: Local<SettingsTab>,
-) {
-    let main_window = windows.get_primary().unwrap();
-    let window_width_margin = egui.ctx().style().spacing.window_margin.left * 2.0;
+impl SettingMenuPlugin {
+    fn settings_menu_system(
+        mut commands: Commands,
+        egui: ResMut<EguiContext>,
+        windows: Res<Windows>,
+        mut settings: ResMut<Settings>,
+        mut current_tab: Local<SettingsTab>,
+    ) {
+        let main_window = windows.get_primary().unwrap();
+        let window_width_margin = egui.ctx().style().spacing.window_margin.left * 2.0;
 
-    Window::new("Settings")
-        .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
-        .collapsible(false)
-        .resizable(false)
-        .default_width(main_window.width() - UI_MARGIN * 2.0 - window_width_margin)
-        .show(egui.ctx(), |ui| {
-            ui.horizontal(|ui| {
-                for tab in SettingsTab::iter() {
-                    ui.selectable_value(&mut *current_tab, tab, tab.to_string());
-                }
-            });
-            match *current_tab {
-                SettingsTab::Video => show_video_settings(ui, &mut settings.video),
-                SettingsTab::Control => show_control_settings(
-                    &mut commands,
-                    ui,
-                    window_width_margin,
-                    &mut settings.controls,
-                ),
-            };
-            ui.expand_to_include_rect(ui.available_rect_before_wrap());
-        });
-}
-
-fn settings_buttons_system(
-    egui: ResMut<EguiContext>,
-    mut apply_events: EventWriter<SettingApplyEvent>,
-    mut settings: ResMut<Settings>,
-    mut ui_state_history: ResMut<UiStateHistory>,
-) {
-    Area::new("Settings buttons area")
-        .anchor(Align2::RIGHT_BOTTOM, (-UI_MARGIN, -UI_MARGIN))
-        .show(egui.ctx(), |ui| {
-            ui.horizontal(|ui| {
-                if ui.button("Restore defaults").clicked() {
-                    *settings = Settings::default();
-                    apply_events.send(SettingApplyEvent);
-                }
-                if ui.button("Apply").clicked() {
-                    apply_events.send(SettingApplyEvent);
-                }
-                if ui.button("Ok").clicked() {
-                    apply_events.send(SettingApplyEvent);
-                    ui_state_history.pop();
-                }
-            })
-        });
-}
-
-fn show_video_settings(ui: &mut Ui, video_settings: &mut VideoSettings) {
-    ComboBox::from_label("MSAA samples")
-        .selected_text(video_settings.msaa.to_string())
-        .show_ui(ui, |ui| {
-            ui.selectable_value(&mut video_settings.msaa, 1, 1.to_string());
-            ui.selectable_value(&mut video_settings.msaa, 4, 4.to_string());
-        });
-    ui.checkbox(&mut video_settings.perf_stats, "Display performance stats");
-}
-
-fn show_control_settings(
-    commands: &mut Commands,
-    ui: &mut Ui,
-    window_width_margin: f32,
-    controls_settings: &mut ControlsSettings,
-) {
-    const INPUT_VARIANTS: usize = 3;
-    const COLUMNS_COUNT: usize = INPUT_VARIANTS + 1;
-
-    Grid::new("Controls grid")
-        .num_columns(COLUMNS_COUNT)
-        .striped(true)
-        .min_col_width(ui.available_width() / COLUMNS_COUNT as f32 - window_width_margin)
-        .show(ui, |ui| {
-            for action in ControlAction::variants() {
-                ui.label(action.to_string());
-                let inputs = controls_settings.mappings.get(action);
-                for index in 0..INPUT_VARIANTS {
-                    let button_text = match inputs.get_at(index) {
-                        Some(UserInput::Single(InputButton::Gamepad(gamepad_button))) => {
-                            format!("🎮 {:?}", gamepad_button)
-                        }
-                        Some(UserInput::Single(InputButton::Keyboard(keycode))) => {
-                            format!("🖮 {:?}", keycode)
-                        }
-                        Some(UserInput::Single(InputButton::Mouse(mouse_button))) => {
-                            format!("🖱 {:?}", mouse_button)
-                        }
-                        _ => "Empty".to_string(),
-                    };
-                    if ui.button(button_text).clicked() {
-                        commands.insert_resource(ActiveBinding::new(action, index));
-                    }
-                }
-                ui.end_row();
-            }
-        });
-}
-
-fn binding_window_system(
-    mut commands: Commands,
-    egui: ResMut<EguiContext>,
-    mut input_events: InputEvents,
-    active_binding: Option<ResMut<ActiveBinding>>,
-    mut settings: ResMut<Settings>,
-    mut action_state: ResMut<ActionState<UiAction>>,
-) {
-    let mut active_binding = match active_binding {
-        Some(active_binding) => active_binding,
-        None => return,
-    };
-
-    Window::new(format!("Binding \"{}\"", active_binding.action))
-        .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
-        .collapsible(false)
-        .resizable(false)
-        .show(egui.ctx(), |ui| {
-            if let Some(conflict) = &active_binding.conflict {
-                ui.label(format!(
-                    "Input \"{}\" is already used by \"{}\"",
-                    conflict.input_button, conflict.action
-                ));
+        Window::new("Settings")
+            .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
+            .collapsible(false)
+            .resizable(false)
+            .default_width(main_window.width() - UI_MARGIN * 2.0 - window_width_margin)
+            .show(egui.ctx(), |ui| {
                 ui.horizontal(|ui| {
-                    if ui.button("Replace").clicked() {
-                        settings
-                            .controls
-                            .mappings
-                            .remove(conflict.action, conflict.input_button);
-                        settings.controls.mappings.insert_at(
-                            active_binding.action,
-                            conflict.input_button,
-                            active_binding.index,
-                        );
-                        commands.remove_resource::<ActiveBinding>();
-                    }
-                    if ui.button("Cancel").clicked() {
-                        commands.remove_resource::<ActiveBinding>();
+                    for tab in SettingsTab::iter() {
+                        ui.selectable_value(&mut *current_tab, tab, tab.to_string());
                     }
                 });
-            } else {
-                ui.label("Press any key now or Esc to cancel");
-                if action_state.just_pressed(UiAction::Back) {
-                    action_state.consume(UiAction::Back);
-                    commands.remove_resource::<ActiveBinding>();
-                } else if let Some(input_button) = input_events.input_button() {
-                    let conflict_action =
-                        settings
-                            .controls
-                            .mappings
-                            .iter()
-                            .find_map(|(action, inputs)| {
-                                if action != active_binding.action
-                                    && inputs.contains(&input_button.into())
-                                {
-                                    return Some(action);
-                                }
-                                None
-                            });
-                    if let Some(action) = conflict_action {
-                        active_binding.conflict.replace(BindingConflict {
-                            action,
-                            input_button,
-                        });
-                    } else {
-                        settings.controls.mappings.insert_at(
-                            active_binding.action,
-                            input_button,
-                            active_binding.index,
-                        );
+                match *current_tab {
+                    SettingsTab::Video => Self::show_video_settings(ui, &mut settings.video),
+                    SettingsTab::Control => Self::show_control_settings(
+                        &mut commands,
+                        ui,
+                        window_width_margin,
+                        &mut settings.controls,
+                    ),
+                };
+                ui.expand_to_include_rect(ui.available_rect_before_wrap());
+            });
+    }
+
+    fn buttons_system(
+        egui: ResMut<EguiContext>,
+        mut apply_events: EventWriter<SettingApplyEvent>,
+        mut settings: ResMut<Settings>,
+        mut ui_state_history: ResMut<UiStateHistory>,
+    ) {
+        Area::new("Settings buttons area")
+            .anchor(Align2::RIGHT_BOTTOM, (-UI_MARGIN, -UI_MARGIN))
+            .show(egui.ctx(), |ui| {
+                ui.horizontal(|ui| {
+                    if ui.button("Restore defaults").clicked() {
+                        *settings = Settings::default();
+                        apply_events.send(SettingApplyEvent);
+                    }
+                    if ui.button("Apply").clicked() {
+                        apply_events.send(SettingApplyEvent);
+                    }
+                    if ui.button("Ok").clicked() {
+                        apply_events.send(SettingApplyEvent);
+                        ui_state_history.pop();
+                    }
+                })
+            });
+    }
+
+    fn show_video_settings(ui: &mut Ui, video_settings: &mut VideoSettings) {
+        ComboBox::from_label("MSAA samples")
+            .selected_text(video_settings.msaa.to_string())
+            .show_ui(ui, |ui| {
+                ui.selectable_value(&mut video_settings.msaa, 1, 1.to_string());
+                ui.selectable_value(&mut video_settings.msaa, 4, 4.to_string());
+            });
+        ui.checkbox(&mut video_settings.perf_stats, "Display performance stats");
+    }
+
+    fn show_control_settings(
+        commands: &mut Commands,
+        ui: &mut Ui,
+        window_width_margin: f32,
+        controls_settings: &mut ControlsSettings,
+    ) {
+        const INPUT_VARIANTS: usize = 3;
+        const COLUMNS_COUNT: usize = INPUT_VARIANTS + 1;
+
+        Grid::new("Controls grid")
+            .num_columns(COLUMNS_COUNT)
+            .striped(true)
+            .min_col_width(ui.available_width() / COLUMNS_COUNT as f32 - window_width_margin)
+            .show(ui, |ui| {
+                for action in ControlAction::variants() {
+                    ui.label(action.to_string());
+                    let inputs = controls_settings.mappings.get(action);
+                    for index in 0..INPUT_VARIANTS {
+                        let button_text = match inputs.get_at(index) {
+                            Some(UserInput::Single(InputButton::Gamepad(gamepad_button))) => {
+                                format!("🎮 {:?}", gamepad_button)
+                            }
+                            Some(UserInput::Single(InputButton::Keyboard(keycode))) => {
+                                format!("🖮 {:?}", keycode)
+                            }
+                            Some(UserInput::Single(InputButton::Mouse(mouse_button))) => {
+                                format!("🖱 {:?}", mouse_button)
+                            }
+                            _ => "Empty".to_string(),
+                        };
+                        if ui.button(button_text).clicked() {
+                            commands.insert_resource(ActiveBinding::new(action, index));
+                        }
+                    }
+                    ui.end_row();
+                }
+            });
+    }
+
+    fn binding_window_system(
+        mut commands: Commands,
+        egui: ResMut<EguiContext>,
+        mut input_events: InputEvents,
+        active_binding: Option<ResMut<ActiveBinding>>,
+        mut settings: ResMut<Settings>,
+        mut action_state: ResMut<ActionState<UiAction>>,
+    ) {
+        let mut active_binding = match active_binding {
+            Some(active_binding) => active_binding,
+            None => return,
+        };
+
+        Window::new(format!("Binding \"{}\"", active_binding.action))
+            .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
+            .collapsible(false)
+            .resizable(false)
+            .show(egui.ctx(), |ui| {
+                if let Some(conflict) = &active_binding.conflict {
+                    ui.label(format!(
+                        "Input \"{}\" is already used by \"{}\"",
+                        conflict.input_button, conflict.action
+                    ));
+                    ui.horizontal(|ui| {
+                        if ui.button("Replace").clicked() {
+                            settings
+                                .controls
+                                .mappings
+                                .remove(conflict.action, conflict.input_button);
+                            settings.controls.mappings.insert_at(
+                                active_binding.action,
+                                conflict.input_button,
+                                active_binding.index,
+                            );
+                            commands.remove_resource::<ActiveBinding>();
+                        }
+                        if ui.button("Cancel").clicked() {
+                            commands.remove_resource::<ActiveBinding>();
+                        }
+                    });
+                } else {
+                    ui.label("Press any key now or Esc to cancel");
+                    if action_state.just_pressed(UiAction::Back) {
+                        action_state.consume(UiAction::Back);
                         commands.remove_resource::<ActiveBinding>();
+                    } else if let Some(input_button) = input_events.input_button() {
+                        let conflict_action =
+                            settings
+                                .controls
+                                .mappings
+                                .iter()
+                                .find_map(|(action, inputs)| {
+                                    if action != active_binding.action
+                                        && inputs.contains(&input_button.into())
+                                    {
+                                        return Some(action);
+                                    }
+                                    None
+                                });
+                        if let Some(action) = conflict_action {
+                            active_binding.conflict.replace(BindingConflict {
+                                action,
+                                input_button,
+                            });
+                        } else {
+                            settings.controls.mappings.insert_at(
+                                active_binding.action,
+                                input_button,
+                                active_binding.index,
+                            );
+                            commands.remove_resource::<ActiveBinding>();
+                        }
                     }
                 }
-            }
-        });
+            });
+    }
 }
 
 struct ActiveBinding {

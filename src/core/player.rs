@@ -30,24 +30,26 @@ pub(super) struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(create_local_player_from_opts_system)
+        app.add_startup_system(Self::create_local_player_from_opts_system)
             .add_system_set(
-                SystemSet::on_enter(GameState::Lobby).with_system(create_local_player_system),
+                SystemSet::on_enter(GameState::Lobby).with_system(Self::create_local_player_system),
             );
     }
 }
 
-fn create_local_player_from_opts_system(mut commands: Commands, opts: Res<Opts>) {
-    if opts.subcommand.is_some() {
-        let mut player = commands.spawn_bundle(PlayerBundle::default());
-        player.insert(Authority);
+impl PlayerPlugin {
+    fn create_local_player_from_opts_system(mut commands: Commands, opts: Res<Opts>) {
+        if opts.subcommand.is_some() {
+            let mut player = commands.spawn_bundle(PlayerBundle::default());
+            player.insert(Authority);
+        }
     }
-}
 
-fn create_local_player_system(mut commands: Commands) {
-    commands
-        .spawn_bundle(PlayerBundle::default())
-        .insert(Authority);
+    fn create_local_player_system(mut commands: Commands) {
+        commands
+            .spawn_bundle(PlayerBundle::default())
+            .insert(Authority);
+    }
 }
 
 #[derive(Bundle)]

@@ -31,14 +31,18 @@ pub(super) struct MapsPlugin;
 
 impl Plugin for MapsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(SystemSet::on_enter(GameState::InGame).with_system(load_map_system));
+        app.add_system_set(
+            SystemSet::on_enter(GameState::InGame).with_system(Self::load_map_system),
+        );
     }
 }
 
-fn load_map_system(server_settings: Res<ServerSettings>, mut asset_commands: AssetCommands) {
-    match server_settings.map {
-        Map::SkyRoof => asset_commands.spawn_sky_roof(),
-    };
+impl MapsPlugin {
+    fn load_map_system(server_settings: Res<ServerSettings>, mut asset_commands: AssetCommands) {
+        match server_settings.map {
+            Map::SkyRoof => asset_commands.spawn_sky_roof(),
+        };
+    }
 }
 
 #[derive(Clone, Copy, Debug, Display, EnumIter, EnumString, PartialEq)]

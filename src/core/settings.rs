@@ -32,16 +32,15 @@ impl Plugin for SettingsPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<SettingApplyEvent>()
             .insert_resource(Settings::read())
-            .add_system(write_settings_system);
+            .add_system(Self::write_system);
     }
 }
 
-fn write_settings_system(
-    mut apply_events: EventReader<SettingApplyEvent>,
-    settings: Res<Settings>,
-) {
-    if apply_events.iter().next().is_some() {
-        settings.write();
+impl SettingsPlugin {
+    fn write_system(mut apply_events: EventReader<SettingApplyEvent>, settings: Res<Settings>) {
+        if apply_events.iter().next().is_some() {
+            settings.write();
+        }
     }
 }
 

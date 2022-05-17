@@ -35,72 +35,77 @@ pub(super) struct SpawnPlugin;
 impl Plugin for SpawnPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
-            SystemSet::on_enter(GameState::InGame).with_system(hero_randomization_system),
+            SystemSet::on_enter(GameState::InGame).with_system(Self::randomize_heroes_system),
         )
         .add_system_set(
             SystemSet::on_update(GameState::InGame)
-                .with_system(spawn_system)
-                .with_system(assign_respawn_system)
-                .with_system(respawn_system),
+                .with_system(Self::spawn_system)
+                .with_system(Self::assign_respawn_timer_system)
+                .with_system(Self::respawn_system),
         );
     }
 }
 
-fn hero_randomization_system(
-    mut commands: Commands,
-    server_settings: Res<ServerSettings>,
-    players: Query<Entity, Added<Player>>,
-) {
-    if server_settings.random_heroes {
-        for player in players.iter() {
-            commands.entity(player).insert(HeroKind::North); // TODO: Implement random selection when there are more than one hero
-        }
-    }
-}
-
-fn spawn_system(
-    spawn_points: Query<&SpawnPoint>,
-    players: Query<(Entity, &HeroKind), Added<HeroKind>>,
-    mut asset_commands: AssetCommands,
-) {
-    for (player, hero_kind) in players.iter() {
-        // TODO: determine best spawn position based on other characters location
-        let spawn_point = spawn_points
-            .iter()
-            .next()
-            .expect("Unable to find any spawn points");
-
-        match hero_kind {
-            HeroKind::North => {
-                asset_commands.insert_north(player, Transform::from_translation(spawn_point.0));
+impl SpawnPlugin {
+    fn randomize_heroes_system(
+        mut commands: Commands,
+        server_settings: Res<ServerSettings>,
+        players: Query<Entity, Added<Player>>,
+    ) {
+        if server_settings.random_heroes {
+            for player in players.iter() {
+                commands.entity(player).insert(HeroKind::North); // TODO: Implement random selection when there are more than one hero
             }
         }
     }
-}
 
-fn assign_respawn_system(mut died_players: Query<Entity, Added<Death>>, mut commands: Commands) {
-    for player in died_players.iter_mut() {
-        commands.entity(player).insert(RespawnTimer::default());
-    }
-}
-
-fn respawn_system(
-    time: Res<Time>,
-    spawn_points: Query<&SpawnPoint>,
-    mut dead_players: Query<(Entity, &mut Transform, &mut RespawnTimer)>,
-    mut commands: Commands,
-) {
-    for (player, mut transform, mut respawn_timer) in dead_players.iter_mut() {
-        respawn_timer.tick(time.delta());
-        if respawn_timer.just_finished() {
-            commands.entity(player).remove::<RespawnTimer>();
+    fn spawn_system(
+        spawn_points: Query<&SpawnPoint>,
+        players: Query<(Entity, &HeroKind), Added<HeroKind>>,
+        mut asset_commands: AssetCommands,
+    ) {
+        for (player, hero_kind) in players.iter() {
             // TODO: determine best spawn position based on other characters location
             let spawn_point = spawn_points
                 .iter()
                 .next()
                 .expect("Unable to find any spawn points");
 
-            transform.translation = spawn_point.0;
+            match hero_kind {
+                HeroKind::North => {
+                    asset_commands.insert_north(player, Transform::from_translation(spawn_point.0));
+                }
+            }
+        }
+    }
+
+    fn assign_respawn_timer_system(
+        mut died_players: Query<Entity, Added<Death>>,
+        mut commands: Commands,
+    ) {
+        for player in died_players.iter_mut() {
+            commands.entity(player).insert(RespawnTimer::default());
+        }
+    }
+
+    fn respawn_system(
+        time: Res<Time>,
+        spawn_points: Query<&SpawnPoint>,
+        mut dead_players: Query<(Entity, &mut Transform, &mut RespawnTimer)>,
+        mut commands: Commands,
+    ) {
+        for (player, mut transform, mut respawn_timer) in dead_players.iter_mut() {
+            respawn_timer.tick(time.delta());
+            if respawn_timer.just_finished() {
+                commands.entity(player).remove::<RespawnTimer>();
+                // TODO: determine best spawn position based on other characters location
+                let spawn_point = spawn_points
+                    .iter()
+                    .next()
+                    .expect("Unable to find any spawn points");
+
+                transform.translation = spawn_point.0;
+            }
         }
     }
 }

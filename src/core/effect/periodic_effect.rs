@@ -30,35 +30,37 @@ impl Plugin for PeriodicEffectPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
             SystemSet::on_update(GameState::InGame)
-                .with_system(update_health_system)
-                .with_system(periodic_timer_system),
+                .with_system(Self::update_health_system)
+                .with_system(Self::periodic_timer_system),
         );
     }
 }
 
-fn update_health_system(
-    mut effects: Query<(
-        &Owner,
-        &EffectTarget,
-        &PeriodicHealthChange,
-        &PeriodicEffectTimer,
-    )>,
-    mut health_events: EventWriter<HealthChangeEvent>,
-) {
-    for (instigator, target, delta, timer) in effects.iter_mut() {
-        if timer.just_finished() {
-            health_events.send(HealthChangeEvent {
-                instigator: instigator.0,
-                target: target.0,
-                delta: delta.0,
-            })
+impl PeriodicEffectPlugin {
+    fn update_health_system(
+        mut effects: Query<(
+            &Owner,
+            &EffectTarget,
+            &PeriodicHealthChange,
+            &PeriodicEffectTimer,
+        )>,
+        mut health_events: EventWriter<HealthChangeEvent>,
+    ) {
+        for (instigator, target, delta, timer) in effects.iter_mut() {
+            if timer.just_finished() {
+                health_events.send(HealthChangeEvent {
+                    instigator: instigator.0,
+                    target: target.0,
+                    delta: delta.0,
+                })
+            }
         }
     }
-}
 
-fn periodic_timer_system(time: Res<Time>, mut effects: Query<&mut PeriodicEffectTimer>) {
-    for mut timer in effects.iter_mut() {
-        timer.tick(time.delta());
+    fn periodic_timer_system(time: Res<Time>, mut effects: Query<&mut PeriodicEffectTimer>) {
+        for mut timer in effects.iter_mut() {
+            timer.tick(time.delta());
+        }
     }
 }
 

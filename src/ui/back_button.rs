@@ -36,31 +36,35 @@ pub(super) struct BackButtonPlugin;
 impl Plugin for BackButtonPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
-            SystemSet::on_update(UiState::SettingsMenu).with_system(back_button_system),
+            SystemSet::on_update(UiState::SettingsMenu).with_system(Self::back_button_system),
         )
         .add_system_set(
-            SystemSet::on_update(UiState::ServerBrowser).with_system(back_button_system),
+            SystemSet::on_update(UiState::ServerBrowser).with_system(Self::back_button_system),
         )
         .add_system_set(
-            SystemSet::on_update(UiState::DirectConnectMenu).with_system(back_button_system),
+            SystemSet::on_update(UiState::DirectConnectMenu).with_system(Self::back_button_system),
         )
         .add_system_set(
-            SystemSet::on_update(UiState::CrateLobbyMenu).with_system(back_button_system),
+            SystemSet::on_update(UiState::CrateLobbyMenu).with_system(Self::back_button_system),
         )
-        .add_system_set(SystemSet::on_update(UiState::LobbyMenu).with_system(back_button_system));
+        .add_system_set(
+            SystemSet::on_update(UiState::LobbyMenu).with_system(Self::back_button_system),
+        );
     }
 }
 
-pub(super) fn back_button_system(
-    egui: ResMut<EguiContext>,
-    action_state: Res<ActionState<UiAction>>,
-    mut ui_state_history: ResMut<UiStateHistory>,
-) {
-    Area::new("Back area")
-        .anchor(Align2::LEFT_BOTTOM, (UI_MARGIN, -UI_MARGIN))
-        .show(egui.ctx(), |ui| {
-            if action_state.just_pressed(UiAction::Back) || ui.button("Back").clicked() {
-                ui_state_history.pop();
-            }
-        });
+impl BackButtonPlugin {
+    pub(super) fn back_button_system(
+        egui: ResMut<EguiContext>,
+        action_state: Res<ActionState<UiAction>>,
+        mut ui_state_history: ResMut<UiStateHistory>,
+    ) {
+        Area::new("Back area")
+            .anchor(Align2::LEFT_BOTTOM, (UI_MARGIN, -UI_MARGIN))
+            .show(egui.ctx(), |ui| {
+                if action_state.just_pressed(UiAction::Back) || ui.button("Back").clicked() {
+                    ui_state_history.pop();
+                }
+            });
+    }
 }
