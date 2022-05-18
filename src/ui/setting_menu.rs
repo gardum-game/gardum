@@ -118,55 +118,6 @@ impl SettingMenuPlugin {
             });
     }
 
-    fn show_video_settings(ui: &mut Ui, video_settings: &mut VideoSettings) {
-        ComboBox::from_label("MSAA samples")
-            .selected_text(video_settings.msaa.to_string())
-            .show_ui(ui, |ui| {
-                ui.selectable_value(&mut video_settings.msaa, 1, 1.to_string());
-                ui.selectable_value(&mut video_settings.msaa, 4, 4.to_string());
-            });
-        ui.checkbox(&mut video_settings.perf_stats, "Display performance stats");
-    }
-
-    fn show_control_settings(
-        commands: &mut Commands,
-        ui: &mut Ui,
-        window_width_margin: f32,
-        controls_settings: &mut ControlsSettings,
-    ) {
-        const INPUT_VARIANTS: usize = 3;
-        const COLUMNS_COUNT: usize = INPUT_VARIANTS + 1;
-
-        Grid::new("Controls grid")
-            .num_columns(COLUMNS_COUNT)
-            .striped(true)
-            .min_col_width(ui.available_width() / COLUMNS_COUNT as f32 - window_width_margin)
-            .show(ui, |ui| {
-                for action in ControlAction::variants() {
-                    ui.label(action.to_string());
-                    let inputs = controls_settings.mappings.get(action);
-                    for index in 0..INPUT_VARIANTS {
-                        let button_text = match inputs.get_at(index) {
-                            Some(UserInput::Single(InputButton::Gamepad(gamepad_button))) => {
-                                format!("🎮 {:?}", gamepad_button)
-                            }
-                            Some(UserInput::Single(InputButton::Keyboard(keycode))) => {
-                                format!("🖮 {:?}", keycode)
-                            }
-                            Some(UserInput::Single(InputButton::Mouse(mouse_button))) => {
-                                format!("🖱 {:?}", mouse_button)
-                            }
-                            _ => "Empty".to_string(),
-                        };
-                        if ui.button(button_text).clicked() {
-                            commands.insert_resource(ActiveBinding::new(action, index));
-                        }
-                    }
-                    ui.end_row();
-                }
-            });
-    }
-
     fn binding_window_system(
         mut commands: Commands,
         egui: ResMut<EguiContext>,
@@ -240,6 +191,55 @@ impl SettingMenuPlugin {
                             commands.remove_resource::<ActiveBinding>();
                         }
                     }
+                }
+            });
+    }
+
+    fn show_video_settings(ui: &mut Ui, video_settings: &mut VideoSettings) {
+        ComboBox::from_label("MSAA samples")
+            .selected_text(video_settings.msaa.to_string())
+            .show_ui(ui, |ui| {
+                ui.selectable_value(&mut video_settings.msaa, 1, 1.to_string());
+                ui.selectable_value(&mut video_settings.msaa, 4, 4.to_string());
+            });
+        ui.checkbox(&mut video_settings.perf_stats, "Display performance stats");
+    }
+
+    fn show_control_settings(
+        commands: &mut Commands,
+        ui: &mut Ui,
+        window_width_margin: f32,
+        controls_settings: &mut ControlsSettings,
+    ) {
+        const INPUT_VARIANTS: usize = 3;
+        const COLUMNS_COUNT: usize = INPUT_VARIANTS + 1;
+
+        Grid::new("Controls grid")
+            .num_columns(COLUMNS_COUNT)
+            .striped(true)
+            .min_col_width(ui.available_width() / COLUMNS_COUNT as f32 - window_width_margin)
+            .show(ui, |ui| {
+                for action in ControlAction::variants() {
+                    ui.label(action.to_string());
+                    let inputs = controls_settings.mappings.get(action);
+                    for index in 0..INPUT_VARIANTS {
+                        let button_text = match inputs.get_at(index) {
+                            Some(UserInput::Single(InputButton::Gamepad(gamepad_button))) => {
+                                format!("🎮 {:?}", gamepad_button)
+                            }
+                            Some(UserInput::Single(InputButton::Keyboard(keycode))) => {
+                                format!("🖮 {:?}", keycode)
+                            }
+                            Some(UserInput::Single(InputButton::Mouse(mouse_button))) => {
+                                format!("🖱 {:?}", mouse_button)
+                            }
+                            _ => "Empty".to_string(),
+                        };
+                        if ui.button(button_text).clicked() {
+                            commands.insert_resource(ActiveBinding::new(action, index));
+                        }
+                    }
+                    ui.end_row();
                 }
             });
     }

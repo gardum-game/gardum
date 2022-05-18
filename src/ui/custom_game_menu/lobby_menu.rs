@@ -99,6 +99,10 @@ impl LobbyMenuPlugin {
             });
     }
 
+    fn show_lobby_menu_system(mut ui_state: ResMut<State<UiState>>) {
+        ui_state.set(UiState::LobbyMenu).unwrap();
+    }
+
     fn show_game_settings(ui: &mut Ui, server_settings: &mut ServerSettings) {
         Grid::new("Server settings grid").show(ui, |ui| {
             ui.heading("Settings");
@@ -147,9 +151,5 @@ impl LobbyMenuPlugin {
                 }
             }
         });
-    }
-
-    fn show_lobby_menu_system(mut ui_state: ResMut<State<UiState>>) {
-        ui_state.set(UiState::LobbyMenu).unwrap();
     }
 }
