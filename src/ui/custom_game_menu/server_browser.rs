@@ -24,7 +24,7 @@ use bevy_egui::{
     EguiContext,
 };
 
-use crate::ui::ui_state::{UiState, UiStateHistory};
+use crate::ui::ui_state::UiState;
 
 pub(super) struct ServerBrowserPlugin;
 
@@ -40,7 +40,7 @@ impl ServerBrowserPlugin {
     fn game_browser_system(
         egui: ResMut<EguiContext>,
         mut search_text: Local<SearchText>,
-        mut ui_state_history: ResMut<UiStateHistory>,
+        mut ui_state: ResMut<State<UiState>>,
     ) {
         Window::new("Game browser")
             .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
@@ -53,10 +53,10 @@ impl ServerBrowserPlugin {
                         TextEdit::singleline(&mut search_text.0).hint_text("Search servers"),
                     );
                     if ui.button("Connect").clicked() {
-                        ui_state_history.push(UiState::DirectConnectMenu);
+                        ui_state.set(UiState::DirectConnectMenu).unwrap();
                     }
                     if ui.button("Create").clicked() {
-                        ui_state_history.push(UiState::CrateLobbyMenu);
+                        ui_state.set(UiState::CrateLobbyMenu).unwrap();
                     }
                 });
                 ui.add_space(ui.available_height());

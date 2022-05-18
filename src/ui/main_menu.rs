@@ -24,10 +24,7 @@ use bevy_egui::{
     EguiContext,
 };
 
-use super::{
-    ui_state::{UiState, UiStateHistory},
-    UI_MARGIN,
-};
+use super::{ui_state::UiState, UI_MARGIN};
 use crate::core::game_state::GameState;
 
 pub(super) struct MainMenuPlugin;
@@ -47,7 +44,7 @@ impl MainMenuPlugin {
     fn main_menu_system(
         egui: ResMut<EguiContext>,
         mut exit_event: EventWriter<AppExit>,
-        mut ui_state_history: ResMut<UiStateHistory>,
+        mut ui_state: ResMut<State<UiState>>,
     ) {
         Area::new("Main Menu")
             .anchor(Align2::LEFT_CENTER, (UI_MARGIN, 0.0))
@@ -62,7 +59,7 @@ impl MainMenuPlugin {
                     ))
                     .clicked()
                 {
-                    ui_state_history.push(UiState::ServerBrowser);
+                    ui_state.set(UiState::ServerBrowser).unwrap();
                 }
                 ui.add_enabled(
                     false,
@@ -74,7 +71,7 @@ impl MainMenuPlugin {
                     ))
                     .clicked()
                 {
-                    ui_state_history.push(UiState::SettingsMenu);
+                    ui_state.set(UiState::SettingsMenu).unwrap();
                 }
                 if ui
                     .add(Button::new(
@@ -87,8 +84,7 @@ impl MainMenuPlugin {
             });
     }
 
-    fn show_main_menu_system(mut ui_state_history: ResMut<UiStateHistory>) {
-        ui_state_history.clear();
-        ui_state_history.push(UiState::MainMenu);
+    fn show_main_menu_system(mut ui_state: ResMut<State<UiState>>) {
+        ui_state.set(UiState::MainMenu).unwrap();
     }
 }

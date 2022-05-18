@@ -24,7 +24,7 @@ use bevy_egui::{
     EguiContext,
 };
 
-use super::ui_state::{UiState, UiStateHistory};
+use super::ui_state::UiState;
 
 pub(super) struct ErrorDialogPlugin;
 
@@ -40,7 +40,7 @@ impl ErrorDialogPlugin {
     fn error_dialog_system(
         egui: ResMut<EguiContext>,
         error_dialog: Res<ErrorDialog>,
-        mut ui_state_history: ResMut<UiStateHistory>,
+        mut ui_state: ResMut<State<UiState>>,
     ) {
         Window::new(&error_dialog.title)
             .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
@@ -49,7 +49,7 @@ impl ErrorDialogPlugin {
             .show(egui.ctx(), |ui| {
                 ui.label(&error_dialog.message);
                 if ui.button("Ok").clicked() {
-                    ui_state_history.pop();
+                    ui_state.set(error_dialog.previous_state).unwrap();
                 }
             });
     }
@@ -59,17 +59,14 @@ impl ErrorDialogPlugin {
 pub(super) struct ErrorDialog {
     title: String,
     message: String,
+    previous_state: UiState,
 }
 
 impl ErrorDialog {
-    pub(super) fn show(
-        &mut self,
-        title: String,
-        message: String,
-        ui_state_history: &mut UiStateHistory,
-    ) {
+    pub(super) fn show(&mut self, title: String, message: String, ui_state: &mut State<UiState>) {
         self.title = title;
         self.message = message;
-        ui_state_history.push(UiState::ErrorDialog);
+        self.previous_state = *ui_state.current();
+        ui_state.set(UiState::ErrorDialog).unwrap();
     }
 }

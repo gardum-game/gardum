@@ -25,10 +25,7 @@ use bevy_egui::{
 };
 use strum::IntoEnumIterator;
 
-use super::{
-    ui_state::{UiState, UiStateHistory},
-    UI_MARGIN,
-};
+use super::{ui_state::UiState, UI_MARGIN};
 use crate::core::{
     character::hero::HeroKind, game_state::GameState, network::server::ServerSettings,
     player::Player, Authority,
@@ -52,7 +49,7 @@ impl HeroSelectionPlugin {
         mut commands: Commands,
         egui: ResMut<EguiContext>,
         mut local_player: Query<(Entity, Option<&mut HeroKind>), (With<Authority>, With<Player>)>,
-        mut ui_state_history: ResMut<UiStateHistory>,
+        mut ui_state: ResMut<State<UiState>>,
     ) {
         let (player, current_hero_kind) = local_player.single_mut();
 
@@ -61,8 +58,7 @@ impl HeroSelectionPlugin {
             .show(egui.ctx(), |ui| {
                 ui.add_enabled_ui(current_hero_kind.is_some(), |ui| {
                     if ui.button("Confirm").clicked() {
-                        ui_state_history.clear();
-                        ui_state_history.push(UiState::Hud);
+                        ui_state.set(UiState::Hud).unwrap();
                     }
                 })
             });
@@ -99,15 +95,14 @@ impl HeroSelectionPlugin {
     }
 
     fn show_hero_selection_system(
-        mut ui_state_history: ResMut<UiStateHistory>,
+        mut ui_state: ResMut<State<UiState>>,
         server_settings: Res<ServerSettings>,
     ) {
-        ui_state_history.clear();
         if server_settings.random_heroes {
             // Skip hero selection
-            ui_state_history.push(UiState::Hud);
+            ui_state.set(UiState::Hud).unwrap();
         } else {
-            ui_state_history.push(UiState::HeroSelection);
+            ui_state.set(UiState::HeroSelection).unwrap();
         }
     }
 }

@@ -25,11 +25,8 @@ use bevy_egui::{
 };
 use leafwing_input_manager::prelude::ActionState;
 
-use super::{
-    ui_actions::UiAction,
-    ui_state::{UiState, UiStateHistory},
-    UI_MARGIN,
-};
+use super::{ui_actions::UiAction, ui_state::UiState, UI_MARGIN};
+use crate::core::game_state::GameState;
 
 pub(super) struct BackButtonPlugin;
 
@@ -56,14 +53,17 @@ impl Plugin for BackButtonPlugin {
 impl BackButtonPlugin {
     pub(super) fn back_button_system(
         egui: ResMut<EguiContext>,
-        action_state: Res<ActionState<UiAction>>,
-        mut ui_state_history: ResMut<UiStateHistory>,
+        mut action_state: ResMut<ActionState<UiAction>>,
+        game_state: Res<State<GameState>>,
+        mut ui_state: ResMut<State<UiState>>,
     ) {
         Area::new("Back area")
             .anchor(Align2::LEFT_BOTTOM, (UI_MARGIN, -UI_MARGIN))
             .show(egui.ctx(), |ui| {
                 if action_state.just_pressed(UiAction::Back) || ui.button("Back").clicked() {
-                    ui_state_history.pop();
+                    let previous_state = ui_state.current().previous_state(&game_state);
+                    ui_state.set(previous_state).unwrap();
+                    action_state.consume(UiAction::Back);
                 }
             });
     }

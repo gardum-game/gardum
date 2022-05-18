@@ -28,11 +28,7 @@ use bevy_egui::{
 };
 use leafwing_input_manager::{plugin::ToggleActions, prelude::ActionState};
 
-use super::{
-    ui_actions::UiAction,
-    ui_state::{UiState, UiStateHistory},
-    UI_MARGIN,
-};
+use super::{ui_actions::UiAction, ui_state::UiState, UI_MARGIN};
 use crate::core::{
     ability::{Abilities, IconPath},
     control_actions::ControlAction,
@@ -135,11 +131,11 @@ impl HudPlugin {
 
     pub(super) fn show_ingame_menu_system(
         mut action_state: ResMut<ActionState<UiAction>>,
-        mut ui_state_history: ResMut<UiStateHistory>,
+        mut ui_state: ResMut<State<UiState>>,
     ) {
         if action_state.just_pressed(UiAction::Back) {
             action_state.consume(UiAction::Back);
-            ui_state_history.push(UiState::InGameMenu);
+            ui_state.set(UiState::InGameMenu).unwrap();
         }
     }
 }

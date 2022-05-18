@@ -27,10 +27,7 @@ use leafwing_input_manager::prelude::ActionState;
 
 use crate::core::game_state::GameState;
 
-use super::{
-    ui_actions::UiAction,
-    ui_state::{UiState, UiStateHistory},
-};
+use super::{ui_actions::UiAction, ui_state::UiState};
 
 pub(super) struct InGameMenuPlugin;
 
@@ -48,17 +45,17 @@ impl InGameMenuPlugin {
     fn ingame_menu_system(
         egui: ResMut<EguiContext>,
         mut exit_event: EventWriter<AppExit>,
-        mut ui_state_history: ResMut<UiStateHistory>,
+        mut ui_state: ResMut<State<UiState>>,
         mut game_state: ResMut<State<GameState>>,
     ) {
         Area::new("Main Menu")
             .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
             .show(egui.ctx(), |ui| {
                 if ui.button("Resume").clicked() {
-                    ui_state_history.pop();
+                    ui_state.set(UiState::Hud).unwrap();
                 }
                 if ui.button("Settings").clicked() {
-                    ui_state_history.push(UiState::SettingsMenu);
+                    ui_state.set(UiState::SettingsMenu).unwrap();
                 }
                 if ui.button("Main menu").clicked() {
                     game_state.set(GameState::Menu).unwrap();
@@ -71,11 +68,11 @@ impl InGameMenuPlugin {
 
     pub(super) fn hide_ingame_menu_system(
         mut action_state: ResMut<ActionState<UiAction>>,
-        mut ui_state_history: ResMut<UiStateHistory>,
+        mut ui_state: ResMut<State<UiState>>,
     ) {
         if action_state.just_pressed(UiAction::Back) {
             action_state.consume(UiAction::Back);
-            ui_state_history.pop();
+            ui_state.set(UiState::Hud).unwrap();
         }
     }
 }

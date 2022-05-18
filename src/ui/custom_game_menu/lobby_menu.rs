@@ -30,7 +30,7 @@ use crate::{
         game_state::GameState, map::Map, network::server::ServerSettings, player::Player,
         session::GameMode,
     },
-    ui::ui_state::{UiState, UiStateHistory},
+    ui::ui_state::UiState,
 };
 
 pub(super) struct LobbyMenuPlugin;
@@ -149,7 +149,7 @@ impl LobbyMenuPlugin {
         });
     }
 
-    fn show_lobby_menu_system(mut ui_state_history: ResMut<UiStateHistory>) {
-        ui_state_history.push(UiState::LobbyMenu);
+    fn show_lobby_menu_system(mut ui_state: ResMut<State<UiState>>) {
+        ui_state.set(UiState::LobbyMenu).unwrap();
     }
 }

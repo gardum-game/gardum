@@ -20,34 +20,15 @@
 
 use bevy::prelude::*;
 
+use crate::core::game_state::GameState;
+
 pub(super) struct UiStatePlugin;
 
 impl Plugin for UiStatePlugin {
     fn build(&self, app: &mut App) {
-        app.add_state(UiState::Empty)
-            .init_resource::<UiStateHistory>()
-            .add_system(Self::update_ui_state_system);
+        app.add_state(UiState::Empty);
     }
 }
-
-impl UiStatePlugin {
-    fn update_ui_state_system(
-        mut ui_state_history: ResMut<UiStateHistory>,
-        mut ui_state: ResMut<State<UiState>>,
-    ) {
-        if ui_state_history.is_added() && ui_state_history.is_empty() {
-            ui_state_history.push(*ui_state.current());
-        } else if ui_state_history.is_changed() {
-            let last_state = *ui_state_history
-                .last()
-                .expect("State history should always contain at least one element");
-            ui_state.set(last_state).unwrap();
-        }
-    }
-}
-
-#[derive(Default, Deref, DerefMut)]
-pub(super) struct UiStateHistory(pub(super) Vec<UiState>);
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub(super) enum UiState {
@@ -70,36 +51,19 @@ impl Default for UiState {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn ui_history_updates_state() {
-        let mut app = setup_app();
-        app.update();
-
-        assert_eq!(
-            *app.world.resource::<State<UiState>>().current(),
-            UiState::Empty,
-            "Initial state should be empty"
-        );
-
-        const STATE: UiState = UiState::ServerBrowser;
-        app.world.resource_mut::<UiStateHistory>().push(STATE);
-
-        app.update();
-
-        assert_eq!(
-            *app.world.resource::<State<UiState>>().current(),
-            STATE,
-            "History change should modify current active state"
-        );
-    }
-
-    fn setup_app() -> App {
-        let mut app = App::new();
-        app.add_plugin(UiStatePlugin);
-        app
+impl UiState {
+    pub(super) fn previous_state(self, game_state: &State<GameState>) -> Self {
+        match self {
+            UiState::ServerBrowser => UiState::MainMenu,
+            UiState::SettingsMenu => match game_state.current() {
+                GameState::Menu => UiState::MainMenu,
+                GameState::InGame => UiState::InGameMenu,
+                _ => unreachable!(),
+            },
+            UiState::DirectConnectMenu | UiState::CrateLobbyMenu | UiState::LobbyMenu => {
+                UiState::ServerBrowser
+            }
+            _ => unreachable!("Previous state isn't defined for this state"),
+        }
     }
 }
