@@ -37,7 +37,6 @@ use strum::{Display, EnumIter, IntoEnumIterator};
 use super::{back_button::BackButtonPlugin, ui_actions::UiAction, ui_state::UiState, UI_MARGIN};
 use crate::core::{
     control_actions::ControlAction,
-    game_state::GameState,
     settings::{ControlsSettings, SettingApplyEvent, Settings, VideoSettings},
 };
 
@@ -95,8 +94,7 @@ impl SettingMenuPlugin {
         egui: ResMut<EguiContext>,
         mut apply_events: EventWriter<SettingApplyEvent>,
         mut settings: ResMut<Settings>,
-        game_state: Res<State<GameState>>,
-        mut ui_state: ResMut<State<UiState>>,
+        mut action_state: ResMut<ActionState<UiAction>>,
     ) {
         Area::new("Settings buttons area")
             .anchor(Align2::RIGHT_BOTTOM, (-UI_MARGIN, -UI_MARGIN))
@@ -111,8 +109,7 @@ impl SettingMenuPlugin {
                     }
                     if ui.button("Ok").clicked() {
                         apply_events.send(SettingApplyEvent);
-                        let previous_state = ui_state.current().previous_state(&game_state);
-                        ui_state.set(previous_state).unwrap();
+                        action_state.press(UiAction::Back);
                     }
                 })
             });

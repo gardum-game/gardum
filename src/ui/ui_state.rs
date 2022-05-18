@@ -20,8 +20,6 @@
 
 use bevy::prelude::*;
 
-use crate::core::game_state::GameState;
-
 pub(super) struct UiStatePlugin;
 
 impl Plugin for UiStatePlugin {
@@ -48,22 +46,5 @@ pub(super) enum UiState {
 impl Default for UiState {
     fn default() -> Self {
         Self::Empty
-    }
-}
-
-impl UiState {
-    pub(super) fn previous_state(self, game_state: &State<GameState>) -> Self {
-        match self {
-            UiState::ServerBrowser => UiState::MainMenu,
-            UiState::SettingsMenu => match game_state.current() {
-                GameState::Menu => UiState::MainMenu,
-                GameState::InGame => UiState::InGameMenu,
-                _ => unreachable!(),
-            },
-            UiState::DirectConnectMenu | UiState::CrateLobbyMenu | UiState::LobbyMenu => {
-                UiState::ServerBrowser
-            }
-            _ => unreachable!("Previous state isn't defined for this state"),
-        }
     }
 }

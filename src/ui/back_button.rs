@@ -61,7 +61,19 @@ impl BackButtonPlugin {
             .anchor(Align2::LEFT_BOTTOM, (UI_MARGIN, -UI_MARGIN))
             .show(egui.ctx(), |ui| {
                 if action_state.just_pressed(UiAction::Back) || ui.button("Back").clicked() {
-                    let previous_state = ui_state.current().previous_state(&game_state);
+                    let previous_state = match ui_state.current() {
+                        UiState::ServerBrowser => UiState::MainMenu,
+                        UiState::SettingsMenu => match game_state.current() {
+                            GameState::Menu => UiState::MainMenu,
+                            GameState::InGame => UiState::InGameMenu,
+                            _ => unreachable!(),
+                        },
+                        UiState::DirectConnectMenu
+                        | UiState::CrateLobbyMenu
+                        | UiState::LobbyMenu => UiState::ServerBrowser,
+                        _ => unreachable!("Previous state isn't defined for this state"),
+                    };
+
                     ui_state.set(previous_state).unwrap();
                     action_state.consume(UiAction::Back);
                 }
