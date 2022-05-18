@@ -20,7 +20,7 @@
 
 use bevy::prelude::*;
 use bevy_egui::{
-    egui::{Align2, Area, Color32, Frame, Response, ScrollArea, TextEdit, TextStyle, Ui},
+    egui::{Align2, Color32, Frame, ScrollArea, TextEdit, TextStyle, Window},
     EguiContext,
 };
 use bevy_renet::renet::ServerEvent;
@@ -59,85 +59,84 @@ impl ChatPlugin {
     ) {
         const CHAT_BOTTOM_MARGIN: f32 = 40.0;
 
-        Area::new("Chat area")
+        let frame = if chat.active {
+            Frame::window(&egui.ctx().style())
+        } else {
+            // Show frame with window spacing, but without visuals
+            Frame {
+                margin: egui.ctx().style().spacing.window_margin,
+                rounding: egui.ctx().style().visuals.window_rounding,
+                ..Frame::none()
+            }
+        };
+
+        Window::new("Chat window")
+            .frame(frame)
+            .title_bar(false)
+            .resizable(false)
             .anchor(
                 Align2::LEFT_BOTTOM,
                 [UI_MARGIN, -UI_MARGIN - CHAT_BOTTOM_MARGIN],
             )
             .show(egui.ctx(), |ui| {
-                let frame = if chat.active {
-                    Frame::window(ui.style())
-                } else {
-                    // Show frame with window spacing, but without visuals
-                    Frame {
-                        margin: ui.style().spacing.window_margin,
-                        rounding: ui.style().visuals.window_rounding,
-                        ..Frame::none()
+                if !chat.active {
+                    // Hide scrollbar
+                    ui.style_mut().visuals.extreme_bg_color = Color32::TRANSPARENT;
+                    ui.style_mut().visuals.widgets.inactive.bg_fill = Color32::TRANSPARENT;
+                }
+
+                const CHAT_ROWS_MARGIN: f32 = 4.0;
+                const CHAT_VISIBLE_ROWS: usize = 8;
+                let text_height = ui.text_style_height(&TextStyle::Body);
+                let chat_response = ScrollArea::vertical()
+                    .max_height(text_height * CHAT_VISIBLE_ROWS as f32 + CHAT_ROWS_MARGIN)
+                    .stick_to_bottom()
+                    .enable_scrolling(chat.active)
+                    .show(ui, |ui| {
+                        ui.add(
+                            TextEdit::multiline(&mut chat.text.as_str())
+                                .desired_rows(CHAT_VISIBLE_ROWS),
+                        )
+                    })
+                    .inner;
+
+                if !chat.active {
+                    // Reset style after hiding scrollbar
+                    ui.reset_style();
+                }
+
+                if chat.active {
+                    let input_response = ui.text_edit_singleline(&mut input.message);
+                    if input.request_focus {
+                        input_response.request_focus();
+                        input.request_focus = false;
                     }
-                };
-                frame.show(ui, |ui| {
-                    if !chat.active {
-                        // Hide scrollbar
-                        ui.style_mut().visuals.extreme_bg_color = Color32::TRANSPARENT;
-                        ui.style_mut().visuals.widgets.inactive.bg_fill = Color32::TRANSPARENT;
-                    }
 
-                    let chat_response = Self::show_chat(ui, &mut chat);
-
-                    if !chat.active {
-                        // Reset style after hiding scrollbar
-                        ui.reset_style();
-                    }
-
-                    if chat.active {
-                        let input_response = ui.text_edit_singleline(&mut input.message);
-                        if input.request_focus {
-                            input_response.request_focus();
-                            input.request_focus = false;
-                        }
-
-                        if action_state.just_pressed(UiAction::Chat) {
-                            action_state.consume(UiAction::Chat);
-                            if input_response.lost_focus() {
-                                chat.add_message(input.message.trim());
-                                input.message.clear();
-                                chat.active = false;
-                            } else {
-                                input_response.request_focus();
-                            }
-                        } else if (!input_response.has_focus() && !chat_response.has_focus())
-                            || action_state.just_pressed(UiAction::Back)
-                        {
-                            action_state.consume(UiAction::Back);
-                            chat.active = false;
-                        }
-                    } else if ui.button("Chat").clicked()
-                        || action_state.just_pressed(UiAction::Chat)
-                    {
+                    if action_state.just_pressed(UiAction::Chat) {
                         action_state.consume(UiAction::Chat);
-                        chat.active = true;
-                        input.request_focus = true;
+                        if input_response.lost_focus() {
+                            chat.add_message(input.message.trim());
+                            input.message.clear();
+                            chat.active = false;
+                        } else {
+                            input_response.request_focus();
+                        }
+                    } else if (!input_response.has_focus() && !chat_response.has_focus())
+                        || action_state.just_pressed(UiAction::Back)
+                    {
+                        action_state.consume(UiAction::Back);
+                        chat.active = false;
                     }
+                } else if ui.button("Chat").clicked() || action_state.just_pressed(UiAction::Chat) {
+                    action_state.consume(UiAction::Chat);
+                    chat.active = true;
+                    input.request_focus = true;
+                }
 
-                    if chat_response.gained_focus() {
-                        chat.active = true;
-                    }
-                });
+                if chat_response.gained_focus() {
+                    chat.active = true;
+                }
             });
-    }
-
-    fn show_chat(ui: &mut Ui, chat: &mut Chat) -> Response {
-        const CHAT_VISIBLE_ROWS: usize = 8;
-        const CHAT_ROWS_MARGIN: f32 = 4.0;
-        let text_height = ui.text_style_height(&TextStyle::Body);
-        ScrollArea::vertical()
-            .max_height(text_height * CHAT_VISIBLE_ROWS as f32 + CHAT_ROWS_MARGIN)
-            .stick_to_bottom()
-            .enable_scrolling(chat.active)
-            .show(ui, |ui| {
-                ui.add(TextEdit::multiline(&mut chat.text.as_str()).desired_rows(CHAT_VISIBLE_ROWS))
-            })
-            .inner
     }
 
     fn toggle_controls_system(
