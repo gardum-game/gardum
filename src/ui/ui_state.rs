@@ -35,6 +35,7 @@ pub(super) enum UiState {
     ServerBrowser,
     SettingsMenu,
     ErrorDialog,
+    ConnectionDialog,
     DirectConnectMenu,
     CrateLobbyMenu,
     LobbyMenu,

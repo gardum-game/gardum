@@ -25,7 +25,7 @@ use bevy_egui::{
 };
 
 use crate::{
-    core::{game_state::GameState, network::client::ConnectionSettings},
+    core::network::client::ConnectionSettings,
     ui::{error_dialog::ErrorDialog, ui_state::UiState},
 };
 
@@ -42,11 +42,11 @@ impl Plugin for DirectConnectMenuPlugin {
 
 impl DirectConnectMenuPlugin {
     fn direct_connect_menu_system(
+        mut commands: Commands,
         egui: ResMut<EguiContext>,
         mut connection_setttings: ResMut<ConnectionSettings>,
         mut ui_state: ResMut<State<UiState>>,
         mut error_dialog: ResMut<ErrorDialog>,
-        mut game_state: ResMut<State<GameState>>,
     ) {
         Window::new("Direct connect")
             .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
@@ -68,7 +68,10 @@ impl DirectConnectMenuPlugin {
                 ui.vertical_centered(|ui| {
                     if ui.button("Connect").clicked() {
                         match connection_setttings.create_client() {
-                            Ok(_) => game_state.set(GameState::InGame).unwrap(),
+                            Ok(client) => {
+                                ui_state.set(UiState::ConnectionDialog).unwrap();
+                                commands.insert_resource(client);
+                            }
                             Err(error) => error_dialog.show(
                                 "Unable to create connection".to_string(),
                                 error.to_string(),
