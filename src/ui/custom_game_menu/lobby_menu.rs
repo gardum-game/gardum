@@ -20,7 +20,7 @@
 
 use bevy::prelude::*;
 use bevy_egui::{
-    egui::{Align2, ComboBox, DragValue, Grid, SidePanel, Ui, Window},
+    egui::{Align2, ComboBox, DragValue, Grid, Ui, Window},
     EguiContext,
 };
 use strum::IntoEnumIterator;
@@ -81,17 +81,15 @@ impl LobbyMenuPlugin {
             .collapsible(false)
             .resizable(false)
             .show(egui.ctx(), |ui| {
+                ui.horizontal_top(|ui| {
+                    Self::show_teams(
+                        ui,
+                        server_settings.game_mode.slots_count(),
+                        player_names.iter().collect(),
+                    );
+                    Self::show_game_settings(ui, &mut server_settings);
+                });
                 ui.vertical_centered(|ui| {
-                    ui.horizontal(|ui| {
-                        Self::show_teams(
-                            ui,
-                            server_settings.game_mode.slots_count(),
-                            player_names.iter().collect(),
-                        );
-                        SidePanel::right("Server settings").show_inside(ui, |ui| {
-                            Self::show_game_settings(ui, &mut server_settings);
-                        })
-                    });
                     if ui.button("Start").clicked() {
                         game_state.set(GameState::InGame).unwrap();
                     }
