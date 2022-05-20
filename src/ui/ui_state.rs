@@ -19,25 +19,30 @@
  */
 
 use bevy::prelude::*;
+use bevy_renet::renet::{RenetClient, RenetServer};
 
 pub(super) struct UiStatePlugin;
 
 impl Plugin for UiStatePlugin {
     fn build(&self, app: &mut App) {
-        app.add_state(UiState::Empty);
+        if app.world.get_resource::<RenetClient>().is_some() {
+            app.add_state(UiState::ConnectionDialog);
+        } else if app.world.get_resource::<RenetServer>().is_some() {
+            app.add_state(UiState::LobbyMenu);
+        } else {
+            app.add_state(UiState::MainMenu);
+        }
     }
 }
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub(super) enum UiState {
-    Empty,
     MainMenu,
     ServerBrowser,
     SettingsMenu,
     ErrorDialog,
     ConnectionDialog,
     DirectConnectMenu,
-    CrateLobbyMenu,
     LobbyMenu,
     HeroSelection,
     Hud,
@@ -46,6 +51,6 @@ pub(super) enum UiState {
 
 impl Default for UiState {
     fn default() -> Self {
-        Self::Empty
+        Self::MainMenu
     }
 }

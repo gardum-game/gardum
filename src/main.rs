@@ -81,32 +81,17 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use bevy::{input::InputPlugin, scene::ScenePlugin};
-    use strum::IntoEnumIterator;
     use test_utils::HeadlessRenderPlugin;
 
     use super::*;
-    use crate::core::game_state::GameState;
 
     #[test]
-    fn update_in_states() {
-        let mut app = setup_app();
-        app.update();
-
-        for state in GameState::iter().skip(1) {
-            let mut current_state = app.world.resource_mut::<State<GameState>>();
-            current_state.set(state).unwrap();
-            app.update();
-        }
-    }
-
-    fn setup_app() -> App {
+    fn plugins_initialization() {
         let mut app = App::new();
         app.add_plugin(HeadlessRenderPlugin)
             .add_plugin(InputPlugin)
             .add_plugin(PhysicsPlugin::default())
             .add_plugin(ScenePlugin)
             .add_plugin(CorePlugin);
-
-        app
     }
 }

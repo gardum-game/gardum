@@ -58,6 +58,7 @@ impl InGameMenuPlugin {
                     ui_state.set(UiState::SettingsMenu).unwrap();
                 }
                 if ui.button("Main menu").clicked() {
+                    ui_state.set(UiState::MainMenu).unwrap();
                     game_state.set(GameState::Menu).unwrap();
                 }
                 if ui.button("Exit").clicked() {

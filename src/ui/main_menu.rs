@@ -25,7 +25,6 @@ use bevy_egui::{
 };
 
 use super::{ui_state::UiState, UI_MARGIN};
-use crate::core::game_state::GameState;
 
 pub(super) struct MainMenuPlugin;
 
@@ -33,9 +32,6 @@ impl Plugin for MainMenuPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
             SystemSet::on_update(UiState::MainMenu).with_system(Self::main_menu_system),
-        )
-        .add_system_set(
-            SystemSet::on_enter(GameState::Menu).with_system(Self::show_main_menu_system),
         );
     }
 }
@@ -82,9 +78,5 @@ impl MainMenuPlugin {
                     exit_event.send(AppExit);
                 }
             });
-    }
-
-    fn show_main_menu_system(mut ui_state: ResMut<State<UiState>>) {
-        ui_state.set(UiState::MainMenu).unwrap();
     }
 }

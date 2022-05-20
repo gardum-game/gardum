@@ -27,7 +27,7 @@ use std::{
     time::SystemTime,
 };
 
-use super::{DEFAULT_PORT, PROTOCOL_ID, PUBLIC_GAME_KEY};
+use super::{SocketEvent, DEFAULT_PORT, PROTOCOL_ID, PUBLIC_GAME_KEY};
 use crate::core::{
     cli::{Opts, SubCommand},
     map::Map,
@@ -38,17 +38,36 @@ pub(super) struct ServerPlugin;
 
 impl Plugin for ServerPlugin {
     fn build(&self, app: &mut App) {
+        app.add_system(Self::server_player_system);
+
         let opts = app
             .world
             .get_resource::<Opts>()
             .expect("Command line options should be initialized before server settings resource");
-
         if let Some(SubCommand::Host(server_settings)) = &opts.subcommand {
             let settings = server_settings.clone();
             app.insert_resource(settings.create_server().expect("Unable to create server"));
             app.insert_resource(settings);
         } else {
             app.insert_resource(ServerSettings::default());
+        }
+    }
+}
+
+impl ServerPlugin {
+    fn server_player_system(
+        mut server_existed: Local<bool>,
+        mut socket_events: EventWriter<SocketEvent>,
+        server: Option<Res<RenetServer>>,
+    ) {
+        if let Some(server) = server {
+            if server.is_added() {
+                socket_events.send(SocketEvent::Opened);
+                *server_existed = true;
+            }
+        } else if *server_existed {
+            socket_events.send(SocketEvent::Closed);
+            *server_existed = false;
         }
     }
 }
@@ -95,7 +114,7 @@ impl Default for ServerSettings {
 }
 
 impl ServerSettings {
-    fn create_server(&self) -> Result<RenetServer, Box<dyn Error>> {
+    pub(crate) fn create_server(&self) -> Result<RenetServer, Box<dyn Error>> {
         let server_addr = SocketAddr::new(self.ip.parse()?, self.port);
         RenetServer::new(
             SystemTime::now().duration_since(SystemTime::UNIX_EPOCH)?,
@@ -109,6 +128,9 @@ impl ServerSettings {
 
 #[cfg(test)]
 mod tests {
+    use bevy::ecs::event::Events;
+    use bevy_renet::RenetServerPlugin;
+
     use super::*;
 
     #[test]
@@ -148,6 +170,53 @@ mod tests {
         assert!(
             app.world.get_resource::<RenetServer>().is_some(),
             "Server should be created"
+        );
+    }
+
+    #[test]
+    fn socket_events() {
+        let mut app = App::new();
+        let server_settings = ServerSettings {
+            port: ServerSettings::default().port - 2,
+            ..Default::default()
+        };
+        app.init_resource::<Opts>()
+            .add_event::<SocketEvent>()
+            .add_plugins(MinimalPlugins)
+            .add_plugin(RenetServerPlugin)
+            .add_plugin(ServerPlugin)
+            .insert_resource(
+                server_settings
+                    .create_server()
+                    .expect("Server should be created succesfully from settings"),
+            );
+
+        app.update();
+
+        let mut socket_events = app.world.resource_mut::<Events<SocketEvent>>();
+        let event = socket_events
+            .drain()
+            .next()
+            .expect("Socket event should be triggered on server creation");
+
+        assert!(
+            matches!(event, SocketEvent::Opened),
+            "Socket should be opened on server creation"
+        );
+
+        app.world.remove_resource::<RenetServer>();
+
+        app.update();
+
+        let mut socket_events = app.world.resource_mut::<Events<SocketEvent>>();
+        let event = socket_events
+            .drain()
+            .next()
+            .expect("Socket event should be triggered on server removal");
+
+        assert!(
+            matches!(event, SocketEvent::Closed),
+            "Socket should be closed on server removal"
         );
     }
 }

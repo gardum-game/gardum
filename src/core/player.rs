@@ -20,35 +20,38 @@
 
 use bevy::prelude::*;
 
-use super::{
-    cli::Opts,
-    game_state::{GameState, InGameOnly},
-    Authority,
-};
+use super::{game_state::GameState, network::SocketEvent, Authority};
 
 pub(super) struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(Self::create_local_player_from_opts_system)
-            .add_system_set(
-                SystemSet::on_enter(GameState::Lobby).with_system(Self::create_local_player_system),
-            );
+        app.add_system_set(
+            SystemSet::on_update(GameState::Menu).with_system(Self::player_spawn_despawn_system),
+        );
     }
 }
 
 impl PlayerPlugin {
-    fn create_local_player_from_opts_system(mut commands: Commands, opts: Res<Opts>) {
-        if opts.subcommand.is_some() {
-            let mut player = commands.spawn_bundle(PlayerBundle::default());
-            player.insert(Authority);
+    fn player_spawn_despawn_system(
+        mut commands: Commands,
+        mut socket_events: EventReader<SocketEvent>,
+        players: Query<Entity, With<Player>>,
+    ) {
+        for event in socket_events.iter() {
+            match event {
+                SocketEvent::Opened => {
+                    commands
+                        .spawn_bundle(PlayerBundle::default())
+                        .insert(Authority);
+                }
+                SocketEvent::Closed => {
+                    for player in players.iter() {
+                        commands.entity(player).despawn_recursive();
+                    }
+                }
+            };
         }
-    }
-
-    fn create_local_player_system(mut commands: Commands) {
-        commands
-            .spawn_bundle(PlayerBundle::default())
-            .insert(Authority);
     }
 }
 
@@ -60,7 +63,6 @@ pub(crate) struct PlayerBundle {
     deaths: Deaths,
     damage: Damage,
     healing: Healing,
-    ingame_only: InGameOnly,
 }
 
 impl Default for PlayerBundle {
@@ -72,7 +74,6 @@ impl Default for PlayerBundle {
             deaths: Deaths::default(),
             damage: Damage::default(),
             healing: Healing::default(),
-            ingame_only: InGameOnly,
         }
     }
 }
@@ -99,56 +100,43 @@ pub(crate) struct Healing(pub(crate) u32);
 
 #[cfg(test)]
 mod tests {
+    use bevy::ecs::event::Events;
+
     use super::*;
-    use crate::core::{
-        cli::SubCommand,
-        network::{client::ConnectionSettings, server::ServerSettings},
-    };
 
     #[test]
-    fn player_spawns_in_lobby() {
+    fn player_spawns_despawns() {
         let mut app = setup_app();
-        app.add_state(GameState::Lobby)
-            .init_resource::<Opts>()
-            .init_resource::<ServerSettings>();
+
+        let mut socket_events = app.world.resource_mut::<Events<SocketEvent>>();
+        socket_events.send(SocketEvent::Opened);
 
         app.update();
 
         let mut local_player = app
             .world
-            .query_filtered::<(), (With<Authority>, With<Player>)>();
+            .query_filtered::<Entity, (With<Authority>, With<Player>)>();
         local_player
             .iter(&app.world)
             .next()
-            .expect("Local player should be created"); // TODO 0.8: Use single
-    }
+            .expect("Local player should be created on opened connection"); // TODO 0.8: Use single
 
-    #[test]
-    fn player_spawns_from_cli() {
-        let mut app = setup_app();
-        app.insert_resource(ServerSettings {
-            random_heroes: true,
-            ..ServerSettings::default()
-        })
-        .insert_resource(Opts {
-            subcommand: Some(SubCommand::Connect(ConnectionSettings::default())),
-        })
-        .add_state(GameState::Menu);
+        let mut socket_events = app.world.resource_mut::<Events<SocketEvent>>();
+        socket_events.send(SocketEvent::Closed);
 
         app.update();
 
-        let mut local_player = app
-            .world
-            .query_filtered::<(), (With<Authority>, With<Player>)>();
-        local_player
-            .iter(&app.world)
-            .next()
-            .expect("Local player should be created"); // TODO 0.8: Use single
+        assert!(
+            local_player.iter(&app.world).next().is_none(), // TODO 0.8: Use single
+            "Local player should be created on closed connection"
+        );
     }
 
     fn setup_app() -> App {
         let mut app = App::new();
-        app.add_plugin(PlayerPlugin);
+        app.add_event::<SocketEvent>()
+            .add_state(GameState::Menu)
+            .add_plugin(PlayerPlugin);
         app
     }
 }

@@ -20,9 +20,10 @@
 
 use bevy::prelude::*;
 use bevy_egui::{
-    egui::{Align2, ComboBox, DragValue, Grid, Ui, Window},
+    egui::{Align2, Button, ComboBox, DragValue, Grid, Ui, Window},
     EguiContext,
 };
+use bevy_renet::renet::{RenetClient, RenetServer};
 use strum::IntoEnumIterator;
 
 use crate::{
@@ -30,7 +31,7 @@ use crate::{
         game_state::GameState, map::Map, network::server::ServerSettings, player::Player,
         session::GameMode,
     },
-    ui::ui_state::UiState,
+    ui::{error_dialog::ErrorDialog, ui_state::UiState},
 };
 
 pub(super) struct LobbyMenuPlugin;
@@ -38,43 +39,23 @@ pub(super) struct LobbyMenuPlugin;
 impl Plugin for LobbyMenuPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
-            SystemSet::on_update(UiState::CrateLobbyMenu)
-                .with_system(Self::create_lobby_menu_system),
-        )
-        .add_system_set(
             SystemSet::on_update(UiState::LobbyMenu).with_system(Self::lobby_menu_system),
-        )
-        .add_system_set(
-            SystemSet::on_enter(GameState::Lobby).with_system(Self::show_lobby_menu_system),
         );
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 impl LobbyMenuPlugin {
-    fn create_lobby_menu_system(
-        egui: ResMut<EguiContext>,
-        mut server_settings: ResMut<ServerSettings>,
-        mut game_state: ResMut<State<GameState>>,
-    ) {
-        Window::new("Create lobby")
-            .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
-            .collapsible(false)
-            .resizable(false)
-            .show(egui.ctx(), |ui| {
-                ui.vertical(|ui| {
-                    Self::show_game_settings(ui, &mut server_settings);
-                    if ui.button("Create").clicked() {
-                        game_state.set(GameState::Lobby).unwrap();
-                    }
-                })
-            });
-    }
-
     fn lobby_menu_system(
+        mut commands: Commands,
         egui: ResMut<EguiContext>,
+        client: Option<Res<RenetClient>>,
+        server: Option<Res<RenetServer>>,
         player_names: Query<&Name, With<Player>>,
         mut server_settings: ResMut<ServerSettings>,
         mut game_state: ResMut<State<GameState>>,
+        mut ui_state: ResMut<State<UiState>>,
+        mut error_dialog: ResMut<ErrorDialog>,
     ) {
         Window::new("Lobby")
             .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
@@ -82,23 +63,35 @@ impl LobbyMenuPlugin {
             .resizable(false)
             .show(egui.ctx(), |ui| {
                 ui.horizontal_top(|ui| {
-                    Self::show_teams(
-                        ui,
-                        server_settings.game_mode.slots_count(),
-                        player_names.iter().collect(),
-                    );
+                    if client.is_some() || server.is_some() {
+                        Self::show_teams(
+                            ui,
+                            server_settings.game_mode.slots_count(),
+                            player_names.iter().collect(),
+                        );
+                    }
                     Self::show_game_settings(ui, &mut server_settings);
                 });
                 ui.vertical_centered(|ui| {
-                    if ui.button("Start").clicked() {
+                    if client.is_none() && server.is_none() {
+                        if ui.button("Create").clicked() {
+                            match server_settings.create_server() {
+                                Ok(server) => commands.insert_resource(server),
+                                Err(error) => error_dialog.show(
+                                    "Unable to create server".to_string(),
+                                    error.to_string(),
+                                    &mut ui_state,
+                                ),
+                            }
+                        }
+                    } else if ui
+                        .add_enabled(server.is_some(), Button::new("Start"))
+                        .clicked()
+                    {
                         game_state.set(GameState::InGame).unwrap();
                     }
                 })
             });
-    }
-
-    fn show_lobby_menu_system(mut ui_state: ResMut<State<UiState>>) {
-        ui_state.set(UiState::LobbyMenu).unwrap();
     }
 
     fn show_game_settings(ui: &mut Ui, server_settings: &mut ServerSettings) {

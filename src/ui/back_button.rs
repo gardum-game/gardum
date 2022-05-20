@@ -40,12 +40,6 @@ impl Plugin for BackButtonPlugin {
         )
         .add_system_set(
             SystemSet::on_update(UiState::DirectConnectMenu).with_system(Self::back_button_system),
-        )
-        .add_system_set(
-            SystemSet::on_update(UiState::CrateLobbyMenu).with_system(Self::back_button_system),
-        )
-        .add_system_set(
-            SystemSet::on_update(UiState::LobbyMenu).with_system(Self::back_button_system),
         );
     }
 }
@@ -66,11 +60,8 @@ impl BackButtonPlugin {
                         UiState::SettingsMenu => match game_state.current() {
                             GameState::Menu => UiState::MainMenu,
                             GameState::InGame => UiState::InGameMenu,
-                            _ => unreachable!(),
                         },
-                        UiState::DirectConnectMenu
-                        | UiState::CrateLobbyMenu
-                        | UiState::LobbyMenu => UiState::ServerBrowser,
+                        UiState::DirectConnectMenu => UiState::ServerBrowser,
                         _ => unreachable!("Previous state isn't defined for this state"),
                     };
 

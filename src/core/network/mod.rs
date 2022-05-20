@@ -35,6 +35,13 @@ pub(super) struct NetworkPlugin;
 
 impl Plugin for NetworkPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugin(ServerPlugin).add_plugin(ClientPlugin);
+        app.add_event::<SocketEvent>()
+            .add_plugin(ServerPlugin)
+            .add_plugin(ClientPlugin);
     }
+}
+
+pub(crate) enum SocketEvent {
+    Opened,
+    Closed,
 }

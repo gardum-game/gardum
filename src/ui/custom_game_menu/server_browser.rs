@@ -56,7 +56,7 @@ impl ServerBrowserPlugin {
                         ui_state.set(UiState::DirectConnectMenu).unwrap();
                     }
                     if ui.button("Create").clicked() {
-                        ui_state.set(UiState::CrateLobbyMenu).unwrap();
+                        ui_state.set(UiState::LobbyMenu).unwrap();
                     }
                 });
                 ui.add_space(ui.available_height());

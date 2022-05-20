@@ -19,25 +19,12 @@
  */
 
 use bevy::prelude::*;
-#[cfg(test)]
-use strum::EnumIter;
-
-use super::cli::Opts;
 
 pub(super) struct AppStatePlugin;
 
 impl Plugin for AppStatePlugin {
     fn build(&self, app: &mut App) {
-        let opts = app
-            .world
-            .get_resource::<Opts>()
-            .expect("Command line options should be initialized before app state setting");
-        if opts.subcommand.is_some() {
-            app.add_state(GameState::InGame);
-        } else {
-            app.add_state(GameState::Menu);
-        }
-        app.add_system_set(
+        app.add_state(GameState::Menu).add_system_set(
             SystemSet::on_exit(GameState::InGame).with_system(Self::cleanup_ingame_entities_system),
         );
     }
@@ -59,49 +46,22 @@ impl AppStatePlugin {
 pub(super) struct InGameOnly;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
-#[cfg_attr(test, derive(EnumIter))]
 pub(crate) enum GameState {
     Menu,
-    Lobby,
     InGame,
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::core::{cli::SubCommand, network::client::ConnectionSettings};
-
     use super::*;
 
     #[test]
-    fn in_game_with_subcommand() {
-        let app = setup_app(Opts {
-            subcommand: Some(SubCommand::Connect(ConnectionSettings::default())),
-        });
-
-        assert_eq!(
-            *app.world.resource::<State<GameState>>().current(),
-            GameState::InGame,
-            "State should be in game when launched with a subcommand"
-        );
-    }
-
-    #[test]
-    fn in_menu_without_subcommand() {
-        let app = setup_app(Opts::default());
-
-        assert_eq!(
-            *app.world.resource::<State<GameState>>().current(),
-            GameState::Menu,
-            "State should be in menu when launched without a subcommand"
-        );
-    }
-
-    #[test]
     fn ingame_entities_cleanup() {
-        let mut app = setup_app(Opts {
-            subcommand: Some(SubCommand::Connect(ConnectionSettings::default())),
-        });
-
+        let mut app = setup_app();
+        app.world
+            .resource_mut::<State<GameState>>()
+            .set(GameState::InGame)
+            .expect("In-game entities should be spawned in a different state");
         let child_entity = app.world.spawn().id();
         let ingame_entity = app
             .world
@@ -109,6 +69,9 @@ mod tests {
             .insert(InGameOnly)
             .push_children(&[child_entity])
             .id();
+
+        app.update();
+
         app.world
             .resource_mut::<State<GameState>>()
             .set(GameState::Menu)
@@ -122,13 +85,13 @@ mod tests {
         );
         assert!(
             app.world.get_entity(child_entity).is_none(),
-            "Children of ingame entity should be despawned too"
+            "Children of ingame entity should be despawned with its parent"
         );
     }
 
-    fn setup_app(opts: Opts) -> App {
+    fn setup_app() -> App {
         let mut app = App::new();
-        app.insert_resource(opts).add_plugin(AppStatePlugin);
+        app.add_plugin(AppStatePlugin);
         app
     }
 }
