@@ -60,7 +60,7 @@ impl SettingMenuPlugin {
         mut current_tab: Local<SettingsTab>,
         mut commands: Commands,
         windows: Res<Windows>,
-        egui: ResMut<EguiContext>,
+        egui: Res<EguiContext>,
         mut settings: ResMut<Settings>,
     ) {
         let main_window = windows.get_primary().unwrap();
@@ -92,7 +92,7 @@ impl SettingMenuPlugin {
 
     fn buttons_system(
         mut apply_events: EventWriter<SettingApplyEvent>,
-        egui: ResMut<EguiContext>,
+        egui: Res<EguiContext>,
         mut settings: ResMut<Settings>,
         mut action_state: ResMut<ActionState<UiAction>>,
     ) {
@@ -119,7 +119,7 @@ impl SettingMenuPlugin {
         mut commands: Commands,
         mut input_events: InputEvents,
         active_binding: Option<ResMut<ActiveBinding>>,
-        egui: ResMut<EguiContext>,
+        egui: Res<EguiContext>,
         mut settings: ResMut<Settings>,
         mut action_state: ResMut<ActionState<UiAction>>,
     ) {

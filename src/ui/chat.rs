@@ -54,7 +54,7 @@ impl ChatPlugin {
     fn chat_system(
         mut input: Local<InputField>,
         mut action_state: ResMut<ActionState<UiAction>>,
-        egui: ResMut<EguiContext>,
+        egui: Res<EguiContext>,
         mut chat: ResMut<Chat>,
     ) {
         const CHAT_BOTTOM_MARGIN: f32 = 40.0;

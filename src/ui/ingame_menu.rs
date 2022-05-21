@@ -44,7 +44,7 @@ impl Plugin for InGameMenuPlugin {
 impl InGameMenuPlugin {
     fn ingame_menu_system(
         mut exit_event: EventWriter<AppExit>,
-        egui: ResMut<EguiContext>,
+        egui: Res<EguiContext>,
         mut ui_state: ResMut<State<UiState>>,
         mut game_state: ResMut<State<GameState>>,
     ) {

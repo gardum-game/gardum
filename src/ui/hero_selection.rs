@@ -47,7 +47,7 @@ impl Plugin for HeroSelectionPlugin {
 impl HeroSelectionPlugin {
     fn hero_selection_system(
         mut commands: Commands,
-        egui: ResMut<EguiContext>,
+        egui: Res<EguiContext>,
         mut ui_state: ResMut<State<UiState>>,
         mut local_player: Query<(Entity, Option<&mut HeroKind>), (With<Authority>, With<Player>)>,
     ) {

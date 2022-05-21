@@ -39,7 +39,7 @@ impl Plugin for ErrorDialogPlugin {
 impl ErrorDialogPlugin {
     fn error_dialog_system(
         error_dialog: Res<ErrorDialog>,
-        egui: ResMut<EguiContext>,
+        egui: Res<EguiContext>,
         mut ui_state: ResMut<State<UiState>>,
     ) {
         Window::new(&error_dialog.title)

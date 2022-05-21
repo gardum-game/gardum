@@ -48,7 +48,7 @@ impl BackButtonPlugin {
     pub(super) fn back_button_system(
         game_state: Res<State<GameState>>,
         mut action_state: ResMut<ActionState<UiAction>>,
-        egui: ResMut<EguiContext>,
+        egui: Res<EguiContext>,
         mut ui_state: ResMut<State<UiState>>,
     ) {
         Area::new("Back area")

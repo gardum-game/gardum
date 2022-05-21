@@ -50,7 +50,7 @@ impl LobbyMenuPlugin {
         mut commands: Commands,
         client: Option<Res<RenetClient>>,
         server: Option<Res<RenetServer>>,
-        egui: ResMut<EguiContext>,
+        egui: Res<EguiContext>,
         mut server_settings: ResMut<ServerSettings>,
         mut game_state: ResMut<State<GameState>>,
         mut ui_state: ResMut<State<UiState>>,

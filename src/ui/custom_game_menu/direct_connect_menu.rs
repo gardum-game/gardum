@@ -43,7 +43,7 @@ impl Plugin for DirectConnectMenuPlugin {
 impl DirectConnectMenuPlugin {
     fn direct_connect_menu_system(
         mut commands: Commands,
-        egui: ResMut<EguiContext>,
+        egui: Res<EguiContext>,
         mut connection_setttings: ResMut<ConnectionSettings>,
         mut ui_state: ResMut<State<UiState>>,
         mut error_dialog: ResMut<ErrorDialog>,

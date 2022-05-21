@@ -39,7 +39,7 @@ impl Plugin for ScoreboardPlugin {
 impl ScoreboardPlugin {
     fn scoreboard_system(
         action_state: Res<ActionState<UiAction>>,
-        egui: ResMut<EguiContext>,
+        egui: Res<EguiContext>,
         players: Query<(&Name, &Kills, &Deaths, &Damage, &Healing)>,
     ) {
         if !action_state.pressed(UiAction::Scoreboard) {

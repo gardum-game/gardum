@@ -44,7 +44,7 @@ impl PerfStatsPlugin {
         mut apply_events: EventReader<SettingApplyEvent>,
         diagnostics: Res<Diagnostics>,
         settings: Res<Settings>,
-        egui: ResMut<EguiContext>,
+        egui: Res<EguiContext>,
     ) {
         if apply_events.iter().next().is_some() || settings.is_added() {
             *enabled = settings.video.perf_stats;

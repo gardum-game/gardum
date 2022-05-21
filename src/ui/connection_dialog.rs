@@ -42,7 +42,7 @@ fn connection_dialog_system(
     mut commands: Commands,
     client: Res<RenetClient>,
     connection_setttings: Res<ConnectionSettings>,
-    egui: ResMut<EguiContext>,
+    egui: Res<EguiContext>,
     mut ui_state: ResMut<State<UiState>>,
 ) {
     if client.is_connected() {
