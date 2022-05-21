@@ -302,10 +302,9 @@ mod tests {
         app.update();
         app.update();
 
-        let health_events = app.world.resource::<Events<HealthChangeEvent>>();
-        let mut reader = health_events.get_reader();
-        let event = reader
-            .iter(&health_events)
+        let mut health_events = app.world.resource_mut::<Events<HealthChangeEvent>>();
+        let event = health_events
+            .drain()
             .next()
             .expect("Health change event should be emitted");
 
