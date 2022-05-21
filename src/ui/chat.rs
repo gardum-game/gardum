@@ -52,10 +52,10 @@ impl Plugin for ChatPlugin {
 
 impl ChatPlugin {
     fn chat_system(
-        mut action_state: ResMut<ActionState<UiAction>>,
-        mut chat: ResMut<Chat>,
         mut input: Local<InputField>,
+        mut action_state: ResMut<ActionState<UiAction>>,
         egui: ResMut<EguiContext>,
+        mut chat: ResMut<Chat>,
     ) {
         const CHAT_BOTTOM_MARGIN: f32 = 40.0;
 
@@ -140,9 +140,9 @@ impl ChatPlugin {
     }
 
     fn toggle_controls_system(
+        chat: Res<Chat>,
         mut toggle_actions: ResMut<ToggleActions<ControlAction>>,
         mut windows: ResMut<Windows>,
-        chat: Res<Chat>,
     ) {
         // When controls are enabled and chat is active, we should disable them
         if chat.active == toggle_actions.enabled {

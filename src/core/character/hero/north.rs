@@ -100,8 +100,8 @@ impl NorthPlugin {
 
     fn frost_path_system(
         mut commands: Commands,
-        abilities: Query<(Entity, &Activator), With<FrostPathAbility>>,
         mut characters: Query<&mut Velocity>,
+        abilities: Query<(Entity, &Activator), With<FrostPathAbility>>,
         cameras: Query<&Transform, With<Camera>>,
     ) {
         for (ability, activator) in abilities.iter() {

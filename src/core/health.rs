@@ -60,10 +60,10 @@ impl HealthPlugin {
     }
 
     fn damage_system(
+        mut commands: Commands,
         mut health_events: EventReader<HealthChangeEvent>,
         mut targets: Query<(&mut Health, &mut Deaths)>,
         mut instigators: Query<(&mut Damage, &mut Kills, &DamageModifier)>,
-        mut commands: Commands,
     ) {
         for event in health_events.iter().filter(|event| event.delta < 0) {
             let (mut health, mut deaths) = targets.get_mut(event.target).unwrap();

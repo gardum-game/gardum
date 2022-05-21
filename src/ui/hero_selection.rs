@@ -48,8 +48,8 @@ impl HeroSelectionPlugin {
     fn hero_selection_system(
         mut commands: Commands,
         egui: ResMut<EguiContext>,
-        mut local_player: Query<(Entity, Option<&mut HeroKind>), (With<Authority>, With<Player>)>,
         mut ui_state: ResMut<State<UiState>>,
+        mut local_player: Query<(Entity, Option<&mut HeroKind>), (With<Authority>, With<Player>)>,
     ) {
         let (player, current_hero_kind) = local_player.single_mut();
 
@@ -95,8 +95,8 @@ impl HeroSelectionPlugin {
     }
 
     fn show_hero_selection_system(
-        mut ui_state: ResMut<State<UiState>>,
         server_settings: Res<ServerSettings>,
+        mut ui_state: ResMut<State<UiState>>,
     ) {
         if server_settings.random_heroes {
             // Skip hero selection

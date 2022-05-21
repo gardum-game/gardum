@@ -60,9 +60,9 @@ impl SpawnPlugin {
     }
 
     fn spawn_system(
+        mut asset_commands: AssetCommands,
         spawn_points: Query<&SpawnPoint>,
         players: Query<(Entity, &HeroKind), Added<HeroKind>>,
-        mut asset_commands: AssetCommands,
     ) {
         for (player, hero_kind) in players.iter() {
             // TODO: determine best spawn position based on other characters location
@@ -80,8 +80,8 @@ impl SpawnPlugin {
     }
 
     fn assign_respawn_timer_system(
-        mut died_players: Query<Entity, Added<Death>>,
         mut commands: Commands,
+        mut died_players: Query<Entity, Added<Death>>,
     ) {
         for player in died_players.iter_mut() {
             commands.entity(player).insert(RespawnTimer::default());
@@ -89,10 +89,10 @@ impl SpawnPlugin {
     }
 
     fn respawn_system(
+        mut commands: Commands,
         time: Res<Time>,
         spawn_points: Query<&SpawnPoint>,
         mut dead_players: Query<(Entity, &mut Transform, &mut RespawnTimer)>,
-        mut commands: Commands,
     ) {
         for (player, mut transform, mut respawn_timer) in dead_players.iter_mut() {
             respawn_timer.tick(time.delta());

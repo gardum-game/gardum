@@ -40,9 +40,9 @@ impl Plugin for ConnectionDialogPlugin {
 
 fn connection_dialog_system(
     mut commands: Commands,
-    egui: ResMut<EguiContext>,
     client: Res<RenetClient>,
     connection_setttings: Res<ConnectionSettings>,
+    egui: ResMut<EguiContext>,
     mut ui_state: ResMut<State<UiState>>,
 ) {
     if client.is_connected() {

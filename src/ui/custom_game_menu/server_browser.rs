@@ -38,8 +38,8 @@ impl Plugin for ServerBrowserPlugin {
 
 impl ServerBrowserPlugin {
     fn game_browser_system(
-        egui: ResMut<EguiContext>,
         mut search_text: Local<SearchText>,
+        egui: ResMut<EguiContext>,
         mut ui_state: ResMut<State<UiState>>,
     ) {
         Window::new("Game browser")

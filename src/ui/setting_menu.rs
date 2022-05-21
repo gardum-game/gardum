@@ -57,11 +57,11 @@ impl Plugin for SettingMenuPlugin {
 
 impl SettingMenuPlugin {
     fn settings_menu_system(
-        mut commands: Commands,
-        egui: ResMut<EguiContext>,
-        windows: Res<Windows>,
-        mut settings: ResMut<Settings>,
         mut current_tab: Local<SettingsTab>,
+        mut commands: Commands,
+        windows: Res<Windows>,
+        egui: ResMut<EguiContext>,
+        mut settings: ResMut<Settings>,
     ) {
         let main_window = windows.get_primary().unwrap();
         let window_width_margin = egui.ctx().style().spacing.window_margin.left * 2.0;
@@ -91,8 +91,8 @@ impl SettingMenuPlugin {
     }
 
     fn buttons_system(
-        egui: ResMut<EguiContext>,
         mut apply_events: EventWriter<SettingApplyEvent>,
+        egui: ResMut<EguiContext>,
         mut settings: ResMut<Settings>,
         mut action_state: ResMut<ActionState<UiAction>>,
     ) {
@@ -117,9 +117,9 @@ impl SettingMenuPlugin {
 
     fn binding_window_system(
         mut commands: Commands,
-        egui: ResMut<EguiContext>,
         mut input_events: InputEvents,
         active_binding: Option<ResMut<ActiveBinding>>,
+        egui: ResMut<EguiContext>,
         mut settings: ResMut<Settings>,
         mut action_state: ResMut<ActionState<UiAction>>,
     ) {

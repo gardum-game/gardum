@@ -35,8 +35,8 @@ impl Plugin for DespawnTimerPlugin {
 
 impl DespawnTimerPlugin {
     fn despawn_timer_system(
-        time: Res<Time>,
         mut commands: Commands,
+        time: Res<Time>,
         mut timers: Query<(Entity, &mut DespawnTimer)>,
     ) {
         for (entity, mut despawn_timer) in timers.iter_mut() {

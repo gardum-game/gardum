@@ -41,10 +41,10 @@ impl Plugin for PerfStatsPlugin {
 impl PerfStatsPlugin {
     fn perf_stats_system(
         mut enabled: Local<bool>,
-        egui: ResMut<EguiContext>,
-        diagnostics: Res<Diagnostics>,
         mut apply_events: EventReader<SettingApplyEvent>,
+        diagnostics: Res<Diagnostics>,
         settings: Res<Settings>,
+        egui: ResMut<EguiContext>,
     ) {
         if apply_events.iter().next().is_some() || settings.is_added() {
             *enabled = settings.video.perf_stats;

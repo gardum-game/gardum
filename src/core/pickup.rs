@@ -49,8 +49,8 @@ impl Plugin for PickupPlugin {
 impl PickupPlugin {
     fn collision_system(
         mut commands: Commands,
-        mut pickups: Query<(Entity, &PickupKind, &mut Cooldown, &Collisions), Changed<Collisions>>,
         children: Query<&Children>,
+        mut pickups: Query<(Entity, &PickupKind, &mut Cooldown, &Collisions), Changed<Collisions>>,
     ) {
         for (pickup, pickup_kind, mut cooldown, collisions) in pickups.iter_mut() {
             let character = match collisions.entities().next() {
@@ -82,8 +82,8 @@ impl PickupPlugin {
 
     fn cooldown_system(
         time: Res<Time>,
-        mut cooldowns: Query<(Entity, &mut Cooldown), With<PickupKind>>,
         children: Query<&Children>,
+        mut cooldowns: Query<(Entity, &mut Cooldown), With<PickupKind>>,
         mut visibility: Query<&mut Visibility>,
     ) {
         for (pickup, mut cooldown) in cooldowns.iter_mut() {

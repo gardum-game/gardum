@@ -38,8 +38,8 @@ impl Plugin for MainMenuPlugin {
 
 impl MainMenuPlugin {
     fn main_menu_system(
-        egui: ResMut<EguiContext>,
         mut exit_event: EventWriter<AppExit>,
+        egui: ResMut<EguiContext>,
         mut ui_state: ResMut<State<UiState>>,
     ) {
         Area::new("Main Menu")

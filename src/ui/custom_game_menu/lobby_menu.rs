@@ -48,14 +48,14 @@ impl Plugin for LobbyMenuPlugin {
 impl LobbyMenuPlugin {
     fn lobby_menu_system(
         mut commands: Commands,
-        egui: ResMut<EguiContext>,
         client: Option<Res<RenetClient>>,
         server: Option<Res<RenetServer>>,
-        player_names: Query<&Name, With<Player>>,
+        egui: ResMut<EguiContext>,
         mut server_settings: ResMut<ServerSettings>,
         mut game_state: ResMut<State<GameState>>,
         mut ui_state: ResMut<State<UiState>>,
         mut error_dialog: ResMut<ErrorDialog>,
+        player_names: Query<&Name, With<Player>>,
     ) {
         Window::new("Lobby")
             .anchor(Align2::CENTER_CENTER, (0.0, 0.0))

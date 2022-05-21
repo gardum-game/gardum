@@ -66,12 +66,12 @@ impl Plugin for HudPlugin {
 
 impl HudPlugin {
     fn health_and_abilities_system(
-        local_character: Query<(&Abilities, &Health), With<Authority>>,
-        cooldowns: Query<&Cooldown>,
-        icon_paths: Query<&IconPath>,
         mut ability_images: Local<Vec<Handle<Image>>>,
         asset_server: Res<AssetServer>,
         mut egui: ResMut<EguiContext>,
+        local_character: Query<(&Abilities, &Health), With<Authority>>,
+        cooldowns: Query<&Cooldown>,
+        icon_paths: Query<&IconPath>,
     ) {
         let (abilities, health) = match local_character.get_single() {
             Ok(result) => result,

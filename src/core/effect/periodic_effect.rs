@@ -38,13 +38,13 @@ impl Plugin for PeriodicEffectPlugin {
 
 impl PeriodicEffectPlugin {
     fn update_health_system(
+        mut health_events: EventWriter<HealthChangeEvent>,
         mut effects: Query<(
             &Owner,
             &EffectTarget,
             &PeriodicHealthChange,
             &PeriodicEffectTimer,
         )>,
-        mut health_events: EventWriter<HealthChangeEvent>,
     ) {
         for (instigator, target, delta, timer) in effects.iter_mut() {
             if timer.just_finished() {

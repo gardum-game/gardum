@@ -57,8 +57,8 @@ impl Plugin for OrbitCameraPlugin {
 impl OrbitCameraPlugin {
     fn spawn_system(
         mut commands: Commands,
-        spawned_heroes: Query<(Entity, Option<&Authority>), Added<HeroKind>>,
         mut active_camera: ResMut<ActiveCamera<Camera3d>>,
+        spawned_heroes: Query<(Entity, Option<&Authority>), Added<HeroKind>>,
     ) {
         for (hero, authority) in spawned_heroes.iter() {
             let mut entity_commands = commands.spawn_bundle(OrbitCameraBundle::new(hero.into()));
@@ -71,9 +71,9 @@ impl OrbitCameraPlugin {
     }
 
     fn input_system(
+        mut motion_events: EventReader<MouseMotion>,
         time: Res<Time>,
         #[cfg(not(test))] windows: ResMut<Windows>,
-        mut motion_events: EventReader<MouseMotion>,
         mut orbit_rotations: Query<&mut OrbitRotation, With<Authority>>,
     ) {
         #[cfg(not(test))] // Can't run tests with windows, ignore.

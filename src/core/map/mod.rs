@@ -38,7 +38,7 @@ impl Plugin for MapsPlugin {
 }
 
 impl MapsPlugin {
-    fn load_map_system(server_settings: Res<ServerSettings>, mut asset_commands: AssetCommands) {
+    fn load_map_system(mut asset_commands: AssetCommands, server_settings: Res<ServerSettings>) {
         match server_settings.map {
             Map::SkyRoof => asset_commands.spawn_sky_roof(),
         };

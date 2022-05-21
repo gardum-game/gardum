@@ -43,8 +43,8 @@ impl Plugin for ControlActionsPlugin {
 impl ControlActionsPlugin {
     fn load_mappings_system(
         mut apply_events: EventReader<SettingApplyEvent>,
-        mut local_player: Query<&mut InputMap<ControlAction>, With<Authority>>,
         settings: Res<Settings>,
+        mut local_player: Query<&mut InputMap<ControlAction>, With<Authority>>,
     ) {
         if apply_events.iter().next().is_some() {
             if let Ok(mut mappings) = local_player.get_single_mut() {
