@@ -27,14 +27,23 @@ use std::{
     time::SystemTime,
 };
 
-use super::{SocketEvent, DEFAULT_PORT, PROTOCOL_ID, PUBLIC_GAME_KEY};
+use super::{NetworkingState, DEFAULT_PORT, PROTOCOL_ID, PUBLIC_GAME_KEY};
 use crate::core::cli::{Opts, SubCommand};
 
 pub(super) struct ClientPlugin;
 
 impl Plugin for ClientPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(Self::socket_events_system);
+        app.add_system_set(
+            SystemSet::on_update(NetworkingState::NoSocket)
+                .with_system(Self::waiting_for_socket_system),
+        )
+        .add_system_set(
+            SystemSet::on_update(NetworkingState::Connecting).with_system(Self::connecting_system),
+        )
+        .add_system_set(
+            SystemSet::on_exit(NetworkingState::Connected).with_system(Self::disconnect_system),
+        );
 
         let opts = app
             .world
@@ -51,20 +60,27 @@ impl Plugin for ClientPlugin {
 }
 
 impl ClientPlugin {
-    fn socket_events_system(
-        mut client_was_connected: Local<bool>,
-        mut socket_events: EventWriter<SocketEvent>,
+    fn waiting_for_socket_system(
         client: Option<Res<RenetClient>>,
+        mut networking_state: ResMut<State<NetworkingState>>,
     ) {
-        if let Some(client) = client {
-            if client.is_connected() != *client_was_connected {
-                socket_events.send(SocketEvent::Opened);
-                *client_was_connected = true;
-            }
-        } else if *client_was_connected {
-            socket_events.send(SocketEvent::Closed);
-            *client_was_connected = false;
+        if client.is_some() {
+            networking_state.set(NetworkingState::Connecting).unwrap();
         }
+    }
+
+    fn connecting_system(
+        client: Res<RenetClient>,
+        mut networking_state: ResMut<State<NetworkingState>>,
+    ) {
+        if client.is_connected() {
+            networking_state.set(NetworkingState::Connected).unwrap();
+        }
+    }
+
+    fn disconnect_system(mut commands: Commands, mut client: ResMut<RenetClient>) {
+        client.disconnect();
+        commands.remove_resource::<RenetClient>();
     }
 }
 
@@ -117,7 +133,6 @@ impl ConnectionSettings {
 
 #[cfg(test)]
 mod tests {
-    use bevy::ecs::event::Events;
     use bevy_renet::{RenetClientPlugin, RenetServerPlugin};
 
     use super::*;
@@ -175,7 +190,7 @@ mod tests {
             ..Default::default()
         };
         app.init_resource::<Opts>()
-            .add_event::<SocketEvent>()
+            .add_state(NetworkingState::NoSocket)
             .add_plugins(MinimalPlugins)
             .add_plugin(RenetServerPlugin)
             .add_plugin(RenetClientPlugin)
@@ -192,33 +207,36 @@ mod tests {
             );
 
         app.update();
-        app.update();
-        app.update();
 
-        let mut socket_events = app.world.resource_mut::<Events<SocketEvent>>();
-        let event = socket_events
-            .drain()
-            .next()
-            .expect("Socket event should be triggered on client connection");
-
+        let networking_state = app.world.resource::<State<NetworkingState>>();
         assert!(
-            matches!(event, SocketEvent::Opened),
-            "Socket should be opened on client creation"
+            matches!(networking_state.current(), NetworkingState::Connecting),
+            "Networking state should be in {:?} state after client creation",
+            NetworkingState::Connecting,
         );
 
-        app.world.remove_resource::<RenetClient>();
+        app.update();
+        app.update();
+
+        assert!(
+            app.world.resource::<RenetClient>().is_connected(),
+            "Client should be connected",
+        );
+
+        let mut networking_state = app.world.resource_mut::<State<NetworkingState>>();
+        assert!(
+            matches!(networking_state.current(), NetworkingState::Connected),
+            "Networking state should be in {:?} state after connection",
+            NetworkingState::Connected,
+        );
+        networking_state.set(NetworkingState::NoSocket).unwrap();
 
         app.update();
 
-        let mut socket_events = app.world.resource_mut::<Events<SocketEvent>>();
-        let event = socket_events
-            .drain()
-            .next()
-            .expect("Socket event should be triggered on client removal");
-
         assert!(
-            matches!(event, SocketEvent::Closed),
-            "Socket should be closed on client removal"
+            app.world.get_resource::<RenetClient>().is_none(),
+            "Client resource should be removed on exiting {:?} state",
+            NetworkingState::NoSocket,
         );
     }
 }

@@ -35,13 +35,16 @@ pub(super) struct NetworkPlugin;
 
 impl Plugin for NetworkPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<SocketEvent>()
+        app.add_state(NetworkingState::NoSocket)
             .add_plugin(ServerPlugin)
             .add_plugin(ClientPlugin);
     }
 }
 
-pub(crate) enum SocketEvent {
-    Opened,
-    Closed,
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
+pub(super) enum NetworkingState {
+    NoSocket,
+    Connecting,
+    Connected,
+    Hosting,
 }

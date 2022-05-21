@@ -20,37 +20,38 @@
 
 use bevy::prelude::*;
 
-use super::{game_state::GameState, network::SocketEvent, Authority};
+use super::{network::NetworkingState, Authority};
 
 pub(super) struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
-            SystemSet::on_update(GameState::Menu).with_system(Self::player_spawn_despawn_system),
+            SystemSet::on_enter(NetworkingState::Connected).with_system(Self::spawn_player_system),
+        )
+        .add_system_set(
+            SystemSet::on_enter(NetworkingState::Hosting).with_system(Self::spawn_player_system),
+        )
+        .add_system_set(
+            SystemSet::on_exit(NetworkingState::Connected)
+                .with_system(Self::despawn_players_system),
+        )
+        .add_system_set(
+            SystemSet::on_exit(NetworkingState::Hosting).with_system(Self::despawn_players_system),
         );
     }
 }
 
 impl PlayerPlugin {
-    fn player_spawn_despawn_system(
-        mut commands: Commands,
-        mut socket_events: EventReader<SocketEvent>,
-        players: Query<Entity, With<Player>>,
-    ) {
-        for event in socket_events.iter() {
-            match event {
-                SocketEvent::Opened => {
-                    commands
-                        .spawn_bundle(PlayerBundle::default())
-                        .insert(Authority);
-                }
-                SocketEvent::Closed => {
-                    for player in players.iter() {
-                        commands.entity(player).despawn_recursive();
-                    }
-                }
-            };
+    fn spawn_player_system(mut commands: Commands) {
+        commands
+            .spawn_bundle(PlayerBundle::default())
+            .insert(Authority);
+    }
+
+    fn despawn_players_system(mut commands: Commands, players: Query<Entity, With<Player>>) {
+        for player in players.iter() {
+            commands.entity(player).despawn_recursive();
         }
     }
 }
@@ -100,42 +101,45 @@ pub(crate) struct Healing(pub(crate) u32);
 
 #[cfg(test)]
 mod tests {
-    use bevy::ecs::event::Events;
-
     use super::*;
 
     #[test]
     fn player_spawns_despawns() {
         let mut app = setup_app();
 
-        let mut socket_events = app.world.resource_mut::<Events<SocketEvent>>();
-        socket_events.send(SocketEvent::Opened);
+        for state in [NetworkingState::Connected, NetworkingState::Hosting] {
+            let mut networking_state = app.world.resource_mut::<State<NetworkingState>>();
+            networking_state.set(state).unwrap();
 
-        app.update();
+            app.update();
 
-        let mut local_player = app
-            .world
-            .query_filtered::<Entity, (With<Authority>, With<Player>)>();
-        local_player
-            .iter(&app.world)
-            .next()
-            .expect("Local player should be created on opened connection"); // TODO 0.8: Use single
+            let mut local_player = app
+                .world
+                .query_filtered::<Entity, (With<Authority>, With<Player>)>();
+            local_player.iter(&app.world).next().expect(
+                format!(
+                    "Local player should be created after entering {:?} state",
+                    state
+                )
+                .as_str(),
+            ); // TODO 0.8: Use single
 
-        let mut socket_events = app.world.resource_mut::<Events<SocketEvent>>();
-        socket_events.send(SocketEvent::Closed);
+            let mut networking_state = app.world.resource_mut::<State<NetworkingState>>();
+            networking_state.set(NetworkingState::NoSocket).unwrap();
 
-        app.update();
+            app.update();
 
-        assert!(
-            local_player.iter(&app.world).next().is_none(), // TODO 0.8: Use single
-            "Local player should be created on closed connection"
-        );
+            assert!(
+                local_player.iter(&app.world).next().is_none(), // TODO 0.8: Use single
+                "Local player should be removed after entering {:?} state",
+                NetworkingState::NoSocket
+            );
+        }
     }
 
     fn setup_app() -> App {
         let mut app = App::new();
-        app.add_event::<SocketEvent>()
-            .add_state(GameState::Menu)
+        app.add_state(NetworkingState::NoSocket)
             .add_plugin(PlayerPlugin);
         app
     }

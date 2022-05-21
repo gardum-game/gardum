@@ -27,7 +27,7 @@ use std::{
     time::SystemTime,
 };
 
-use super::{SocketEvent, DEFAULT_PORT, PROTOCOL_ID, PUBLIC_GAME_KEY};
+use super::{NetworkingState, DEFAULT_PORT, PROTOCOL_ID, PUBLIC_GAME_KEY};
 use crate::core::{
     cli::{Opts, SubCommand},
     map::Map,
@@ -38,7 +38,13 @@ pub(super) struct ServerPlugin;
 
 impl Plugin for ServerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(Self::server_player_system);
+        app.add_system_set(
+            SystemSet::on_update(NetworkingState::NoSocket)
+                .with_system(Self::waiting_for_socket_system),
+        )
+        .add_system_set(
+            SystemSet::on_exit(NetworkingState::Hosting).with_system(Self::shutdown_system),
+        );
 
         let opts = app
             .world
@@ -55,20 +61,18 @@ impl Plugin for ServerPlugin {
 }
 
 impl ServerPlugin {
-    fn server_player_system(
-        mut server_existed: Local<bool>,
-        mut socket_events: EventWriter<SocketEvent>,
+    fn waiting_for_socket_system(
         server: Option<Res<RenetServer>>,
+        mut networking_state: ResMut<State<NetworkingState>>,
     ) {
-        if let Some(server) = server {
-            if server.is_added() {
-                socket_events.send(SocketEvent::Opened);
-                *server_existed = true;
-            }
-        } else if *server_existed {
-            socket_events.send(SocketEvent::Closed);
-            *server_existed = false;
+        if server.is_some() {
+            networking_state.set(NetworkingState::Hosting).unwrap();
         }
+    }
+
+    fn shutdown_system(mut commands: Commands, mut server: ResMut<RenetServer>) {
+        server.disconnect_clients();
+        commands.remove_resource::<RenetServer>();
     }
 }
 
@@ -128,7 +132,6 @@ impl ServerSettings {
 
 #[cfg(test)]
 mod tests {
-    use bevy::ecs::event::Events;
     use bevy_renet::RenetServerPlugin;
 
     use super::*;
@@ -181,7 +184,7 @@ mod tests {
             ..Default::default()
         };
         app.init_resource::<Opts>()
-            .add_event::<SocketEvent>()
+            .add_state(NetworkingState::NoSocket)
             .add_plugins(MinimalPlugins)
             .add_plugin(RenetServerPlugin)
             .add_plugin(ServerPlugin)
@@ -193,30 +196,20 @@ mod tests {
 
         app.update();
 
-        let mut socket_events = app.world.resource_mut::<Events<SocketEvent>>();
-        let event = socket_events
-            .drain()
-            .next()
-            .expect("Socket event should be triggered on server creation");
-
+        let mut networking_state = app.world.resource_mut::<State<NetworkingState>>();
         assert!(
-            matches!(event, SocketEvent::Opened),
-            "Socket should be opened on server creation"
+            matches!(networking_state.current(), NetworkingState::Hosting),
+            "Networking state should be in {:?} state after server creation",
+            NetworkingState::Hosting,
         );
-
-        app.world.remove_resource::<RenetServer>();
+        networking_state.set(NetworkingState::NoSocket).unwrap();
 
         app.update();
 
-        let mut socket_events = app.world.resource_mut::<Events<SocketEvent>>();
-        let event = socket_events
-            .drain()
-            .next()
-            .expect("Socket event should be triggered on server removal");
-
         assert!(
-            matches!(event, SocketEvent::Closed),
-            "Socket should be closed on server removal"
+            app.world.get_resource::<RenetServer>().is_none(),
+            "Server resource should be removed on exiting {:?} state",
+            NetworkingState::Hosting,
         );
     }
 }
