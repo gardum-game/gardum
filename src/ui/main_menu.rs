@@ -39,12 +39,12 @@ impl Plugin for MainMenuPlugin {
 impl MainMenuPlugin {
     fn main_menu_system(
         mut exit_event: EventWriter<AppExit>,
-        egui: ResMut<EguiContext>,
+        mut egui: ResMut<EguiContext>,
         mut ui_state: ResMut<State<UiState>>,
     ) {
         Area::new("Main Menu")
             .anchor(Align2::LEFT_CENTER, (UI_MARGIN, 0.0))
-            .show(egui.ctx(), |ui| {
+            .show(egui.ctx_mut(), |ui| {
                 ui.add_enabled(
                     false,
                     Button::new(RichText::new("Play").text_style(TextStyle::Heading)),

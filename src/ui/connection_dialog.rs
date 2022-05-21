@@ -42,7 +42,7 @@ fn connection_dialog_system(
     mut commands: Commands,
     client: Res<RenetClient>,
     connection_setttings: Res<ConnectionSettings>,
-    egui: ResMut<EguiContext>,
+    mut egui: ResMut<EguiContext>,
     mut ui_state: ResMut<State<UiState>>,
 ) {
     if client.is_connected() {
@@ -54,7 +54,7 @@ fn connection_dialog_system(
         .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
         .collapsible(false)
         .resizable(false)
-        .show(egui.ctx(), |ui| {
+        .show(egui.ctx_mut(), |ui| {
             ui.label(format!(
                 "Connecting to {}:{}...",
                 connection_setttings.ip, connection_setttings.port

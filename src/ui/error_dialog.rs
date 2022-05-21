@@ -39,14 +39,14 @@ impl Plugin for ErrorDialogPlugin {
 impl ErrorDialogPlugin {
     fn error_dialog_system(
         error_dialog: Res<ErrorDialog>,
-        egui: ResMut<EguiContext>,
+        mut egui: ResMut<EguiContext>,
         mut ui_state: ResMut<State<UiState>>,
     ) {
         Window::new(&error_dialog.title)
             .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
             .collapsible(false)
             .resizable(false)
-            .show(egui.ctx(), |ui| {
+            .show(egui.ctx_mut(), |ui| {
                 ui.label(&error_dialog.message);
                 if ui.button("Ok").clicked() {
                     ui_state.set(error_dialog.previous_state).unwrap();

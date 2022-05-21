@@ -21,9 +21,9 @@
 mod ability_icon;
 mod health_bar;
 
-use bevy::prelude::*;
+use bevy::{prelude::*, utils::HashMap};
 use bevy_egui::{
-    egui::{Align2, Area},
+    egui::{Align2, Area, TextureId},
     EguiContext,
 };
 use leafwing_input_manager::{plugin::ToggleActions, prelude::ActionState};
@@ -66,7 +66,7 @@ impl Plugin for HudPlugin {
 
 impl HudPlugin {
     fn health_and_abilities_system(
-        mut ability_images: Local<Vec<Handle<Image>>>,
+        mut ability_icons: Local<HashMap<Handle<Image>, TextureId>>,
         asset_server: Res<AssetServer>,
         mut egui: ResMut<EguiContext>,
         local_character: Query<(&Abilities, &Health), With<Authority>>,
@@ -78,30 +78,22 @@ impl HudPlugin {
             Err(_) => return,
         };
 
-        for (i, ability) in abilities.iter().enumerate() {
+        for ability in abilities.iter() {
             let icon_path = icon_paths.get(*ability).unwrap();
             let image = asset_server.load(icon_path.0);
-            if let Some(current_image) = ability_images.get_mut(i) {
-                if image != *current_image {
-                    egui.add_image(current_image.as_weak());
-                    *current_image = image;
-                }
-            } else {
-                egui.add_image(image.as_weak());
-                ability_images.push(image);
-            }
+            let texture_id = egui.add_image(image.as_weak());
+            ability_icons.insert(image, texture_id);
         }
 
         Area::new("Health and abilities")
             .anchor(Align2::CENTER_BOTTOM, (0.0, -UI_MARGIN))
-            .show(egui.ctx(), |ui| {
+            .show(egui.ctx_mut(), |ui| {
                 ui.set_width(300.0);
                 ui.add(HealthBar::new(health.current, health.max));
                 ui.horizontal(|ui| {
-                    for (ability, image) in abilities.iter().zip(ability_images.iter().by_ref()) {
+                    for (ability, texture_id) in abilities.iter().zip(ability_icons.values()) {
                         let cooldown = cooldowns.get(*ability).ok();
-                        let image_id = egui.image_id(image).unwrap();
-                        ui.add(AbilityIcon::new(image_id, cooldown));
+                        ui.add(AbilityIcon::new(*texture_id, cooldown));
                     }
                 })
             });

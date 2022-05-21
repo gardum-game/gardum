@@ -60,18 +60,18 @@ impl SettingMenuPlugin {
         mut current_tab: Local<SettingsTab>,
         mut commands: Commands,
         windows: Res<Windows>,
-        egui: ResMut<EguiContext>,
+        mut egui: ResMut<EguiContext>,
         mut settings: ResMut<Settings>,
     ) {
         let main_window = windows.get_primary().unwrap();
-        let window_width_margin = egui.ctx().style().spacing.window_margin.left * 2.0;
+        let window_width_margin = egui.ctx_mut().style().spacing.window_margin.left * 2.0;
 
         Window::new("Settings")
             .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
             .collapsible(false)
             .resizable(false)
             .default_width(main_window.width() - UI_MARGIN * 2.0 - window_width_margin)
-            .show(egui.ctx(), |ui| {
+            .show(egui.ctx_mut(), |ui| {
                 ui.horizontal(|ui| {
                     for tab in SettingsTab::iter() {
                         ui.selectable_value(&mut *current_tab, tab, tab.to_string());
@@ -92,13 +92,13 @@ impl SettingMenuPlugin {
 
     fn buttons_system(
         mut apply_events: EventWriter<SettingApplyEvent>,
-        egui: ResMut<EguiContext>,
+        mut egui: ResMut<EguiContext>,
         mut settings: ResMut<Settings>,
         mut action_state: ResMut<ActionState<UiAction>>,
     ) {
         Area::new("Settings buttons area")
             .anchor(Align2::RIGHT_BOTTOM, (-UI_MARGIN, -UI_MARGIN))
-            .show(egui.ctx(), |ui| {
+            .show(egui.ctx_mut(), |ui| {
                 ui.horizontal(|ui| {
                     if ui.button("Restore defaults").clicked() {
                         *settings = Settings::default();
@@ -119,7 +119,7 @@ impl SettingMenuPlugin {
         mut commands: Commands,
         mut input_events: InputEvents,
         active_binding: Option<ResMut<ActiveBinding>>,
-        egui: ResMut<EguiContext>,
+        mut egui: ResMut<EguiContext>,
         mut settings: ResMut<Settings>,
         mut action_state: ResMut<ActionState<UiAction>>,
     ) {
@@ -132,7 +132,7 @@ impl SettingMenuPlugin {
             .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
             .collapsible(false)
             .resizable(false)
-            .show(egui.ctx(), |ui| {
+            .show(egui.ctx_mut(), |ui| {
                 if let Some(conflict) = &active_binding.conflict {
                     ui.label(format!(
                         "Input \"{}\" is already used by \"{}\"",

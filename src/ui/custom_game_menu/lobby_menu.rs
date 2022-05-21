@@ -50,7 +50,7 @@ impl LobbyMenuPlugin {
         mut commands: Commands,
         client: Option<Res<RenetClient>>,
         server: Option<Res<RenetServer>>,
-        egui: ResMut<EguiContext>,
+        mut egui: ResMut<EguiContext>,
         mut server_settings: ResMut<ServerSettings>,
         mut game_state: ResMut<State<GameState>>,
         mut ui_state: ResMut<State<UiState>>,
@@ -61,7 +61,7 @@ impl LobbyMenuPlugin {
             .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
             .collapsible(false)
             .resizable(false)
-            .show(egui.ctx(), |ui| {
+            .show(egui.ctx_mut(), |ui| {
                 ui.horizontal_top(|ui| {
                     if client.is_some() || server.is_some() {
                         Self::show_teams(

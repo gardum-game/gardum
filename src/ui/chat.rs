@@ -54,18 +54,18 @@ impl ChatPlugin {
     fn chat_system(
         mut input: Local<InputField>,
         mut action_state: ResMut<ActionState<UiAction>>,
-        egui: ResMut<EguiContext>,
+        mut egui: ResMut<EguiContext>,
         mut chat: ResMut<Chat>,
     ) {
         const CHAT_BOTTOM_MARGIN: f32 = 40.0;
 
         let frame = if chat.active {
-            Frame::window(&egui.ctx().style())
+            Frame::window(&egui.ctx_mut().style())
         } else {
             // Show frame with window spacing, but without visuals
             Frame {
-                inner_margin: egui.ctx().style().spacing.window_margin,
-                rounding: egui.ctx().style().visuals.window_rounding,
+                inner_margin: egui.ctx_mut().style().spacing.window_margin,
+                rounding: egui.ctx_mut().style().visuals.window_rounding,
                 ..Frame::none()
             }
         };
@@ -78,7 +78,7 @@ impl ChatPlugin {
                 Align2::LEFT_BOTTOM,
                 [UI_MARGIN, -UI_MARGIN - CHAT_BOTTOM_MARGIN],
             )
-            .show(egui.ctx(), |ui| {
+            .show(egui.ctx_mut(), |ui| {
                 if !chat.active {
                     // Hide scrollbar
                     ui.style_mut().visuals.extreme_bg_color = Color32::TRANSPARENT;

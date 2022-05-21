@@ -39,7 +39,7 @@ impl Plugin for ScoreboardPlugin {
 impl ScoreboardPlugin {
     fn scoreboard_system(
         action_state: Res<ActionState<UiAction>>,
-        egui: ResMut<EguiContext>,
+        mut egui: ResMut<EguiContext>,
         players: Query<(&Name, &Kills, &Deaths, &Damage, &Healing)>,
     ) {
         if !action_state.pressed(UiAction::Scoreboard) {
@@ -50,7 +50,7 @@ impl ScoreboardPlugin {
             .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
             .collapsible(false)
             .resizable(false)
-            .show(egui.ctx(), |ui| {
+            .show(egui.ctx_mut(), |ui| {
                 Grid::new("Scoreboard grid").striped(true).show(ui, |ui| {
                     ui.label("Player");
                     ui.label("Kills");

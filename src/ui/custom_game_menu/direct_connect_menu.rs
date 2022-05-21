@@ -43,7 +43,7 @@ impl Plugin for DirectConnectMenuPlugin {
 impl DirectConnectMenuPlugin {
     fn direct_connect_menu_system(
         mut commands: Commands,
-        egui: ResMut<EguiContext>,
+        mut egui: ResMut<EguiContext>,
         mut connection_setttings: ResMut<ConnectionSettings>,
         mut ui_state: ResMut<State<UiState>>,
         mut error_dialog: ResMut<ErrorDialog>,
@@ -52,7 +52,7 @@ impl DirectConnectMenuPlugin {
             .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
             .collapsible(false)
             .resizable(false)
-            .show(egui.ctx(), |ui| {
+            .show(egui.ctx_mut(), |ui| {
                 Grid::new("Direct connect grid")
                     .num_columns(2)
                     .show(ui, |ui| {

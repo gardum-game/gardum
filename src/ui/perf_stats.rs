@@ -44,7 +44,7 @@ impl PerfStatsPlugin {
         mut apply_events: EventReader<SettingApplyEvent>,
         diagnostics: Res<Diagnostics>,
         settings: Res<Settings>,
-        egui: ResMut<EguiContext>,
+        mut egui: ResMut<EguiContext>,
     ) {
         if apply_events.iter().next().is_some() || settings.is_added() {
             *enabled = settings.video.perf_stats;
@@ -56,7 +56,7 @@ impl PerfStatsPlugin {
         let fps = diagnostics.get(FrameTimeDiagnosticsPlugin::FPS).unwrap();
         Area::new("Performance stats")
             .anchor(Align2::LEFT_TOP, (UI_MARGIN, UI_MARGIN))
-            .show(egui.ctx(), |ui| {
+            .show(egui.ctx_mut(), |ui| {
                 if let Some(fps) = fps.value() {
                     ui.strong(format!("FPS: {:.0}", fps));
                 }

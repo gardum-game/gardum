@@ -39,14 +39,14 @@ impl Plugin for ServerBrowserPlugin {
 impl ServerBrowserPlugin {
     fn game_browser_system(
         mut search_text: Local<SearchText>,
-        egui: ResMut<EguiContext>,
+        mut egui: ResMut<EguiContext>,
         mut ui_state: ResMut<State<UiState>>,
     ) {
         Window::new("Game browser")
             .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
             .collapsible(false)
             .resizable(false)
-            .show(egui.ctx(), |ui| {
+            .show(egui.ctx_mut(), |ui| {
                 ui.horizontal(|ui| {
                     ui.add_enabled(
                         false,

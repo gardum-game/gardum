@@ -47,7 +47,7 @@ impl Plugin for HeroSelectionPlugin {
 impl HeroSelectionPlugin {
     fn hero_selection_system(
         mut commands: Commands,
-        egui: ResMut<EguiContext>,
+        mut egui: ResMut<EguiContext>,
         mut ui_state: ResMut<State<UiState>>,
         mut local_player: Query<(Entity, Option<&mut HeroKind>), (With<Authority>, With<Player>)>,
     ) {
@@ -55,7 +55,7 @@ impl HeroSelectionPlugin {
 
         Area::new("Confirm area")
             .anchor(Align2::CENTER_BOTTOM, (0.0, -UI_MARGIN))
-            .show(egui.ctx(), |ui| {
+            .show(egui.ctx_mut(), |ui| {
                 ui.add_enabled_ui(current_hero_kind.is_some(), |ui| {
                     if ui.button("Confirm").clicked() {
                         ui_state.set(UiState::Hud).unwrap();
@@ -67,7 +67,7 @@ impl HeroSelectionPlugin {
             .anchor(Align2::LEFT_CENTER, (UI_MARGIN, 0.0))
             .collapsible(false)
             .resizable(false)
-            .show(egui.ctx(), |ui| {
+            .show(egui.ctx_mut(), |ui| {
                 if let Some(mut current_hero_kind) = current_hero_kind {
                     for kind in HeroKind::iter() {
                         let selected = *current_hero_kind == kind;

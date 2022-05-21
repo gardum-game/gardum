@@ -48,12 +48,12 @@ impl BackButtonPlugin {
     pub(super) fn back_button_system(
         game_state: Res<State<GameState>>,
         mut action_state: ResMut<ActionState<UiAction>>,
-        egui: ResMut<EguiContext>,
+        mut egui: ResMut<EguiContext>,
         mut ui_state: ResMut<State<UiState>>,
     ) {
         Area::new("Back area")
             .anchor(Align2::LEFT_BOTTOM, (UI_MARGIN, -UI_MARGIN))
-            .show(egui.ctx(), |ui| {
+            .show(egui.ctx_mut(), |ui| {
                 if action_state.just_pressed(UiAction::Back) || ui.button("Back").clicked() {
                     let previous_state = match ui_state.current() {
                         UiState::ServerBrowser => UiState::MainMenu,
