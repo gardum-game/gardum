@@ -8,9 +8,9 @@ rust-version = "1.58"
 [dependencies]
 bevy = { version = "0.7", default-features = false }
 bevy_atmosphere = { version = "0.3", optional = true }
-bevy_egui = { version = "0.13", features = ["multi_threaded"], optional = true }
+bevy_egui = { version = "0.14", features = ["immutable_ctx"], optional = true }
 bevy_renet = { git = "https://github.com/lucaspoffo/renet" }
-bevy-inspector-egui = { version = "0.10", default-features = false, features = [
+bevy-inspector-egui = { version = "0.11", default-features = false, features = [
   "clipboard",
   "bevy_pbr",
 ], optional = true }
@@ -32,5 +32,5 @@ glam = { version = "0.20", features = ["approx"] }
 
 [features]
 default = ["client"]
-client = ["bevy/png", "bevy/bevy_gltf", "bevy_atmosphere", "bevy_egui"]
+client = ["bevy/png", "bevy/bevy_gltf", "bevy/x11", "bevy_atmosphere", "bevy_egui"]
 inspector = ["client", "bevy-inspector-egui"]

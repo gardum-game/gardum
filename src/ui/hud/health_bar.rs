@@ -66,7 +66,7 @@ impl Widget for HealthBar {
         let text_pos = outer_rect.left_center() - Vec2::new(0.0, galley.size().y / 2.0)
             + vec2(ui.spacing().item_spacing.x, 0.0);
         galley.paint_with_fallback_color(
-            &ui.painter().sub_region(outer_rect),
+            &ui.painter().with_clip_rect(outer_rect),
             text_pos,
             Color32::LIGHT_GRAY,
         );

@@ -76,7 +76,7 @@ impl Widget for AbilityIcon<'_> {
                 let text_galley = text.into_galley(ui, None, f32::INFINITY, TextStyle::Heading);
                 let text_pos = rect.center() - text_galley.size() / 2.0;
                 ui.painter()
-                    .sub_region(rect)
+                    .with_clip_rect(rect)
                     .galley(text_pos, text_galley.galley);
             }
         }

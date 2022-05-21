@@ -64,7 +64,7 @@ impl ChatPlugin {
         } else {
             // Show frame with window spacing, but without visuals
             Frame {
-                margin: egui.ctx().style().spacing.window_margin,
+                inner_margin: egui.ctx().style().spacing.window_margin,
                 rounding: egui.ctx().style().visuals.window_rounding,
                 ..Frame::none()
             }
