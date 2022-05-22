@@ -18,9 +18,11 @@
  *
  */
 
+mod chat_area;
+
 use bevy::prelude::*;
 use bevy_egui::{
-    egui::{Align2, Color32, Frame, ScrollArea, TextEdit, TextStyle, Window},
+    egui::{Align2, Frame, Window},
     EguiContext,
 };
 use bevy_renet::renet::ServerEvent;
@@ -28,6 +30,7 @@ use leafwing_input_manager::{plugin::ToggleActions, prelude::ActionState};
 
 use super::{ui_actions::UiAction, ui_state::UiState, UI_MARGIN};
 use crate::core::control_actions::ControlAction;
+use chat_area::ChatArea;
 
 pub(super) struct ChatPlugin;
 
@@ -71,32 +74,7 @@ impl ChatPlugin {
                 [UI_MARGIN, -UI_MARGIN - CHAT_BOTTOM_MARGIN],
             )
             .show(egui.ctx_mut(), |ui| {
-                if !chat.active {
-                    // Hide scrollbar
-                    ui.style_mut().visuals.extreme_bg_color = Color32::TRANSPARENT;
-                    ui.style_mut().visuals.widgets.inactive.bg_fill = Color32::TRANSPARENT;
-                }
-
-                const CHAT_ROWS_MARGIN: f32 = 4.0;
-                const CHAT_VISIBLE_ROWS: usize = 8;
-                let text_height = ui.text_style_height(&TextStyle::Body);
-                let chat_response = ScrollArea::vertical()
-                    .max_height(text_height * CHAT_VISIBLE_ROWS as f32 + CHAT_ROWS_MARGIN)
-                    .stick_to_bottom()
-                    .enable_scrolling(chat.active)
-                    .show(ui, |ui| {
-                        ui.add(
-                            TextEdit::multiline(&mut chat.text.as_str())
-                                .desired_rows(CHAT_VISIBLE_ROWS),
-                        )
-                    })
-                    .inner;
-
-                if !chat.active {
-                    // Reset style after hiding scrollbar
-                    ui.reset_style();
-                }
-
+                let chat_response = ui.add(ChatArea::new(&mut chat));
                 if chat.active {
                     let input_response = ui.text_edit_singleline(&mut input.message);
                     if input.request_focus {
