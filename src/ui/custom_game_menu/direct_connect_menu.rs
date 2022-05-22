@@ -20,13 +20,13 @@
 
 use bevy::prelude::*;
 use bevy_egui::{
-    egui::{Align2, DragValue, Grid, Window},
+    egui::{Align2, Color32, DragValue, Grid, Window},
     EguiContext,
 };
 
 use crate::{
     core::network::client::ConnectionSettings,
-    ui::{error_dialog::ErrorDialog, ui_state::UiState},
+    ui::{error_message::ErrorMessage, ui_state::UiState},
 };
 
 pub(super) struct DirectConnectMenuPlugin;
@@ -46,7 +46,7 @@ impl DirectConnectMenuPlugin {
         mut egui: ResMut<EguiContext>,
         mut connection_setttings: ResMut<ConnectionSettings>,
         mut ui_state: ResMut<State<UiState>>,
-        mut error_dialog: ResMut<ErrorDialog>,
+        mut error_message: ResMut<ErrorMessage>,
     ) {
         Window::new("Direct connect")
             .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
@@ -66,17 +66,14 @@ impl DirectConnectMenuPlugin {
                         ui.end_row();
                     });
                 ui.vertical_centered(|ui| {
+                    ui.colored_label(Color32::RED, error_message.as_str());
                     if ui.button("Connect").clicked() {
                         match connection_setttings.create_client() {
                             Ok(client) => {
                                 ui_state.set(UiState::ConnectionDialog).unwrap();
                                 commands.insert_resource(client);
                             }
-                            Err(error) => error_dialog.show(
-                                "Unable to create connection".to_string(),
-                                error.to_string(),
-                                &mut ui_state,
-                            ),
+                            Err(error) => error_message.0 = error.to_string(),
                         }
                     }
                 });

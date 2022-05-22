@@ -22,7 +22,7 @@ mod back_button;
 mod chat;
 mod connection_dialog;
 mod custom_game_menu;
-mod error_dialog;
+mod error_message;
 mod hero_selection;
 mod hud;
 mod ingame_menu;
@@ -39,7 +39,7 @@ use back_button::BackButtonPlugin;
 use chat::ChatPlugin;
 use connection_dialog::ConnectionDialogPlugin;
 use custom_game_menu::CustomGameMenuPlugin;
-use error_dialog::ErrorDialogPlugin;
+use error_message::ErrorMessagePlugin;
 use hero_selection::HeroSelectionPlugin;
 use hud::HudPlugin;
 use ingame_menu::InGameMenuPlugin;
@@ -66,7 +66,7 @@ impl Plugin for UiPlugin {
             .add_plugin(PerfStatsPlugin)
             .add_plugin(MainMenuPlugin)
             .add_plugin(CustomGameMenuPlugin)
-            .add_plugin(ErrorDialogPlugin)
+            .add_plugin(ErrorMessagePlugin)
             .add_plugin(ConnectionDialogPlugin)
             .add_plugin(BackButtonPlugin)
             .add_plugin(InGameMenuPlugin);

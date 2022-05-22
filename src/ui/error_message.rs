@@ -19,37 +19,30 @@
  */
 
 use bevy::prelude::*;
-use bevy_renet::renet::{RenetClient, RenetServer};
 
-pub(super) struct UiStatePlugin;
+use super::ui_state::UiState;
 
-impl Plugin for UiStatePlugin {
+pub(super) struct ErrorMessagePlugin;
+
+impl Plugin for ErrorMessagePlugin {
     fn build(&self, app: &mut App) {
-        if app.world.get_resource::<RenetClient>().is_some() {
-            app.add_state(UiState::ConnectionDialog);
-        } else if app.world.get_resource::<RenetServer>().is_some() {
-            app.add_state(UiState::LobbyMenu);
-        } else {
-            app.add_state(UiState::MainMenu);
+        app.init_resource::<ErrorMessage>()
+            .add_system(Self::cleanup_system);
+    }
+}
+
+impl ErrorMessagePlugin {
+    fn cleanup_system(
+        mut previous_state: Local<UiState>,
+        mut error_message: ResMut<ErrorMessage>,
+        ui_state: Res<State<UiState>>,
+    ) {
+        if *previous_state != *ui_state.current() {
+            *previous_state = *ui_state.current();
+            error_message.clear();
         }
     }
 }
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
-pub(super) enum UiState {
-    MainMenu,
-    ServerBrowser,
-    SettingsMenu,
-    ConnectionDialog,
-    DirectConnectMenu,
-    LobbyMenu,
-    HeroSelection,
-    Hud,
-    InGameMenu,
-}
-
-impl Default for UiState {
-    fn default() -> Self {
-        Self::MainMenu
-    }
-}
+#[derive(Default, Deref, DerefMut)]
+pub(super) struct ErrorMessage(pub(super) String);
