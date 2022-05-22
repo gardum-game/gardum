@@ -23,10 +23,9 @@ use bevy_egui::{
     egui::{Align2, Window},
     EguiContext,
 };
-use bevy_renet::renet::RenetClient;
 
 use super::ui_state::UiState;
-use crate::core::network::client::ConnectionSettings;
+use crate::core::network::{client::ConnectionSettings, NetworkingState};
 
 pub(super) struct ConnectionDialogPlugin;
 
@@ -39,13 +38,12 @@ impl Plugin for ConnectionDialogPlugin {
 }
 
 fn connection_dialog_system(
-    mut commands: Commands,
-    client: Res<RenetClient>,
     connection_setttings: Res<ConnectionSettings>,
+    mut networking_state: ResMut<State<NetworkingState>>,
     mut egui: ResMut<EguiContext>,
     mut ui_state: ResMut<State<UiState>>,
 ) {
-    if client.is_connected() {
+    if matches!(networking_state.current(), NetworkingState::Connected) {
         ui_state.set(UiState::LobbyMenu).unwrap();
         return;
     }
@@ -60,7 +58,7 @@ fn connection_dialog_system(
                 connection_setttings.ip, connection_setttings.port
             ));
             if ui.button("Cancel").clicked() {
-                commands.remove_resource::<RenetClient>();
+                networking_state.set(NetworkingState::NoSocket).unwrap();
                 ui_state.set(UiState::DirectConnectMenu).unwrap();
             }
         });

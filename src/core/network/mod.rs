@@ -42,7 +42,7 @@ impl Plugin for NetworkPlugin {
 }
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
-pub(super) enum NetworkingState {
+pub(crate) enum NetworkingState {
     NoSocket,
     Connecting,
     Connected,
