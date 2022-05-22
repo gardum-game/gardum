@@ -121,7 +121,7 @@ impl HudPlugin {
         window.set_cursor_visibility(true);
     }
 
-    pub(super) fn show_ingame_menu_system(
+    fn show_ingame_menu_system(
         mut action_state: ResMut<ActionState<UiAction>>,
         mut ui_state: ResMut<State<UiState>>,
     ) {

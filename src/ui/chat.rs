@@ -26,10 +26,7 @@ use bevy_egui::{
 use bevy_renet::renet::ServerEvent;
 use leafwing_input_manager::{plugin::ToggleActions, prelude::ActionState};
 
-use super::{
-    back_button::BackButtonPlugin, hud::HudPlugin, ingame_menu::InGameMenuPlugin,
-    ui_actions::UiAction, ui_state::UiState, UI_MARGIN,
-};
+use super::{ui_actions::UiAction, ui_state::UiState, UI_MARGIN};
 use crate::core::control_actions::ControlAction;
 
 pub(super) struct ChatPlugin;
@@ -37,12 +34,7 @@ pub(super) struct ChatPlugin;
 impl Plugin for ChatPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<Chat>()
-            .add_system(
-                Self::chat_system
-                    .before(BackButtonPlugin::back_button_system)
-                    .before(InGameMenuPlugin::hide_ingame_menu_system)
-                    .before(HudPlugin::show_ingame_menu_system),
-            )
+            .add_system(Self::chat_system)
             .add_system(Self::announce_connected_system)
             .add_system_set(
                 SystemSet::on_update(UiState::Hud).with_system(Self::toggle_controls_system),
@@ -51,7 +43,7 @@ impl Plugin for ChatPlugin {
 }
 
 impl ChatPlugin {
-    fn chat_system(
+    pub(super) fn chat_system(
         mut input: Local<InputField>,
         mut action_state: ResMut<ActionState<UiAction>>,
         mut egui: ResMut<EguiContext>,
@@ -172,7 +164,7 @@ impl ChatPlugin {
 }
 
 #[derive(Default)]
-struct Chat {
+pub(super) struct Chat {
     text: String,
     active: bool,
 }
@@ -189,7 +181,7 @@ impl Chat {
 }
 
 #[derive(Default)]
-struct InputField {
+pub(super) struct InputField {
     message: String,
     request_focus: bool,
 }

@@ -34,9 +34,12 @@ use leafwing_input_manager::{
 };
 use strum::{Display, EnumIter, IntoEnumIterator};
 
-use super::{back_button::BackButtonPlugin, ui_actions::UiAction, ui_state::UiState, UI_MARGIN};
+use super::{
+    back_button::BackButton, chat::ChatPlugin, ui_actions::UiAction, ui_state::UiState, UI_MARGIN,
+};
 use crate::core::{
     control_actions::ControlAction,
+    game_state::GameState,
     settings::{ControlsSettings, SettingApplyEvent, Settings, VideoSettings},
 };
 
@@ -48,9 +51,8 @@ impl Plugin for SettingMenuPlugin {
             SystemSet::on_update(UiState::SettingsMenu)
                 .with_system(Self::settings_menu_system)
                 .with_system(Self::buttons_system)
-                .with_system(
-                    Self::binding_window_system.before(BackButtonPlugin::back_button_system),
-                ),
+                .with_system(Self::binding_window_system.before(ChatPlugin::chat_system))
+                .with_system(Self::back_system.after(ChatPlugin::chat_system)),
         );
     }
 }
@@ -113,6 +115,24 @@ impl SettingMenuPlugin {
                     }
                 })
             });
+    }
+
+    fn back_system(
+        game_state: Res<State<GameState>>,
+        mut egui: ResMut<EguiContext>,
+        mut action_state: ResMut<ActionState<UiAction>>,
+        mut ui_state: ResMut<State<UiState>>,
+    ) {
+        if BackButton::new(&mut action_state)
+            .show(egui.ctx_mut())
+            .clicked()
+        {
+            let state = match game_state.current() {
+                GameState::Menu => UiState::MainMenu,
+                GameState::InGame => UiState::InGameMenu,
+            };
+            ui_state.set(state).unwrap();
+        }
     }
 
     fn binding_window_system(

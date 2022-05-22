@@ -18,56 +18,34 @@
  *
  */
 
-use bevy::prelude::*;
-use bevy_egui::{
-    egui::{Align2, Area},
-    EguiContext,
-};
+use bevy_egui::egui::{Align2, Area, Context, PointerButton, Response};
 use leafwing_input_manager::prelude::ActionState;
 
-use super::{ui_actions::UiAction, ui_state::UiState, UI_MARGIN};
-use crate::core::game_state::GameState;
+use super::{ui_actions::UiAction, UI_MARGIN};
 
-pub(super) struct BackButtonPlugin;
-
-impl Plugin for BackButtonPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_system_set(
-            SystemSet::on_update(UiState::SettingsMenu).with_system(Self::back_button_system),
-        )
-        .add_system_set(
-            SystemSet::on_update(UiState::ServerBrowser).with_system(Self::back_button_system),
-        )
-        .add_system_set(
-            SystemSet::on_update(UiState::DirectConnectMenu).with_system(Self::back_button_system),
-        );
-    }
+pub(super) struct BackButton<'a> {
+    action_state: &'a mut ActionState<UiAction>,
 }
 
-impl BackButtonPlugin {
-    pub(super) fn back_button_system(
-        game_state: Res<State<GameState>>,
-        mut action_state: ResMut<ActionState<UiAction>>,
-        mut egui: ResMut<EguiContext>,
-        mut ui_state: ResMut<State<UiState>>,
-    ) {
+impl<'a> BackButton<'a> {
+    #[must_use]
+    pub(super) fn new(action_state: &'a mut ActionState<UiAction>) -> Self {
+        Self { action_state }
+    }
+
+    #[must_use]
+    pub(super) fn show(self, ctx: &Context) -> Response {
         Area::new("Back area")
             .anchor(Align2::LEFT_BOTTOM, (UI_MARGIN, -UI_MARGIN))
-            .show(egui.ctx_mut(), |ui| {
-                if action_state.just_pressed(UiAction::Back) || ui.button("Back").clicked() {
-                    let previous_state = match ui_state.current() {
-                        UiState::ServerBrowser => UiState::MainMenu,
-                        UiState::SettingsMenu => match game_state.current() {
-                            GameState::Menu => UiState::MainMenu,
-                            GameState::InGame => UiState::InGameMenu,
-                        },
-                        UiState::DirectConnectMenu => UiState::ServerBrowser,
-                        _ => unreachable!("Previous state isn't defined for this state"),
-                    };
-
-                    ui_state.set(previous_state).unwrap();
-                    action_state.consume(UiAction::Back);
+            .show(ctx, |ui| {
+                let mut response = ui.button("Back");
+                if !response.clicked() && self.action_state.just_pressed(UiAction::Back) {
+                    // Count action as click
+                    self.action_state.consume(UiAction::Back);
+                    response.clicked[PointerButton::Primary as usize] = true;
                 }
-            });
+                response
+            })
+            .inner
     }
 }

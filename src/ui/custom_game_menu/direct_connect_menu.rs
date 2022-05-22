@@ -23,10 +23,14 @@ use bevy_egui::{
     egui::{Align2, Color32, DragValue, Grid, Window},
     EguiContext,
 };
+use leafwing_input_manager::prelude::ActionState;
 
 use crate::{
     core::network::client::ConnectionSettings,
-    ui::{error_message::ErrorMessage, ui_state::UiState},
+    ui::{
+        back_button::BackButton, chat::ChatPlugin, error_message::ErrorMessage,
+        ui_actions::UiAction, ui_state::UiState,
+    },
 };
 
 pub(super) struct DirectConnectMenuPlugin;
@@ -35,7 +39,8 @@ impl Plugin for DirectConnectMenuPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
             SystemSet::on_update(UiState::DirectConnectMenu)
-                .with_system(DirectConnectMenuPlugin::direct_connect_menu_system),
+                .with_system(DirectConnectMenuPlugin::direct_connect_menu_system)
+                .with_system(Self::back_system.after(ChatPlugin::chat_system)),
         );
     }
 }
@@ -78,5 +83,18 @@ impl DirectConnectMenuPlugin {
                     }
                 });
             });
+    }
+
+    fn back_system(
+        mut egui: ResMut<EguiContext>,
+        mut action_state: ResMut<ActionState<UiAction>>,
+        mut ui_state: ResMut<State<UiState>>,
+    ) {
+        if BackButton::new(&mut action_state)
+            .show(egui.ctx_mut())
+            .clicked()
+        {
+            ui_state.set(UiState::ServerBrowser).unwrap();
+        }
     }
 }

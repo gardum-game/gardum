@@ -35,7 +35,6 @@ pub(super) mod ui_state;
 
 use bevy::prelude::*;
 
-use back_button::BackButtonPlugin;
 use chat::ChatPlugin;
 use connection_dialog::ConnectionDialogPlugin;
 use custom_game_menu::CustomGameMenuPlugin;
@@ -68,7 +67,6 @@ impl Plugin for UiPlugin {
             .add_plugin(CustomGameMenuPlugin)
             .add_plugin(ErrorMessagePlugin)
             .add_plugin(ConnectionDialogPlugin)
-            .add_plugin(BackButtonPlugin)
             .add_plugin(InGameMenuPlugin);
     }
 }

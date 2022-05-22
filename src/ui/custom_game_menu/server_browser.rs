@@ -23,15 +23,20 @@ use bevy_egui::{
     egui::{Align2, TextEdit, Window},
     EguiContext,
 };
+use leafwing_input_manager::prelude::ActionState;
 
-use crate::ui::ui_state::UiState;
+use crate::ui::{
+    back_button::BackButton, chat::ChatPlugin, ui_actions::UiAction, ui_state::UiState,
+};
 
 pub(super) struct ServerBrowserPlugin;
 
 impl Plugin for ServerBrowserPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<SearchText>().add_system_set(
-            SystemSet::on_update(UiState::ServerBrowser).with_system(Self::game_browser_system),
+            SystemSet::on_update(UiState::ServerBrowser)
+                .with_system(Self::game_browser_system)
+                .with_system(Self::back_system.after(ChatPlugin::chat_system)),
         );
     }
 }
@@ -61,6 +66,19 @@ impl ServerBrowserPlugin {
                 });
                 ui.add_space(ui.available_height());
             });
+    }
+
+    fn back_system(
+        mut egui: ResMut<EguiContext>,
+        mut action_state: ResMut<ActionState<UiAction>>,
+        mut ui_state: ResMut<State<UiState>>,
+    ) {
+        if BackButton::new(&mut action_state)
+            .show(egui.ctx_mut())
+            .clicked()
+        {
+            ui_state.set(UiState::MainMenu).unwrap();
+        }
     }
 }
 
