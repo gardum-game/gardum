@@ -18,20 +18,19 @@
  *
  */
 
+mod controls_settings_tab;
+mod video_settings_tab;
+
 use bevy::{
     ecs::system::SystemParam,
     input::{keyboard::KeyboardInput, mouse::MouseButtonInput, ElementState},
     prelude::*,
 };
 use bevy_egui::{
-    egui::{Align2, Area, ComboBox, Grid, Ui, Window},
+    egui::{Align2, Area, Window},
     EguiContext,
 };
-use leafwing_input_manager::{
-    prelude::{ActionState, UserInput},
-    user_input::InputButton,
-    Actionlike,
-};
+use leafwing_input_manager::{prelude::ActionState, user_input::InputButton};
 use strum::{Display, EnumIter, IntoEnumIterator};
 
 use super::{
@@ -40,12 +39,14 @@ use super::{
 use crate::core::{
     control_actions::ControlAction,
     game_state::GameState,
-    settings::{ControlsSettings, SettingApplyEvent, Settings, VideoSettings},
+    settings::{SettingApplyEvent, Settings},
 };
+use controls_settings_tab::ControlsSettingsTab;
+use video_settings_tab::VideoSettingsTab;
 
-pub(super) struct SettingMenuPlugin;
+pub(super) struct SettingsMenuPlugin;
 
-impl Plugin for SettingMenuPlugin {
+impl Plugin for SettingsMenuPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
             SystemSet::on_update(UiState::SettingsMenu)
@@ -57,7 +58,7 @@ impl Plugin for SettingMenuPlugin {
     }
 }
 
-impl SettingMenuPlugin {
+impl SettingsMenuPlugin {
     fn settings_menu_system(
         mut current_tab: Local<SettingsTab>,
         mut commands: Commands,
@@ -65,14 +66,13 @@ impl SettingMenuPlugin {
         mut egui: ResMut<EguiContext>,
         mut settings: ResMut<Settings>,
     ) {
-        let main_window = windows.get_primary().unwrap();
         let window_width_margin = egui.ctx_mut().style().spacing.window_margin.left * 2.0;
 
         Window::new("Settings")
             .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
             .collapsible(false)
             .resizable(false)
-            .default_width(main_window.width() - UI_MARGIN * 2.0 - window_width_margin)
+            .default_width(windows.primary().width() - UI_MARGIN * 2.0 - window_width_margin)
             .show(egui.ctx_mut(), |ui| {
                 ui.horizontal(|ui| {
                     for tab in SettingsTab::iter() {
@@ -80,13 +80,10 @@ impl SettingMenuPlugin {
                     }
                 });
                 match *current_tab {
-                    SettingsTab::Video => Self::show_video_settings(ui, &mut settings.video),
-                    SettingsTab::Control => Self::show_control_settings(
-                        &mut commands,
-                        ui,
-                        window_width_margin,
-                        &mut settings.controls,
-                    ),
+                    SettingsTab::Video => VideoSettingsTab::new(&mut settings.video).show(ui),
+                    SettingsTab::Control => {
+                        ControlsSettingsTab::new(&mut settings.controls).show(ui, &mut commands)
+                    }
                 };
                 ui.expand_to_include_rect(ui.available_rect_before_wrap());
             });
@@ -208,55 +205,6 @@ impl SettingMenuPlugin {
                             commands.remove_resource::<ActiveBinding>();
                         }
                     }
-                }
-            });
-    }
-
-    fn show_video_settings(ui: &mut Ui, video_settings: &mut VideoSettings) {
-        ComboBox::from_label("MSAA samples")
-            .selected_text(video_settings.msaa.to_string())
-            .show_ui(ui, |ui| {
-                ui.selectable_value(&mut video_settings.msaa, 1, 1.to_string());
-                ui.selectable_value(&mut video_settings.msaa, 4, 4.to_string());
-            });
-        ui.checkbox(&mut video_settings.perf_stats, "Display performance stats");
-    }
-
-    fn show_control_settings(
-        commands: &mut Commands,
-        ui: &mut Ui,
-        window_width_margin: f32,
-        controls_settings: &mut ControlsSettings,
-    ) {
-        const INPUT_VARIANTS: usize = 3;
-        const COLUMNS_COUNT: usize = INPUT_VARIANTS + 1;
-
-        Grid::new("Controls grid")
-            .num_columns(COLUMNS_COUNT)
-            .striped(true)
-            .min_col_width(ui.available_width() / COLUMNS_COUNT as f32 - window_width_margin)
-            .show(ui, |ui| {
-                for action in ControlAction::variants() {
-                    ui.label(action.to_string());
-                    let inputs = controls_settings.mappings.get(action);
-                    for index in 0..INPUT_VARIANTS {
-                        let button_text = match inputs.get_at(index) {
-                            Some(UserInput::Single(InputButton::Gamepad(gamepad_button))) => {
-                                format!("🎮 {:?}", gamepad_button)
-                            }
-                            Some(UserInput::Single(InputButton::Keyboard(keycode))) => {
-                                format!("🖮 {:?}", keycode)
-                            }
-                            Some(UserInput::Single(InputButton::Mouse(mouse_button))) => {
-                                format!("🖱 {:?}", mouse_button)
-                            }
-                            _ => "Empty".to_string(),
-                        };
-                        if ui.button(button_text).clicked() {
-                            commands.insert_resource(ActiveBinding::new(action, index));
-                        }
-                    }
-                    ui.end_row();
                 }
             });
     }

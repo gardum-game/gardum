@@ -29,7 +29,7 @@ mod ingame_menu;
 mod main_menu;
 mod perf_stats;
 mod scoreboard;
-mod setting_menu;
+mod settings_menu;
 pub(super) mod ui_actions;
 pub(super) mod ui_state;
 
@@ -45,7 +45,7 @@ use ingame_menu::InGameMenuPlugin;
 use main_menu::MainMenuPlugin;
 use perf_stats::PerfStatsPlugin;
 use scoreboard::ScoreboardPlugin;
-use setting_menu::SettingMenuPlugin;
+use settings_menu::SettingsMenuPlugin;
 use ui_actions::UiActionsPlugin;
 use ui_state::UiStatePlugin;
 
@@ -58,7 +58,7 @@ impl Plugin for UiPlugin {
         app.add_plugin(UiActionsPlugin)
             .add_plugin(UiStatePlugin)
             .add_plugin(ChatPlugin)
-            .add_plugin(SettingMenuPlugin)
+            .add_plugin(SettingsMenuPlugin)
             .add_plugin(HeroSelectionPlugin)
             .add_plugin(HudPlugin)
             .add_plugin(ScoreboardPlugin)
