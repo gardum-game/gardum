@@ -60,17 +60,17 @@ impl SettingsMenuPlugin {
     fn settings_menu_system(
         mut current_tab: Local<SettingsTab>,
         mut commands: Commands,
-        windows: Res<Windows>,
         mut egui: ResMut<EguiContext>,
         mut settings: ResMut<Settings>,
     ) {
         let window_width_margin = egui.ctx_mut().style().spacing.window_margin.left * 2.0;
+        let screen_rect = egui.ctx_mut().input().screen_rect();
 
         Window::new("Settings")
             .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
             .collapsible(false)
             .resizable(false)
-            .default_width(windows.primary().width() - UI_MARGIN * 2.0 - window_width_margin)
+            .default_width(screen_rect.width() - UI_MARGIN * 2.0 - window_width_margin)
             .show(egui.ctx_mut(), |ui| {
                 ui.horizontal(|ui| {
                     for tab in SettingsTab::iter() {
