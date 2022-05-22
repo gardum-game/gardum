@@ -31,7 +31,8 @@ use leafwing_input_manager::{prelude::ActionState, user_input::InputButton};
 use strum::{Display, EnumIter, IntoEnumIterator};
 
 use super::{
-    back_button::BackButton, chat::ChatPlugin, ui_actions::UiAction, ui_state::UiState, UI_MARGIN,
+    back_button::BackButton, chat::ChatPlugin, modal_window::ModalWindow, ui_actions::UiAction,
+    ui_state::UiState, UI_MARGIN,
 };
 use crate::core::{
     control_actions::ControlAction,
@@ -143,11 +144,9 @@ impl SettingsMenuPlugin {
             None => return,
         };
 
-        Window::new(format!("Binding \"{}\"", active_binding.action))
-            .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
-            .collapsible(false)
-            .resizable(false)
-            .show(egui.ctx_mut(), |ui| {
+        ModalWindow::new(format!("Binding \"{}\"", active_binding.action)).show(
+            egui.ctx_mut(),
+            |ui| {
                 if let Some(conflict) = &active_binding.conflict {
                     ui.label(format!(
                         "Input \"{}\" is already used by \"{}\"",
@@ -204,7 +203,8 @@ impl SettingsMenuPlugin {
                         }
                     }
                 }
-            });
+            },
+        );
     }
 }
 

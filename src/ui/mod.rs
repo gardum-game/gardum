@@ -27,6 +27,7 @@ mod hero_selection;
 mod hud;
 mod ingame_menu;
 mod main_menu;
+mod modal_window;
 mod perf_stats;
 mod scoreboard;
 mod settings_menu;
