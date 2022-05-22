@@ -118,7 +118,7 @@ impl ChatPlugin {
         if chat.active == toggle_actions.enabled {
             toggle_actions.enabled = !chat.active;
 
-            let window = windows.get_primary_mut().unwrap();
+            let window = windows.primary_mut();
             window.set_cursor_lock_mode(!chat.active);
             window.set_cursor_visibility(chat.active);
         }

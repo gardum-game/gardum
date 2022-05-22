@@ -108,14 +108,14 @@ impl HudPlugin {
     }
 
     fn hide_cursor_system(mut windows: ResMut<Windows>) {
-        let window = windows.get_primary_mut().unwrap();
+        let window = windows.primary_mut();
 
         window.set_cursor_lock_mode(true);
         window.set_cursor_visibility(false);
     }
 
     fn show_cursor_system(mut windows: ResMut<Windows>) {
-        let window = windows.get_primary_mut().unwrap();
+        let window = windows.primary_mut();
 
         window.set_cursor_lock_mode(false);
         window.set_cursor_visibility(true);

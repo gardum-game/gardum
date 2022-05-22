@@ -77,7 +77,7 @@ impl OrbitCameraPlugin {
         mut orbit_rotations: Query<&mut OrbitRotation, With<Authority>>,
     ) {
         #[cfg(not(test))] // Can't run tests with windows, ignore.
-        if !windows.get_primary().unwrap().cursor_locked() {
+        if !windows.primary().cursor_locked() {
             return;
         }
 
