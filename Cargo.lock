@@ -1432,6 +1432,7 @@ dependencies = [
  "glam",
  "heron",
  "leafwing-input-manager",
+ "parking_lot 0.11.2",
  "serde",
  "serde_json",
  "standard_paths",
