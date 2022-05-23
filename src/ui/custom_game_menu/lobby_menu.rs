@@ -20,7 +20,7 @@
 
 use bevy::prelude::*;
 use bevy_egui::{
-    egui::{Align2, Button, Color32, ComboBox, DragValue, Grid, Ui, Window},
+    egui::{Align2, Button, ComboBox, DragValue, Grid, Ui, Window},
     EguiContext,
 };
 use bevy_renet::renet::{RenetClient, RenetServer};
@@ -31,7 +31,7 @@ use crate::{
         game_state::GameState, map::Map, network::server::ServerSettings, player::Player,
         session::GameMode,
     },
-    ui::{error_message::ErrorMessage, ui_state::UiState},
+    ui::{error_dialog::ErrorDialog, ui_state::UiState},
 };
 
 pub(super) struct LobbyMenuPlugin;
@@ -53,7 +53,6 @@ impl LobbyMenuPlugin {
         mut egui: ResMut<EguiContext>,
         mut server_settings: ResMut<ServerSettings>,
         mut game_state: ResMut<State<GameState>>,
-        mut error_message: ResMut<ErrorMessage>,
         player_names: Query<&Name, With<Player>>,
     ) {
         Window::new("Lobby")
@@ -72,12 +71,14 @@ impl LobbyMenuPlugin {
                     Self::show_game_settings(ui, &mut server_settings);
                 });
                 ui.vertical_centered(|ui| {
-                    ui.colored_label(Color32::RED, error_message.as_str());
                     if client.is_none() && server.is_none() {
                         if ui.button("Create").clicked() {
                             match server_settings.create_server() {
                                 Ok(server) => commands.insert_resource(server),
-                                Err(error) => error_message.0 = error.to_string(),
+                                Err(error) => commands.insert_resource(ErrorDialog {
+                                    title: "Unable to create server".to_string(),
+                                    text: error.to_string(),
+                                }),
                             }
                         }
                     } else if ui
