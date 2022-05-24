@@ -177,17 +177,16 @@ mod tests {
     }
 
     #[test]
-    fn socket_events() {
-        let mut app = App::new();
+    fn hosts() {
         let server_settings = ServerSettings {
             port: 0,
             ..Default::default()
         };
-        app.init_resource::<Opts>()
-            .add_state(NetworkingState::NoSocket)
+
+        let mut app = App::new();
+        app.add_plugin(TestServerPlugin)
             .add_plugins(MinimalPlugins)
             .add_plugin(RenetServerPlugin)
-            .add_plugin(ServerPlugin)
             .insert_resource(
                 server_settings
                     .create_server()
@@ -211,5 +210,15 @@ mod tests {
             "Server resource should be removed on exiting {:?} state",
             NetworkingState::Hosting,
         );
+    }
+
+    struct TestServerPlugin;
+
+    impl Plugin for TestServerPlugin {
+        fn build(&self, app: &mut App) {
+            app.init_resource::<Opts>()
+                .add_state(NetworkingState::NoSocket)
+                .add_plugin(ServerPlugin);
+        }
     }
 }

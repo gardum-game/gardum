@@ -43,6 +43,10 @@ impl Plugin for ClientPlugin {
         )
         .add_system_set(
             SystemSet::on_exit(NetworkingState::Connected).with_system(Self::disconnect_system),
+        )
+        .add_system_set(
+            SystemSet::on_exit(NetworkingState::Connecting)
+                .with_system(Self::cancel_connection_system),
         );
 
         let opts = app
@@ -81,6 +85,12 @@ impl ClientPlugin {
     fn disconnect_system(mut commands: Commands, mut client: ResMut<RenetClient>) {
         client.disconnect();
         commands.remove_resource::<RenetClient>();
+    }
+
+    fn cancel_connection_system(mut commands: Commands, client: Res<RenetClient>) {
+        if !client.is_connected() {
+            commands.remove_resource::<RenetClient>();
+        }
     }
 }
 
@@ -179,8 +189,7 @@ mod tests {
     }
 
     #[test]
-    fn socket_events() {
-        let mut app = App::new();
+    fn connects() {
         let server_settings = ServerSettings {
             port: ServerSettings::default().port,
             ..Default::default()
@@ -189,12 +198,12 @@ mod tests {
             port: ServerSettings::default().port,
             ..Default::default()
         };
-        app.init_resource::<Opts>()
-            .add_state(NetworkingState::NoSocket)
+
+        let mut app = App::new();
+        app.add_plugin(TestClientPlugin)
             .add_plugins(MinimalPlugins)
             .add_plugin(RenetServerPlugin)
             .add_plugin(RenetClientPlugin)
-            .add_plugin(ClientPlugin)
             .insert_resource(
                 server_settings
                     .create_server()
@@ -235,8 +244,48 @@ mod tests {
 
         assert!(
             app.world.get_resource::<RenetClient>().is_none(),
-            "Client resource should be removed on exiting {:?} state",
+            "Client resource should be removed on entering {:?} state",
             NetworkingState::NoSocket,
         );
+    }
+
+    #[test]
+    fn connection_cancels() {
+        let connection_settings = ConnectionSettings {
+            port: 0,
+            ..Default::default()
+        };
+
+        let mut app = App::new();
+        app.add_plugin(TestClientPlugin).insert_resource(
+            connection_settings
+                .create_client()
+                .expect("Client should be created succesfully from settings"),
+        );
+        let mut networking_state = app.world.resource_mut::<State<NetworkingState>>();
+        networking_state.set(NetworkingState::Connecting).unwrap();
+
+        app.update();
+
+        let mut networking_state = app.world.resource_mut::<State<NetworkingState>>();
+        networking_state.set(NetworkingState::NoSocket).unwrap();
+
+        app.update();
+
+        assert!(
+            app.world.get_resource::<RenetClient>().is_none(),
+            "Client resource should be removed on entering {:?} state",
+            NetworkingState::NoSocket,
+        );
+    }
+
+    struct TestClientPlugin;
+
+    impl Plugin for TestClientPlugin {
+        fn build(&self, app: &mut App) {
+            app.init_resource::<Opts>()
+                .add_state(NetworkingState::NoSocket)
+                .add_plugin(ClientPlugin);
+        }
     }
 }
