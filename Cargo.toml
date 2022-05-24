@@ -14,7 +14,7 @@ bevy-inspector-egui = { version = "0.11", default-features = false, features = [
   "clipboard",
   "bevy_pbr",
 ], optional = true }
-heron = { version = "3.0", features = ["3d"] }
+heron = { version = "3.1", features = ["3d"] }
 leafwing-input-manager = { version = "0.3", default-features = false }
 clap = { version = "3.1", features = ["derive"] }
 serde = "1.0"
