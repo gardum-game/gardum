@@ -96,7 +96,9 @@ mod tests {
 
     #[test]
     fn ability_ignores_unrelated_action() {
-        let mut app = setup_app();
+        let mut app = App::new();
+        app.add_plugin(TestAbilityPlugin);
+
         let ability = app
             .world
             .spawn()
@@ -124,7 +126,9 @@ mod tests {
 
     #[test]
     fn ability_activates() {
-        let mut app = setup_app();
+        let mut app = App::new();
+        app.add_plugin(TestAbilityPlugin);
+
         let ability = app
             .world
             .spawn()
@@ -169,7 +173,9 @@ mod tests {
 
     #[test]
     fn ability_affected_by_cooldown() {
-        let mut app = setup_app();
+        let mut app = App::new();
+        app.add_plugin(TestAbilityPlugin);
+
         let ability = app
             .world
             .spawn()
@@ -200,7 +206,9 @@ mod tests {
 
     #[test]
     fn abilities_are_children() {
-        let mut app = setup_app();
+        let mut app = App::new();
+        app.add_plugin(TestAbilityPlugin);
+
         let ability = app.world.spawn().id();
         let character = app.world.spawn().insert(Abilities(vec![ability])).id();
 
@@ -214,13 +222,15 @@ mod tests {
         );
     }
 
-    fn setup_app() -> App {
-        let mut app = App::new();
-        app.add_state(GameState::InGame)
-            .add_plugins(MinimalPlugins)
-            .add_plugin(InputPlugin)
-            .add_plugin(AbilityPlugin);
-        app
+    struct TestAbilityPlugin;
+
+    impl Plugin for TestAbilityPlugin {
+        fn build(&self, app: &mut App) {
+            app.add_state(GameState::InGame)
+                .add_plugins(MinimalPlugins)
+                .add_plugin(InputPlugin)
+                .add_plugin(AbilityPlugin);
+        }
     }
 
     #[derive(Bundle)]

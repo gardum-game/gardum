@@ -52,7 +52,9 @@ mod tests {
 
     #[test]
     fn graphics_applies() {
-        let mut app = setup_app();
+        let mut app = App::new();
+        app.add_plugin(TestPlayerPlugin);
+
         app.update();
 
         let msaa = app.world.resource::<Msaa>().clone();
@@ -77,11 +79,13 @@ mod tests {
         );
     }
 
-    fn setup_app() -> App {
-        let mut app = App::new();
-        app.init_resource::<Settings>()
-            .add_event::<SettingApplyEvent>()
-            .add_plugin(GraphicsPlugin);
-        app
+    struct TestPlayerPlugin;
+
+    impl Plugin for TestPlayerPlugin {
+        fn build(&self, app: &mut App) {
+            app.init_resource::<Settings>()
+                .add_event::<SettingApplyEvent>()
+                .add_plugin(GraphicsPlugin);
+        }
     }
 }

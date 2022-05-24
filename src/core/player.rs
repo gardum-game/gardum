@@ -105,7 +105,8 @@ mod tests {
 
     #[test]
     fn player_spawns_despawns() {
-        let mut app = setup_app();
+        let mut app = App::new();
+        app.add_plugin(TestPlayerPlugin);
 
         for state in [NetworkingState::Connected, NetworkingState::Hosting] {
             let mut networking_state = app.world.resource_mut::<State<NetworkingState>>();
@@ -137,10 +138,12 @@ mod tests {
         }
     }
 
-    fn setup_app() -> App {
-        let mut app = App::new();
-        app.add_state(NetworkingState::NoSocket)
-            .add_plugin(PlayerPlugin);
-        app
+    struct TestPlayerPlugin;
+
+    impl Plugin for TestPlayerPlugin {
+        fn build(&self, app: &mut App) {
+            app.add_state(NetworkingState::NoSocket)
+                .add_plugin(PlayerPlugin);
+        }
     }
 }

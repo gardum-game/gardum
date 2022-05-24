@@ -143,7 +143,8 @@ mod tests {
 
     #[test]
     fn read_write() {
-        let mut app = setup_app();
+        let mut app = App::new();
+        app.add_plugin(SettingsPlugin);
 
         let mut settings = app.world.resource_mut::<Settings>();
         let file_path = Settings::file_path();
@@ -178,11 +179,5 @@ mod tests {
         );
 
         fs::remove_file(file_path).expect("Saved file should be removed after the test");
-    }
-
-    fn setup_app() -> App {
-        let mut app = App::new();
-        app.add_plugin(SettingsPlugin);
-        app
     }
 }

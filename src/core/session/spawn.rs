@@ -147,7 +147,9 @@ mod tests {
 
     #[test]
     fn heroes_randomization() {
-        let mut app = setup_app();
+        let mut app = App::new();
+        app.add_plugin(TestSpawnPlugin);
+
         app.insert_resource(ServerSettings {
             random_heroes: true,
             ..ServerSettings::default()
@@ -166,7 +168,9 @@ mod tests {
 
     #[test]
     fn hero_spawns() {
-        let mut app = setup_app();
+        let mut app = App::new();
+        app.add_plugin(TestSpawnPlugin);
+
         const SPAWN_POINT: Vec3 = Vec3::ONE;
         app.world.spawn().insert(SpawnPoint(SPAWN_POINT));
 
@@ -188,7 +192,9 @@ mod tests {
 
     #[test]
     fn respawn_asigns() {
-        let mut app = setup_app();
+        let mut app = App::new();
+        app.add_plugin(TestSpawnPlugin);
+
         let player = app.world.spawn().id();
 
         app.update();
@@ -210,7 +216,9 @@ mod tests {
 
     #[test]
     fn player_respawns() {
-        let mut app = setup_app();
+        let mut app = App::new();
+        app.add_plugin(TestSpawnPlugin);
+
         let player = app
             .world
             .spawn()
@@ -255,13 +263,14 @@ mod tests {
         );
     }
 
-    fn setup_app() -> App {
-        let mut app = App::new();
-        app.init_resource::<ServerSettings>()
-            .add_state(GameState::InGame)
-            .add_plugin(HeadlessRenderPlugin)
-            .add_plugin(SpawnPlugin);
+    struct TestSpawnPlugin;
 
-        app
+    impl Plugin for TestSpawnPlugin {
+        fn build(&self, app: &mut App) {
+            app.init_resource::<ServerSettings>()
+                .add_state(GameState::InGame)
+                .add_plugin(HeadlessRenderPlugin)
+                .add_plugin(SpawnPlugin);
+        }
     }
 }

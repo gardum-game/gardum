@@ -232,7 +232,9 @@ mod tests {
 
     #[test]
     fn frost_bolt() {
-        let mut app = setup_app();
+        let mut app = App::new();
+        app.add_plugin(TestNorthPlugin);
+
         let instigator = app
             .world
             .spawn()
@@ -321,7 +323,9 @@ mod tests {
 
     #[test]
     fn frost_path() {
-        let mut app = setup_app();
+        let mut app = App::new();
+        app.add_plugin(TestNorthPlugin);
+
         let character = app
             .world
             .spawn()
@@ -357,15 +361,16 @@ mod tests {
         )
     }
 
-    fn setup_app() -> App {
-        let mut app = App::new();
-        app.add_event::<HealthChangeEvent>()
-            .add_state(GameState::InGame)
-            .add_plugin(HeadlessRenderPlugin)
-            .add_plugin(PhysicsPlugin::default())
-            .add_plugin(NorthPlugin);
+    struct TestNorthPlugin;
 
-        app
+    impl Plugin for TestNorthPlugin {
+        fn build(&self, app: &mut App) {
+            app.add_event::<HealthChangeEvent>()
+                .add_state(GameState::InGame)
+                .add_plugin(HeadlessRenderPlugin)
+                .add_plugin(PhysicsPlugin::default())
+                .add_plugin(NorthPlugin);
+        }
     }
 
     #[derive(Bundle)]

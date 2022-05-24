@@ -102,7 +102,9 @@ mod tests {
 
     #[test]
     fn effects_cleanup_on_death() {
-        let mut app = setup_app();
+        let mut app = App::new();
+        app.add_plugin(TestEffectPlugin);
+
         let character = app.world.spawn().insert(Death).id();
         let effect = app.world.spawn().insert(EffectTarget(character)).id();
 
@@ -117,7 +119,9 @@ mod tests {
 
     #[test]
     fn effect_expires() {
-        let mut app = setup_app();
+        let mut app = App::new();
+        app.add_plugin(TestEffectPlugin);
+
         let effect = app
             .world
             .spawn()
@@ -138,12 +142,14 @@ mod tests {
         );
     }
 
-    fn setup_app() -> App {
-        let mut app = App::new();
-        app.add_state(GameState::InGame)
-            .add_event::<HealthChangeEvent>()
-            .add_plugins(MinimalPlugins)
-            .add_plugin(EffectPlugin);
-        app
+    struct TestEffectPlugin;
+
+    impl Plugin for TestEffectPlugin {
+        fn build(&self, app: &mut App) {
+            app.add_state(GameState::InGame)
+                .add_event::<HealthChangeEvent>()
+                .add_plugins(MinimalPlugins)
+                .add_plugin(EffectPlugin);
+        }
     }
 }

@@ -85,7 +85,9 @@ mod tests {
 
     #[test]
     fn timer_ticks() {
-        let mut app = setup_app();
+        let mut app = App::new();
+        app.add_plugin(TestPeriodicEffectPlugin);
+
         let effect = app
             .world
             .spawn()
@@ -109,7 +111,9 @@ mod tests {
 
     #[test]
     fn periodic_health_change() {
-        let mut app = setup_app();
+        let mut app = App::new();
+        app.add_plugin(TestPeriodicEffectPlugin);
+
         let target = app.world.spawn().id();
         let instigator = app.world.spawn().id();
 
@@ -138,13 +142,15 @@ mod tests {
         );
     }
 
-    fn setup_app() -> App {
-        let mut app = App::new();
-        app.add_state(GameState::InGame)
-            .add_event::<HealthChangeEvent>()
-            .add_plugins(MinimalPlugins)
-            .add_plugin(PeriodicEffectPlugin);
-        app
+    struct TestPeriodicEffectPlugin;
+
+    impl Plugin for TestPeriodicEffectPlugin {
+        fn build(&self, app: &mut App) {
+            app.add_state(GameState::InGame)
+                .add_event::<HealthChangeEvent>()
+                .add_plugins(MinimalPlugins)
+                .add_plugin(PeriodicEffectPlugin);
+        }
     }
 
     #[derive(Bundle)]

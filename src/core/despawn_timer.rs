@@ -76,7 +76,9 @@ mod tests {
 
     #[test]
     fn despawn_timer_ticks() {
-        let mut app = setup_app();
+        let mut app = App::new();
+        app.add_plugin(TestDespawnTimerPlugin);
+
         let dummy = app.world.spawn().insert(DespawnTimer::from_secs(1)).id();
 
         app.update();
@@ -91,7 +93,9 @@ mod tests {
 
     #[test]
     fn despawn_timer_destroys() {
-        let mut app = setup_app();
+        let mut app = App::new();
+        app.add_plugin(TestDespawnTimerPlugin);
+
         app.world.spawn().insert(DespawnTimer::default());
 
         app.update();
@@ -103,11 +107,13 @@ mod tests {
         );
     }
 
-    fn setup_app() -> App {
-        let mut app = App::new();
-        app.add_state(GameState::InGame)
-            .add_plugins(MinimalPlugins)
-            .add_plugin(DespawnTimerPlugin);
-        app
+    struct TestDespawnTimerPlugin;
+
+    impl Plugin for TestDespawnTimerPlugin {
+        fn build(&self, app: &mut App) {
+            app.add_state(GameState::InGame)
+                .add_plugins(MinimalPlugins)
+                .add_plugin(DespawnTimerPlugin);
+        }
     }
 }

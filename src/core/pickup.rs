@@ -263,7 +263,8 @@ mod tests {
 
     #[test]
     fn pickup_applies_effect() {
-        let mut app = setup_app();
+        let mut app = App::new();
+        app.add_plugin(TestPickupPlugin);
 
         for pickup_kind in PickupKind::iter() {
             let mut system_state: SystemState<AssetCommands> = SystemState::new(&mut app.world);
@@ -330,7 +331,9 @@ mod tests {
 
     #[test]
     fn pickup_cooldown() {
-        let mut app = setup_app();
+        let mut app = App::new();
+        app.add_plugin(TestPickupPlugin);
+
         const PICKUP_KIND: PickupKind = PickupKind::Healing;
         let mut system_state: SystemState<AssetCommands> = SystemState::new(&mut app.world);
         let mut asset_commands = system_state.get_mut(&mut app.world);
@@ -376,16 +379,18 @@ mod tests {
         assert!(visibility.is_visible, "Pickup mesh should become visible");
     }
 
-    fn setup_app() -> App {
-        let mut app = App::new();
-        app.add_state(GameState::InGame)
-            .add_plugin(HeadlessRenderPlugin)
-            .add_plugin(HierarchyPlugin)
-            .add_plugin(ScenePlugin)
-            .add_plugin(GltfPlugin)
-            .add_plugin(TransformPlugin)
-            .add_plugin(PhysicsPlugin::default())
-            .add_plugin(PickupPlugin);
-        app
+    struct TestPickupPlugin;
+
+    impl Plugin for TestPickupPlugin {
+        fn build(&self, app: &mut App) {
+            app.add_state(GameState::InGame)
+                .add_plugin(HeadlessRenderPlugin)
+                .add_plugin(HierarchyPlugin)
+                .add_plugin(ScenePlugin)
+                .add_plugin(GltfPlugin)
+                .add_plugin(TransformPlugin)
+                .add_plugin(PhysicsPlugin::default())
+                .add_plugin(PickupPlugin);
+        }
     }
 }

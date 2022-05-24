@@ -92,7 +92,9 @@ mod tests {
 
     #[test]
     fn mappings_applies() {
-        let mut app = setup_app();
+        let mut app = App::new();
+        app.add_plugin(TestControlActionsPlugin);
+
         let player = app.world.spawn().insert(Authority).insert(Player).id();
 
         app.update();
@@ -133,12 +135,14 @@ mod tests {
         );
     }
 
-    fn setup_app() -> App {
-        let mut app = App::new();
-        app.add_state(GameState::InGame)
-            .add_event::<SettingApplyEvent>()
-            .init_resource::<Settings>()
-            .add_plugin(ControlActionsPlugin);
-        app
+    struct TestControlActionsPlugin;
+
+    impl Plugin for TestControlActionsPlugin {
+        fn build(&self, app: &mut App) {
+            app.add_state(GameState::InGame)
+                .add_event::<SettingApplyEvent>()
+                .init_resource::<Settings>()
+                .add_plugin(ControlActionsPlugin);
+        }
     }
 }

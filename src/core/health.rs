@@ -128,7 +128,9 @@ mod tests {
 
     #[test]
     fn healing() {
-        let mut app = setup_app();
+        let mut app = App::new();
+        app.add_plugin(TestHealthPlugin);
+
         let target = app
             .world
             .spawn()
@@ -178,7 +180,9 @@ mod tests {
 
     #[test]
     fn damaging() {
-        let mut app = setup_app();
+        let mut app = App::new();
+        app.add_plugin(TestHealthPlugin);
+
         let target = app
             .world
             .spawn()
@@ -250,7 +254,9 @@ mod tests {
 
     #[test]
     fn self_damaging() {
-        let mut app = setup_app();
+        let mut app = App::new();
+        app.add_plugin(TestHealthPlugin);
+
         let target = app
             .world
             .spawn()
@@ -293,12 +299,13 @@ mod tests {
             .expect("Target should have a Death component");
     }
 
-    fn setup_app() -> App {
-        let mut app = App::new();
-        app.add_state(GameState::InGame)
-            .add_plugins(MinimalPlugins)
-            .add_plugin(HealthPlugin);
+    struct TestHealthPlugin;
 
-        app
+    impl Plugin for TestHealthPlugin {
+        fn build(&self, app: &mut App) {
+            app.add_state(GameState::InGame)
+                .add_plugins(MinimalPlugins)
+                .add_plugin(HealthPlugin);
+        }
     }
 }

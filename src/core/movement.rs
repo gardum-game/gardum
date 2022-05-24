@@ -152,7 +152,9 @@ mod tests {
 
     #[test]
     fn character_falls() {
-        let mut app = setup_app();
+        let mut app = App::new();
+        app.add_plugin(TestMovementPlugin);
+
         let character = app
             .world
             .spawn()
@@ -192,7 +194,9 @@ mod tests {
 
     #[test]
     fn character_standing_on_platform() {
-        let mut app = setup_app();
+        let mut app = App::new();
+        app.add_plugin(TestMovementPlugin);
+
         let character = app
             .world
             .spawn()
@@ -240,7 +244,9 @@ mod tests {
 
     #[test]
     fn character_moves() {
-        let mut app = setup_app();
+        let mut app = App::new();
+        app.add_plugin(TestMovementPlugin);
+
         let character = app
             .world
             .spawn()
@@ -287,7 +293,9 @@ mod tests {
     #[test]
     fn speed_modifier_respected() {
         const SPEED_MODIFIER: f32 = 100.0;
-        let mut app = setup_app();
+        let mut app = App::new();
+        app.add_plugin(TestMovementPlugin);
+
         let character = app
             .world
             .spawn()
@@ -318,17 +326,19 @@ mod tests {
         )
     }
 
-    fn setup_app() -> App {
-        let mut app = App::new();
-        app.add_state(GameState::InGame)
-            .insert_resource(Gravity::from(Vec3::Y * -9.81))
-            .add_plugins(MinimalPlugins)
-            .add_plugin(InputPlugin)
-            .add_plugin(InputManagerPlugin::<ControlAction>::default())
-            .add_plugin(PhysicsPlugin::default())
-            .add_plugin(InputPlugin)
-            .add_plugin(MovementPlugin);
-        app
+    struct TestMovementPlugin;
+
+    impl Plugin for TestMovementPlugin {
+        fn build(&self, app: &mut App) {
+            app.add_state(GameState::InGame)
+                .insert_resource(Gravity::from(Vec3::Y * -9.81))
+                .add_plugins(MinimalPlugins)
+                .add_plugin(InputPlugin)
+                .add_plugin(InputManagerPlugin::<ControlAction>::default())
+                .add_plugin(PhysicsPlugin::default())
+                .add_plugin(InputPlugin)
+                .add_plugin(MovementPlugin);
+        }
     }
 
     #[derive(Bundle)]

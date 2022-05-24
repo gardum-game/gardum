@@ -67,7 +67,9 @@ mod tests {
 
     #[test]
     fn loading_on_start() {
-        let mut app = setup_app();
+        let mut app = App::new();
+        app.add_plugin(TestMapPlugin);
+
         let map = app.world.resource::<ServerSettings>().map;
 
         wait_for_asset_loading(&mut app, map.asset_path(), 25);
@@ -75,16 +77,18 @@ mod tests {
         app.world.clear_entities();
     }
 
-    fn setup_app() -> App {
-        let mut app = App::new();
-        app.add_state(GameState::InGame)
-            .init_resource::<ServerSettings>()
-            .add_plugin(HeadlessRenderPlugin)
-            .add_plugin(HierarchyPlugin)
-            .add_plugin(ScenePlugin)
-            .add_plugin(GltfPlugin)
-            .add_plugin(TransformPlugin)
-            .add_plugin(MapsPlugin);
-        app
+    struct TestMapPlugin;
+
+    impl Plugin for TestMapPlugin {
+        fn build(&self, app: &mut App) {
+            app.add_state(GameState::InGame)
+                .init_resource::<ServerSettings>()
+                .add_plugin(HeadlessRenderPlugin)
+                .add_plugin(HierarchyPlugin)
+                .add_plugin(ScenePlugin)
+                .add_plugin(GltfPlugin)
+                .add_plugin(TransformPlugin)
+                .add_plugin(MapsPlugin);
+        }
     }
 }

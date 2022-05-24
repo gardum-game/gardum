@@ -57,7 +57,9 @@ mod tests {
 
     #[test]
     fn ingame_entities_cleanup() {
-        let mut app = setup_app();
+        let mut app = App::new();
+        app.add_plugin(AppStatePlugin);
+
         app.world
             .resource_mut::<State<GameState>>()
             .set(GameState::InGame)
@@ -87,11 +89,5 @@ mod tests {
             app.world.get_entity(child_entity).is_none(),
             "Children of ingame entity should be despawned with its parent"
         );
-    }
-
-    fn setup_app() -> App {
-        let mut app = App::new();
-        app.add_plugin(AppStatePlugin);
-        app
     }
 }

@@ -71,8 +71,10 @@ mod tests {
 
     #[test]
     fn player_modifier_changes() {
+        let mut app = App::new();
+        app.add_plugin(TestModifierEffectPlugin);
+
         const MODIFIER_VALUE: f32 = 0.2;
-        let mut app = setup_app();
         let player = app.world.spawn().insert(DummyModifier::default()).id();
         let effect = app
             .world
@@ -101,12 +103,14 @@ mod tests {
         );
     }
 
-    fn setup_app() -> App {
-        let mut app = App::new();
-        app.add_state(GameState::InGame)
-            .add_plugins(MinimalPlugins)
-            .add_plugin(ModifierEffectPlugin::<DummyModifier>::default());
-        app
+    struct TestModifierEffectPlugin;
+
+    impl Plugin for TestModifierEffectPlugin {
+        fn build(&self, app: &mut App) {
+            app.add_state(GameState::InGame)
+                .add_plugins(MinimalPlugins)
+                .add_plugin(ModifierEffectPlugin::<DummyModifier>::default());
+        }
     }
 
     #[derive(Bundle)]

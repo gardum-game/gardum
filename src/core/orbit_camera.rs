@@ -163,7 +163,9 @@ mod tests {
 
     #[test]
     fn camera_spawn() {
-        let mut app = setup_app();
+        let mut app = App::new();
+        app.add_plugin(TestOrbitCameraPlugin);
+
         let local_player = app
             .world
             .spawn()
@@ -204,7 +206,9 @@ mod tests {
 
     #[test]
     fn camera_input() {
-        let mut app = setup_app();
+        let mut app = App::new();
+        app.add_plugin(TestOrbitCameraPlugin);
+
         app.world
             .spawn()
             .insert_bundle(DummyCharacterBundle::default());
@@ -227,7 +231,9 @@ mod tests {
 
     #[test]
     fn camera_moves_around_character() {
-        let mut app = setup_app();
+        let mut app = App::new();
+        app.add_plugin(TestOrbitCameraPlugin);
+
         let character = app
             .world
             .spawn()
@@ -271,14 +277,16 @@ mod tests {
         }
     }
 
-    fn setup_app() -> App {
-        let mut app = App::new();
-        app.add_state(GameState::InGame)
-            .add_plugin(HeadlessRenderPlugin)
-            .add_plugin(InputPlugin)
-            .add_plugin(PhysicsPlugin::default())
-            .add_plugin(OrbitCameraPlugin);
-        app
+    struct TestOrbitCameraPlugin;
+
+    impl Plugin for TestOrbitCameraPlugin {
+        fn build(&self, app: &mut App) {
+            app.add_state(GameState::InGame)
+                .add_plugin(HeadlessRenderPlugin)
+                .add_plugin(InputPlugin)
+                .add_plugin(PhysicsPlugin::default())
+                .add_plugin(OrbitCameraPlugin);
+        }
     }
 
     #[derive(Bundle)]

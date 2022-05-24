@@ -69,7 +69,9 @@ mod tests {
 
     #[test]
     fn input_events_reads_keyboard() {
-        let mut app = setup_app();
+        let mut app = App::new();
+        app.add_plugin(InputPlugin);
+
         const KEY: KeyCode = KeyCode::Space;
         let mut keyboard_input = app.world.resource_mut::<Events<KeyboardInput>>();
         keyboard_input.send(KeyboardInput {
@@ -92,7 +94,9 @@ mod tests {
 
     #[test]
     fn input_events_reads_mouse() {
-        let mut app = setup_app();
+        let mut app = App::new();
+        app.add_plugin(InputPlugin);
+
         const BUTTON: MouseButton = MouseButton::Right;
         let mut mouse_button = app.world.resource_mut::<Events<MouseButtonInput>>();
         mouse_button.send(MouseButtonInput {
@@ -114,7 +118,9 @@ mod tests {
 
     #[test]
     fn input_events_reads_gamepad() {
-        let mut app = setup_app();
+        let mut app = App::new();
+        app.add_plugin(InputPlugin);
+
         const BUTTON: GamepadButtonType = GamepadButtonType::Z;
         const PRESSED_STRENGTH: f32 = 0.6;
         let mut gamepad_events = app.world.resource_mut::<Events<GamepadEvent>>();
@@ -147,11 +153,5 @@ mod tests {
             InputButton::Gamepad(BUTTON),
             "Input button should be equal to the released gamepad button"
         );
-    }
-
-    fn setup_app() -> App {
-        let mut app = App::new();
-        app.add_plugin(InputPlugin);
-        app
     }
 }
