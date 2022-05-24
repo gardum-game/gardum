@@ -157,7 +157,7 @@ mod tests {
     fn initializes_from_host() {
         let mut app = App::new();
         let server_settings = ServerSettings {
-            port: ServerSettings::default().port - 1,
+            port: 0,
             ..Default::default()
         };
         app.world.insert_resource(Opts {
@@ -172,7 +172,7 @@ mod tests {
         );
         assert!(
             app.world.get_resource::<RenetServer>().is_some(),
-            "Server should be created"
+            "Server resource should exist"
         );
     }
 
@@ -180,7 +180,7 @@ mod tests {
     fn socket_events() {
         let mut app = App::new();
         let server_settings = ServerSettings {
-            port: ServerSettings::default().port - 2,
+            port: 0,
             ..Default::default()
         };
         app.init_resource::<Opts>()

@@ -159,7 +159,7 @@ mod tests {
     fn initializes_from_connect() {
         let mut app = App::new();
         let connection_settings = ConnectionSettings {
-            port: ConnectionSettings::default().port + 1,
+            port: 0,
             ..Default::default()
         };
         app.world.insert_resource(Opts {
@@ -174,7 +174,7 @@ mod tests {
         );
         assert!(
             app.world.get_resource::<RenetClient>().is_some(),
-            "Connection should be opened"
+            "Client resource should exist"
         );
     }
 
@@ -182,11 +182,11 @@ mod tests {
     fn socket_events() {
         let mut app = App::new();
         let server_settings = ServerSettings {
-            port: ServerSettings::default().port + 2,
+            port: ServerSettings::default().port,
             ..Default::default()
         };
         let connection_settings = ConnectionSettings {
-            port: server_settings.port,
+            port: ServerSettings::default().port,
             ..Default::default()
         };
         app.init_resource::<Opts>()
