@@ -37,6 +37,7 @@ jobs:
           args: --ignore-tests --skip-clean --exclude-files=src/ui
 
       - name: Upload code coverage results
+        if: ${{ !startsWith(github.ref, 'dependabot/') }}
         uses: actions/upload-artifact@v3
         with:
           name: code-coverage-report
@@ -78,6 +79,7 @@ jobs:
 
   codecov:
     name: Upload to Codecov
+    if: ${{ !startsWith(github.ref, 'dependabot/') }}
     needs: [test, clippy, format]
     runs-on: ubuntu-latest
     steps:
