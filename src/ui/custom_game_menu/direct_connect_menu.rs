@@ -26,10 +26,10 @@ use bevy_egui::{
 use leafwing_input_manager::prelude::ActionState;
 
 use crate::{
-    core::network::client::ConnectionSettings,
+    core::network::{client::ConnectionSettings, NetworkingState},
     ui::{
-        back_button::BackButton, chat::ChatPlugin, error_dialog::ErrorDialog, ui_actions::UiAction,
-        ui_state::UiState,
+        back_button::BackButton, chat::ChatPlugin, error_dialog::ErrorDialog,
+        modal_window::ModalWindow, ui_actions::UiAction, ui_state::UiState,
     },
 };
 
@@ -39,7 +39,9 @@ impl Plugin for DirectConnectMenuPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
             SystemSet::on_update(UiState::DirectConnectMenu)
-                .with_system(DirectConnectMenuPlugin::direct_connect_menu_system)
+                .with_system(Self::direct_connect_menu_system)
+                .with_system(Self::connection_dialog_system)
+                .with_system(Self::enter_lobby_system)
                 .with_system(Self::back_system.after(ChatPlugin::chat_system)),
         );
     }
@@ -50,7 +52,6 @@ impl DirectConnectMenuPlugin {
         mut commands: Commands,
         mut egui: ResMut<EguiContext>,
         mut connection_setttings: ResMut<ConnectionSettings>,
-        mut ui_state: ResMut<State<UiState>>,
     ) {
         Window::new("Direct connect")
             .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
@@ -72,10 +73,7 @@ impl DirectConnectMenuPlugin {
                 ui.vertical_centered(|ui| {
                     if ui.button("Connect").clicked() {
                         match connection_setttings.create_client() {
-                            Ok(client) => {
-                                ui_state.set(UiState::ConnectionDialog).unwrap();
-                                commands.insert_resource(client);
-                            }
+                            Ok(client) => commands.insert_resource(client),
                             Err(error) => commands.insert_resource(ErrorDialog {
                                 title: "Unable to create connection".to_string(),
                                 text: error.to_string(),
@@ -84,6 +82,36 @@ impl DirectConnectMenuPlugin {
                     }
                 });
             });
+    }
+
+    fn connection_dialog_system(
+        connection_setttings: Res<ConnectionSettings>,
+        mut egui: ResMut<EguiContext>,
+        mut networking_state: ResMut<State<NetworkingState>>,
+    ) {
+        // TODO 0.8: Refactor using stageless to check if both states are active
+        if !matches!(networking_state.current(), NetworkingState::Connecting) {
+            return;
+        }
+
+        ModalWindow::new("Connecting").show(egui.ctx_mut(), |ui| {
+            ui.label(format!(
+                "Connecting to {}:{}...",
+                connection_setttings.ip, connection_setttings.port
+            ));
+            if ui.button("Cancel").clicked() {
+                networking_state.set(NetworkingState::NoSocket).unwrap();
+            }
+        });
+    }
+
+    fn enter_lobby_system(
+        mut ui_state: ResMut<State<UiState>>,
+        networking_state: ResMut<State<NetworkingState>>,
+    ) {
+        if let NetworkingState::Connected = networking_state.current() {
+            ui_state.set(UiState::LobbyMenu).unwrap();
+        }
     }
 
     fn back_system(

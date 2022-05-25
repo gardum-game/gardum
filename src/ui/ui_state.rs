@@ -26,7 +26,7 @@ pub(super) struct UiStatePlugin;
 impl Plugin for UiStatePlugin {
     fn build(&self, app: &mut App) {
         if app.world.get_resource::<RenetClient>().is_some() {
-            app.add_state(UiState::ConnectionDialog);
+            app.add_state(UiState::DirectConnectMenu);
         } else if app.world.get_resource::<RenetServer>().is_some() {
             app.add_state(UiState::LobbyMenu);
         } else {
@@ -40,7 +40,6 @@ pub(super) enum UiState {
     MainMenu,
     ServerBrowser,
     SettingsMenu,
-    ConnectionDialog,
     DirectConnectMenu,
     LobbyMenu,
     HeroSelection,

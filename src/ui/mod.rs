@@ -20,7 +20,6 @@
 
 mod back_button;
 mod chat;
-mod connection_dialog;
 mod custom_game_menu;
 mod error_dialog;
 mod hero_selection;
@@ -37,7 +36,6 @@ pub(super) mod ui_state;
 use bevy::prelude::*;
 
 use chat::ChatPlugin;
-use connection_dialog::ConnectionDialogPlugin;
 use custom_game_menu::CustomGameMenuPlugin;
 use error_dialog::ErrorDialogPlugin;
 use hero_selection::HeroSelectionPlugin;
@@ -67,7 +65,6 @@ impl Plugin for UiPlugin {
             .add_plugin(MainMenuPlugin)
             .add_plugin(CustomGameMenuPlugin)
             .add_plugin(ErrorDialogPlugin)
-            .add_plugin(ConnectionDialogPlugin)
             .add_plugin(InGameMenuPlugin);
     }
 }
