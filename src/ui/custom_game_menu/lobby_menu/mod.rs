@@ -27,10 +27,14 @@ use bevy_egui::{
     EguiContext,
 };
 use bevy_renet::renet::{RenetClient, RenetServer};
+use leafwing_input_manager::prelude::ActionState;
 
 use crate::{
     core::{game_state::GameState, network::server::ServerSettings, player::Player},
-    ui::{error_dialog::ErrorDialog, ui_state::UiState},
+    ui::{
+        back_button::BackButton, error_dialog::ErrorDialog, modal_window::ModalWindow,
+        ui_actions::UiAction, ui_state::UiState,
+    },
 };
 use players_grid::PlayersGrid;
 use server_settings_grid::GameSettingsGrid;
@@ -40,7 +44,10 @@ pub(super) struct LobbyMenuPlugin;
 impl Plugin for LobbyMenuPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
-            SystemSet::on_update(UiState::LobbyMenu).with_system(Self::lobby_menu_system),
+            SystemSet::on_update(UiState::LobbyMenu)
+                .with_system(Self::lobby_menu_system)
+                .with_system(Self::back_system)
+                .with_system(Self::confirmation_dialog_system),
         );
     }
 }
@@ -91,4 +98,44 @@ impl LobbyMenuPlugin {
                 })
             });
     }
+
+    fn back_system(
+        mut commands: Commands,
+        mut egui: ResMut<EguiContext>,
+        mut action_state: ResMut<ActionState<UiAction>>,
+    ) {
+        if BackButton::new(&mut action_state)
+            .show(egui.ctx_mut())
+            .clicked()
+        {
+            commands.init_resource::<ConfirmationDialog>();
+        }
+    }
+
+    fn confirmation_dialog_system(
+        mut commands: Commands,
+        confirmation_dialog: Option<Res<ConfirmationDialog>>,
+        mut egui: ResMut<EguiContext>,
+        mut ui_state: ResMut<State<UiState>>,
+    ) {
+        if confirmation_dialog.is_none() {
+            return;
+        }
+
+        ModalWindow::new("Exit lobby").show(egui.ctx_mut(), |ui| {
+            ui.label("Are you shoule you want to leave?");
+            ui.horizontal(|ui| {
+                if ui.button("Yes").clicked() {
+                    ui_state.set(UiState::ServerBrowser).unwrap();
+                    commands.remove_resource::<ConfirmationDialog>();
+                }
+                if ui.button("No").clicked() {
+                    commands.remove_resource::<ConfirmationDialog>();
+                }
+            })
+        });
+    }
 }
+
+#[derive(Default)]
+struct ConfirmationDialog;
