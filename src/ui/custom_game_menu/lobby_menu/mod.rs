@@ -32,7 +32,7 @@ use leafwing_input_manager::prelude::ActionState;
 use crate::{
     core::{game_state::GameState, network::server::ServerSettings, player::Player},
     ui::{
-        back_button::BackButton, error_dialog::ErrorDialog, modal_window::ModalWindow,
+        back_button::BackButton, error_dialog::ErrorMessage, modal_window::ModalWindow,
         ui_actions::UiAction, ui_state::UiState,
     },
 };
@@ -83,7 +83,7 @@ impl LobbyMenuPlugin {
                         if ui.button("Create").clicked() {
                             match server_settings.create_server() {
                                 Ok(server) => commands.insert_resource(server),
-                                Err(error) => commands.insert_resource(ErrorDialog {
+                                Err(error) => commands.insert_resource(ErrorMessage {
                                     title: "Unable to create server".to_string(),
                                     text: error.to_string(),
                                 }),
@@ -108,17 +108,17 @@ impl LobbyMenuPlugin {
             .show(egui.ctx_mut())
             .clicked()
         {
-            commands.init_resource::<ConfirmationDialog>();
+            commands.init_resource::<Confirmation>();
         }
     }
 
     fn confirmation_dialog_system(
         mut commands: Commands,
-        confirmation_dialog: Option<Res<ConfirmationDialog>>,
+        confirmation: Option<Res<Confirmation>>,
         mut egui: ResMut<EguiContext>,
         mut ui_state: ResMut<State<UiState>>,
     ) {
-        if confirmation_dialog.is_none() {
+        if confirmation.is_none() {
             return;
         }
 
@@ -127,10 +127,10 @@ impl LobbyMenuPlugin {
             ui.horizontal(|ui| {
                 if ui.button("Yes").clicked() {
                     ui_state.set(UiState::ServerBrowser).unwrap();
-                    commands.remove_resource::<ConfirmationDialog>();
+                    commands.remove_resource::<Confirmation>();
                 }
                 if ui.button("No").clicked() {
-                    commands.remove_resource::<ConfirmationDialog>();
+                    commands.remove_resource::<Confirmation>();
                 }
             })
         });
@@ -138,4 +138,4 @@ impl LobbyMenuPlugin {
 }
 
 #[derive(Default)]
-struct ConfirmationDialog;
+struct Confirmation;

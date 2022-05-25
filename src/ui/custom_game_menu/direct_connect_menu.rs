@@ -28,7 +28,7 @@ use leafwing_input_manager::prelude::ActionState;
 use crate::{
     core::network::{client::ConnectionSettings, NetworkingState},
     ui::{
-        back_button::BackButton, chat::ChatPlugin, error_dialog::ErrorDialog,
+        back_button::BackButton, chat::ChatPlugin, error_dialog::ErrorMessage,
         modal_window::ModalWindow, ui_actions::UiAction, ui_state::UiState,
     },
 };
@@ -74,7 +74,7 @@ impl DirectConnectMenuPlugin {
                     if ui.button("Connect").clicked() {
                         match connection_setttings.create_client() {
                             Ok(client) => commands.insert_resource(client),
-                            Err(error) => commands.insert_resource(ErrorDialog {
+                            Err(error) => commands.insert_resource(ErrorMessage {
                                 title: "Unable to create connection".to_string(),
                                 text: error.to_string(),
                             }),

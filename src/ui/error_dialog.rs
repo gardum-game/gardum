@@ -39,21 +39,21 @@ impl Plugin for ErrorDialogPlugin {
 impl ErrorDialogPlugin {
     fn error_dialog_system(
         mut commands: Commands,
-        error_message: Option<Res<ErrorDialog>>,
+        error_message: Option<Res<ErrorMessage>>,
         mut egui: ResMut<EguiContext>,
     ) {
         if let Some(error_message) = error_message {
             ModalWindow::new(&error_message.title).show(egui.ctx_mut(), |ui| {
                 ui.label(&error_message.text);
                 if ui.button("Ok").clicked() {
-                    commands.remove_resource::<ErrorDialog>();
+                    commands.remove_resource::<ErrorMessage>();
                 }
             });
         }
     }
 }
 
-pub(super) struct ErrorDialog {
+pub(super) struct ErrorMessage {
     pub(super) title: String,
     pub(super) text: String,
 }
