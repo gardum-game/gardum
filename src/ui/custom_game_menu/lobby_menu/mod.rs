@@ -118,6 +118,7 @@ impl LobbyMenuPlugin {
         mut egui: ResMut<EguiContext>,
         mut ui_state: ResMut<State<UiState>>,
     ) {
+        // TODO 0.8: Refactor using stageless to check if the resource exists
         if confirmation.is_none() {
             return;
         }
