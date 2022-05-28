@@ -27,7 +27,7 @@ use std::{
     time::SystemTime,
 };
 
-use super::{NetworkingState, DEFAULT_PORT, PROTOCOL_ID, PUBLIC_GAME_KEY};
+use super::{Channels, NetworkingState, DEFAULT_PORT, PROTOCOL_ID, PUBLIC_GAME_KEY};
 use crate::core::cli::{Opts, SubCommand};
 
 pub(super) struct ClientPlugin;
@@ -135,7 +135,10 @@ impl ConnectionSettings {
             UdpSocket::bind((ip, 0))?,
             client_id,
             token,
-            RenetConnectionConfig::default(),
+            RenetConnectionConfig {
+                channels_config: Channels::config(),
+                ..Default::default()
+            },
         )
         .map_err(From::from)
     }
