@@ -26,6 +26,7 @@ use bevy_egui::{
     egui::{Align2, Area},
     EguiContext,
 };
+use bevy_renet::renet::RenetClient;
 
 use super::UI_MARGIN;
 use crate::core::settings::{SettingApplyEvent, Settings};
@@ -44,6 +45,7 @@ impl PerfStatsPlugin {
         mut apply_events: EventReader<SettingApplyEvent>,
         diagnostics: Res<Diagnostics>,
         settings: Res<Settings>,
+        client: Option<Res<RenetClient>>,
         mut egui: ResMut<EguiContext>,
     ) {
         if apply_events.iter().next().is_some() || settings.is_added() {
@@ -59,6 +61,15 @@ impl PerfStatsPlugin {
             .show(egui.ctx_mut(), |ui| {
                 if let Some(fps) = fps.value() {
                     ui.strong(format!("FPS: {:.0}", fps));
+                }
+                if let Some(client) = client {
+                    let network_info = client.network_info();
+                    ui.strong(format!(
+                        "RTT: {} ⬇ {} kbps ⬆ {} kbps",
+                        network_info.rtt,
+                        network_info.received_bandwidth_kbps,
+                        network_info.sent_bandwidth_kbps,
+                    ));
                 }
             });
     }
