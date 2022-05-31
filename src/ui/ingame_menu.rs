@@ -43,7 +43,7 @@ impl Plugin for InGameMenuPlugin {
 
 impl InGameMenuPlugin {
     fn ingame_menu_system(
-        mut exit_event: EventWriter<AppExit>,
+        mut exit_events: EventWriter<AppExit>,
         mut egui: ResMut<EguiContext>,
         mut ui_state: ResMut<State<UiState>>,
         mut game_state: ResMut<State<GameState>>,
@@ -62,7 +62,7 @@ impl InGameMenuPlugin {
                     game_state.set(GameState::Menu).unwrap();
                 }
                 if ui.button("Exit").clicked() {
-                    exit_event.send(AppExit);
+                    exit_events.send(AppExit);
                 }
             });
     }

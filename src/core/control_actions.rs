@@ -26,7 +26,7 @@ use serde::{Deserialize, Serialize};
 use super::{
     game_state::GameState,
     player::Player,
-    settings::{SettingApplyEvent, Settings},
+    settings::{Settings, SettingsApplied},
     Authority,
 };
 
@@ -42,7 +42,7 @@ impl Plugin for ControlActionsPlugin {
 
 impl ControlActionsPlugin {
     fn load_mappings_system(
-        mut apply_events: EventReader<SettingApplyEvent>,
+        mut apply_events: EventReader<SettingsApplied>,
         settings: Res<Settings>,
         mut local_player: Query<&mut InputMap<ControlAction>, With<Authority>>,
     ) {
@@ -118,8 +118,8 @@ mod tests {
             .mappings
             .insert(ControlAction::Jump, KeyCode::Q);
 
-        let mut apply_events = app.world.resource_mut::<Events<SettingApplyEvent>>();
-        apply_events.send(SettingApplyEvent);
+        let mut apply_events = app.world.resource_mut::<Events<SettingsApplied>>();
+        apply_events.send(SettingsApplied);
 
         app.update();
 
@@ -140,7 +140,7 @@ mod tests {
     impl Plugin for TestControlActionsPlugin {
         fn build(&self, app: &mut App) {
             app.add_state(GameState::InGame)
-                .add_event::<SettingApplyEvent>()
+                .add_event::<SettingsApplied>()
                 .init_resource::<Settings>()
                 .add_plugin(ControlActionsPlugin);
         }

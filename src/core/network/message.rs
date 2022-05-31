@@ -159,23 +159,23 @@ mod tests {
         app.update();
 
         let mut message_events = app.world.resource_mut::<Events<ClientMessageWithId>>();
-        let message_event = message_events
+        let event = message_events
             .drain()
             .next()
             .expect("The server should recieve a message from the client");
 
         assert_eq!(
-            message_event.message, client_message,
+            event.message, client_message,
             "The received message should match the one sent"
         );
 
         let mut server = app.world.resource_mut::<RenetServer>();
         let server_message = ServerMessage::ChatMessage {
-            sender_id: message_event.client_id,
+            sender_id: event.client_id,
             message: "Hi from server".into(),
         };
         server.send_message(
-            message_event.client_id,
+            event.client_id,
             Channels::Reliable.id(),
             bincode::serialize(&server_message).expect("Unable to serialize server message"),
         );
@@ -187,13 +187,13 @@ mod tests {
         app.update();
 
         let mut message_events = app.world.resource_mut::<Events<ServerMessage>>();
-        let message_event = message_events
+        let event = message_events
             .drain()
             .next()
             .expect("The client should recieve a message from the server");
 
         assert_eq!(
-            message_event, server_message,
+            event, server_message,
             "The received message should match the one sent"
         );
     }

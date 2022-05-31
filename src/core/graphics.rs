@@ -20,7 +20,7 @@
 
 use bevy::prelude::*;
 
-use super::settings::{SettingApplyEvent, Settings};
+use super::settings::{Settings, SettingsApplied};
 
 pub(super) struct GraphicsPlugin;
 
@@ -33,7 +33,7 @@ impl Plugin for GraphicsPlugin {
 impl GraphicsPlugin {
     fn apply_graphics_system(
         mut commands: Commands,
-        mut apply_events: EventReader<SettingApplyEvent>,
+        mut apply_events: EventReader<SettingsApplied>,
         settings: Res<Settings>,
     ) {
         if apply_events.iter().next().is_some() || settings.is_added() {
@@ -66,8 +66,8 @@ mod tests {
 
         settings.video.msaa += 1;
 
-        let mut apply_events = app.world.resource_mut::<Events<SettingApplyEvent>>();
-        apply_events.send(SettingApplyEvent);
+        let mut apply_events = app.world.resource_mut::<Events<SettingsApplied>>();
+        apply_events.send(SettingsApplied);
 
         app.update();
 
@@ -84,7 +84,7 @@ mod tests {
     impl Plugin for TestPlayerPlugin {
         fn build(&self, app: &mut App) {
             app.init_resource::<Settings>()
-                .add_event::<SettingApplyEvent>()
+                .add_event::<SettingsApplied>()
                 .add_plugin(GraphicsPlugin);
         }
     }

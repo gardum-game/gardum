@@ -27,7 +27,7 @@ use crate::core::{
     control_actions::ControlAction,
     cooldown::Cooldown,
     game_state::GameState,
-    health::{Health, HealthChangeEvent},
+    health::{Health, HealthChanged},
     AssetCommands, Owner, ProjectileBundle,
 };
 
@@ -77,7 +77,7 @@ impl NorthPlugin {
 
     fn frost_bolt_hit_system(
         mut commands: Commands,
-        mut health_events: EventWriter<HealthChangeEvent>,
+        mut health_events: EventWriter<HealthChanged>,
         projectiles: Query<
             (Entity, &Owner, &Collisions),
             (With<FrostBoltAbility>, Changed<Collisions>),
@@ -88,7 +88,7 @@ impl NorthPlugin {
             if let Some(first_collision) = collisions.entities().next() {
                 commands.entity(projectile).despawn();
                 if health.get(first_collision).is_ok() {
-                    health_events.send(HealthChangeEvent {
+                    health_events.send(HealthChanged {
                         instigator: owner.0,
                         target: first_collision,
                         delta: FROST_BOLT_DAMAGE,
@@ -304,7 +304,7 @@ mod tests {
         app.update();
         app.update();
 
-        let mut health_events = app.world.resource_mut::<Events<HealthChangeEvent>>();
+        let mut health_events = app.world.resource_mut::<Events<HealthChanged>>();
         let event = health_events
             .drain()
             .next()
@@ -365,7 +365,7 @@ mod tests {
 
     impl Plugin for TestNorthPlugin {
         fn build(&self, app: &mut App) {
-            app.add_event::<HealthChangeEvent>()
+            app.add_event::<HealthChanged>()
                 .add_state(GameState::InGame)
                 .add_plugin(HeadlessRenderPlugin)
                 .add_plugin(PhysicsPlugin::default())

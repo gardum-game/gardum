@@ -29,7 +29,7 @@ use bevy_egui::{
 use bevy_renet::renet::RenetClient;
 
 use super::UI_MARGIN;
-use crate::core::settings::{SettingApplyEvent, Settings};
+use crate::core::settings::{Settings, SettingsApplied};
 
 pub(super) struct PerfStatsPlugin;
 
@@ -42,7 +42,7 @@ impl Plugin for PerfStatsPlugin {
 impl PerfStatsPlugin {
     fn perf_stats_system(
         mut enabled: Local<bool>,
-        mut apply_events: EventReader<SettingApplyEvent>,
+        mut apply_events: EventReader<SettingsApplied>,
         diagnostics: Res<Diagnostics>,
         settings: Res<Settings>,
         client: Option<Res<RenetClient>>,

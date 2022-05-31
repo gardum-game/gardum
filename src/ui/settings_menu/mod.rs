@@ -37,7 +37,7 @@ use super::{
 use crate::core::{
     control_actions::ControlAction,
     game_state::GameState,
-    settings::{SettingApplyEvent, Settings},
+    settings::{Settings, SettingsApplied},
 };
 use controls_settings_tab::ControlsSettingsTab;
 use input_events::InputEvents;
@@ -89,7 +89,7 @@ impl SettingsMenuPlugin {
     }
 
     fn buttons_system(
-        mut apply_events: EventWriter<SettingApplyEvent>,
+        mut apply_events: EventWriter<SettingsApplied>,
         mut egui: ResMut<EguiContext>,
         mut settings: ResMut<Settings>,
         mut action_state: ResMut<ActionState<UiAction>>,
@@ -100,13 +100,13 @@ impl SettingsMenuPlugin {
                 ui.horizontal(|ui| {
                     if ui.button("Restore defaults").clicked() {
                         *settings = Settings::default();
-                        apply_events.send(SettingApplyEvent);
+                        apply_events.send(SettingsApplied);
                     }
                     if ui.button("Apply").clicked() {
-                        apply_events.send(SettingApplyEvent);
+                        apply_events.send(SettingsApplied);
                     }
                     if ui.button("Ok").clicked() {
-                        apply_events.send(SettingApplyEvent);
+                        apply_events.send(SettingsApplied);
                         action_state.press(UiAction::Back);
                     }
                 })

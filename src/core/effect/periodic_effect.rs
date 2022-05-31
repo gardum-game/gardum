@@ -22,7 +22,7 @@ use bevy::prelude::*;
 use derive_more::From;
 
 use super::EffectTarget;
-use crate::core::{game_state::GameState, health::HealthChangeEvent, Owner};
+use crate::core::{game_state::GameState, health::HealthChanged, Owner};
 
 pub(super) struct PeriodicEffectPlugin;
 
@@ -38,7 +38,7 @@ impl Plugin for PeriodicEffectPlugin {
 
 impl PeriodicEffectPlugin {
     fn update_health_system(
-        mut health_events: EventWriter<HealthChangeEvent>,
+        mut health_events: EventWriter<HealthChanged>,
         mut effects: Query<(
             &Owner,
             &EffectTarget,
@@ -48,7 +48,7 @@ impl PeriodicEffectPlugin {
     ) {
         for (instigator, target, delta, timer) in effects.iter_mut() {
             if timer.just_finished() {
-                health_events.send(HealthChangeEvent {
+                health_events.send(HealthChanged {
                     instigator: instigator.0,
                     target: target.0,
                     delta: delta.0,
@@ -126,7 +126,7 @@ mod tests {
         app.update();
         app.update();
 
-        let mut health_events = app.world.resource_mut::<Events<HealthChangeEvent>>();
+        let mut health_events = app.world.resource_mut::<Events<HealthChanged>>();
         let event = health_events
             .drain()
             .next()
@@ -147,7 +147,7 @@ mod tests {
     impl Plugin for TestPeriodicEffectPlugin {
         fn build(&self, app: &mut App) {
             app.add_state(GameState::InGame)
-                .add_event::<HealthChangeEvent>()
+                .add_event::<HealthChanged>()
                 .add_plugins(MinimalPlugins)
                 .add_plugin(PeriodicEffectPlugin);
         }

@@ -96,7 +96,7 @@ struct Dispelled;
 
 #[cfg(test)]
 mod tests {
-    use crate::core::health::HealthChangeEvent;
+    use crate::core::health::HealthChanged;
 
     use super::*;
 
@@ -147,7 +147,7 @@ mod tests {
     impl Plugin for TestEffectPlugin {
         fn build(&self, app: &mut App) {
             app.add_state(GameState::InGame)
-                .add_event::<HealthChangeEvent>()
+                .add_event::<HealthChanged>()
                 .add_plugins(MinimalPlugins)
                 .add_plugin(EffectPlugin);
         }

@@ -38,7 +38,7 @@ impl Plugin for MainMenuPlugin {
 
 impl MainMenuPlugin {
     fn main_menu_system(
-        mut exit_event: EventWriter<AppExit>,
+        mut exit_events: EventWriter<AppExit>,
         mut egui: ResMut<EguiContext>,
         mut ui_state: ResMut<State<UiState>>,
     ) {
@@ -75,7 +75,7 @@ impl MainMenuPlugin {
                     ))
                     .clicked()
                 {
-                    exit_event.send(AppExit);
+                    exit_events.send(AppExit);
                 }
             });
     }

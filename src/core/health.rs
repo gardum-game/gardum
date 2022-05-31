@@ -30,7 +30,7 @@ pub(super) struct HealthPlugin;
 
 impl Plugin for HealthPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<HealthChangeEvent>().add_system_set(
+        app.add_event::<HealthChanged>().add_system_set(
             SystemSet::on_update(GameState::InGame)
                 .with_system(Self::healing_system)
                 .with_system(Self::damage_system),
@@ -40,7 +40,7 @@ impl Plugin for HealthPlugin {
 
 impl HealthPlugin {
     fn healing_system(
-        mut health_events: EventReader<HealthChangeEvent>,
+        mut health_events: EventReader<HealthChanged>,
         mut targets: Query<&mut Health>,
         mut instigators: Query<(&mut Healing, &HealingModifier)>,
     ) {
@@ -61,7 +61,7 @@ impl HealthPlugin {
 
     fn damage_system(
         mut commands: Commands,
-        mut health_events: EventReader<HealthChangeEvent>,
+        mut health_events: EventReader<HealthChanged>,
         mut targets: Query<(&mut Health, &mut Deaths)>,
         mut instigators: Query<(&mut Damage, &mut Kills, &DamageModifier)>,
     ) {
@@ -110,7 +110,7 @@ impl Health {
     }
 }
 
-pub(super) struct HealthChangeEvent {
+pub(super) struct HealthChanged {
     pub(super) instigator: Entity,
     pub(super) target: Entity,
     pub(super) delta: i32,
@@ -155,8 +155,8 @@ mod tests {
             app.world.get_mut::<HealingModifier>(instigator).unwrap().0 = modifier;
             app.world.get_mut::<Healing>(instigator).unwrap().0 = 0;
 
-            let mut health_events = app.world.resource_mut::<Events<HealthChangeEvent>>();
-            health_events.send(HealthChangeEvent {
+            let mut health_events = app.world.resource_mut::<Events<HealthChanged>>();
+            health_events.send(HealthChanged {
                 instigator,
                 target,
                 delta,
@@ -207,8 +207,8 @@ mod tests {
             app.world.get_mut::<Damage>(instigator).unwrap().0 = 0;
             app.world.get_mut::<DamageModifier>(instigator).unwrap().0 = modifier;
 
-            let mut health_events = app.world.resource_mut::<Events<HealthChangeEvent>>();
-            health_events.send(HealthChangeEvent {
+            let mut health_events = app.world.resource_mut::<Events<HealthChanged>>();
+            health_events.send(HealthChanged {
                 instigator,
                 target,
                 delta,
@@ -266,8 +266,8 @@ mod tests {
             .id();
 
         let delta = -(Health::default().max as i32);
-        let mut health_events = app.world.resource_mut::<Events<HealthChangeEvent>>();
-        health_events.send(HealthChangeEvent {
+        let mut health_events = app.world.resource_mut::<Events<HealthChanged>>();
+        health_events.send(HealthChanged {
             instigator: target,
             target,
             delta,
