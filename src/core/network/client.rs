@@ -149,7 +149,7 @@ mod tests {
     use bevy_renet::{RenetClientPlugin, RenetServerPlugin};
 
     use super::*;
-    use crate::core::network::server::ServerSettings;
+    use crate::{core::network::server::ServerSettings, test_utils::AVAILABLE_PORT};
 
     #[test]
     fn defaulted_without_connect() {
@@ -172,7 +172,7 @@ mod tests {
     fn initializes_from_connect() {
         let mut app = App::new();
         let connection_settings = ConnectionSettings {
-            port: 0,
+            port: AVAILABLE_PORT.lock().next().unwrap(),
             ..Default::default()
         };
         app.world.insert_resource(Opts {
@@ -194,11 +194,11 @@ mod tests {
     #[test]
     fn connects() {
         let server_settings = ServerSettings {
-            port: ServerSettings::default().port,
+            port: AVAILABLE_PORT.lock().next().unwrap(),
             ..Default::default()
         };
         let connection_settings = ConnectionSettings {
-            port: ServerSettings::default().port,
+            port: server_settings.port,
             ..Default::default()
         };
 
@@ -255,7 +255,7 @@ mod tests {
     #[test]
     fn connection_cancels() {
         let connection_settings = ConnectionSettings {
-            port: 0,
+            port: AVAILABLE_PORT.lock().next().unwrap(),
             ..Default::default()
         };
 

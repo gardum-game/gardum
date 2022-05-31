@@ -138,6 +138,7 @@ mod tests {
     use bevy_renet::RenetServerPlugin;
 
     use super::*;
+    use crate::test_utils::AVAILABLE_PORT;
 
     #[test]
     fn defaulted_without_host() {
@@ -160,7 +161,7 @@ mod tests {
     fn initializes_from_host() {
         let mut app = App::new();
         let server_settings = ServerSettings {
-            port: 0,
+            port: AVAILABLE_PORT.lock().next().unwrap(),
             ..Default::default()
         };
         app.world.insert_resource(Opts {
@@ -182,7 +183,7 @@ mod tests {
     #[test]
     fn hosts() {
         let server_settings = ServerSettings {
-            port: 0,
+            port: AVAILABLE_PORT.lock().next().unwrap(),
             ..Default::default()
         };
 

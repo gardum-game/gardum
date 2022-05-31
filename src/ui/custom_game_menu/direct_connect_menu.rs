@@ -26,7 +26,7 @@ use bevy_egui::{
 use leafwing_input_manager::prelude::ActionState;
 
 use crate::{
-    core::network::{client::ConnectionSettings, NetworkingState},
+    core::network::{client::ConnectionSettings, NetworkingState, MAX_PORT},
     ui::{
         back_button::BackButton, chat::ChatPlugin, error_dialog::ErrorMessage,
         modal_window::ModalWindow, ui_actions::UiAction, ui_state::UiState,
@@ -66,7 +66,8 @@ impl DirectConnectMenuPlugin {
                         ui.end_row();
                         ui.label("Port:");
                         ui.add(
-                            DragValue::new(&mut connection_setttings.port).clamp_range(0..=65535),
+                            DragValue::new(&mut connection_setttings.port)
+                                .clamp_range(0..=MAX_PORT),
                         );
                         ui.end_row();
                     });

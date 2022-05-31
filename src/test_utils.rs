@@ -18,6 +18,7 @@
  *
  */
 
+use crate::core::network::{DEFAULT_PORT, MAX_PORT};
 use bevy::{
     asset::{AssetPlugin, LoadState},
     core::CorePlugin,
@@ -26,6 +27,12 @@ use bevy::{
     render::{settings::WgpuSettings, RenderPlugin},
     window::WindowPlugin,
 };
+use parking_lot::Mutex;
+use std::ops::Range;
+
+/// To use known different ports for different test
+pub(super) static AVAILABLE_PORT: Mutex<Range<u16>> =
+    parking_lot::const_mutex(DEFAULT_PORT..MAX_PORT);
 
 // Allows to run tests for systems containing rendering related things without GPU
 pub(super) struct HeadlessRenderPlugin;
