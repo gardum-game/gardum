@@ -34,5 +34,11 @@ glam = { version = "0.20", features = ["approx"] }
 
 [features]
 default = ["client"]
-client = ["bevy/png", "bevy/bevy_gltf", "bevy/x11", "bevy_atmosphere", "bevy_egui"]
+client = [
+  "bevy/png",
+  "bevy/bevy_gltf",
+  "bevy/x11",
+  "bevy_atmosphere",
+  "bevy_egui",
+]
 inspector = ["client", "bevy-inspector-egui"]
