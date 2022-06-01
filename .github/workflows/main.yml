@@ -34,7 +34,7 @@ jobs:
       - name: Test
         uses: actions-rs/tarpaulin@v0.1
         with:
-          args: --ignore-tests --skip-clean --exclude-files=src/ui
+          args: --ignore-tests --all-features --skip-clean --exclude-files=src/ui
 
       - name: Upload code coverage results
         if: github.actor != 'dependabot[bot]'
