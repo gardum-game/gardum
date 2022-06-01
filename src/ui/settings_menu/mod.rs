@@ -18,9 +18,9 @@
  *
  */
 
-mod controls_settings_tab;
+mod controls_tab;
 mod input_events;
-mod video_settings_tab;
+mod video_tab;
 
 use bevy::prelude::*;
 use bevy_egui::{
@@ -39,9 +39,9 @@ use crate::core::{
     game_state::GameState,
     settings::{Settings, SettingsApplied},
 };
-use controls_settings_tab::ControlsSettingsTab;
+use controls_tab::ControlsTab;
 use input_events::InputEvents;
-use video_settings_tab::VideoSettingsTab;
+use video_tab::VideoTab;
 
 pub(super) struct SettingsMenuPlugin;
 
@@ -79,9 +79,9 @@ impl SettingsMenuPlugin {
                     }
                 });
                 match *current_tab {
-                    SettingsTab::Video => VideoSettingsTab::new(&mut settings.video).show(ui),
+                    SettingsTab::Video => VideoTab::new(&mut settings.video).show(ui),
                     SettingsTab::Control => {
-                        ControlsSettingsTab::new(&mut settings.controls).show(ui, &mut commands)
+                        ControlsTab::new(&mut settings.controls).show(ui, &mut commands)
                     }
                 };
                 ui.expand_to_include_rect(ui.available_rect_before_wrap());

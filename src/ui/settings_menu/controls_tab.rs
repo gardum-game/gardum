@@ -30,18 +30,18 @@ use crate::{
     ui::settings_menu::ActiveBinding,
 };
 
-pub(super) struct ControlsSettingsTab<'a> {
+pub(super) struct ControlsTab<'a> {
     controls_settings: &'a mut ControlsSettings,
 }
 
-impl<'a> ControlsSettingsTab<'a> {
+impl<'a> ControlsTab<'a> {
     #[must_use]
     pub(super) fn new(controls_settings: &'a mut ControlsSettings) -> Self {
         Self { controls_settings }
     }
 }
 
-impl ControlsSettingsTab<'_> {
+impl ControlsTab<'_> {
     pub(super) fn show(self, ui: &mut Ui, commands: &mut Commands) {
         const INPUT_VARIANTS: usize = 3;
         const COLUMNS_COUNT: usize = INPUT_VARIANTS + 1;
