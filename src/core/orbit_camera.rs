@@ -25,7 +25,6 @@ use bevy::{
     transform::TransformSystem,
 };
 use derive_more::From;
-use heron::PhysicsSystem;
 
 use super::{
     character::hero::HeroKind,
@@ -47,9 +46,7 @@ impl Plugin for OrbitCameraPlugin {
         )
         .add_system_to_stage(
             CoreStage::PostUpdate,
-            Self::position_system
-                .after(PhysicsSystem::TransformUpdate)
-                .before(TransformSystem::TransformPropagate),
+            Self::position_system.before(TransformSystem::TransformPropagate),
         );
     }
 }
@@ -153,9 +150,9 @@ impl Default for OrbitRotation {
 
 #[cfg(test)]
 mod tests {
-    use approx::assert_relative_eq;
-    use bevy::{ecs::event::Events, input::InputPlugin};
-    use heron::PhysicsPlugin;
+    use approx::assert_ulps_eq;
+    use bevy::{ecs::event::Events, input::InputPlugin, scene::ScenePlugin};
+    use bevy_rapier3d::prelude::*;
     use std::f32::consts::PI;
 
     use super::*;
@@ -262,12 +259,11 @@ mod tests {
             let camera_transform = app.world.get::<Transform>(camera).unwrap();
             let character_transform = app.world.get::<Transform>(character).unwrap();
 
-            assert_relative_eq!(
+            assert_ulps_eq!(
                 camera_transform
                     .translation
                     .distance(character_transform.translation),
                 CAMERA_DISTANCE,
-                epsilon = 0.001
             );
             assert_eq!(
                 *camera_transform,
@@ -284,7 +280,8 @@ mod tests {
             app.add_state(GameState::InGame)
                 .add_plugin(HeadlessRenderPlugin)
                 .add_plugin(InputPlugin)
-                .add_plugin(PhysicsPlugin::default())
+                .add_plugin(ScenePlugin)
+                .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
                 .add_plugin(OrbitCameraPlugin);
         }
     }

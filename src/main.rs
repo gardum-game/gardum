@@ -29,8 +29,8 @@ mod ui;
 use bevy::{prelude::*, winit::WinitPlugin};
 #[cfg(feature = "client")]
 use bevy_egui::EguiPlugin;
+use bevy_rapier3d::prelude::*;
 use bevy_renet::RenetServerPlugin;
-use heron::{Gravity, PhysicsPlugin};
 
 use crate::core::CorePlugin;
 #[cfg(feature = "client")]
@@ -55,8 +55,7 @@ fn main() {
         app.add_plugins_with(DefaultPlugins, |group| group.disable::<WinitPlugin>());
     }
 
-    app.insert_resource(Gravity::from(Vec3::Y * -9.81))
-        .add_plugin(PhysicsPlugin::default())
+    app.add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
         .add_plugin(CorePlugin)
         .add_plugin(RenetServerPlugin);
 
@@ -75,6 +74,9 @@ fn main() {
     #[cfg(feature = "inspector")]
     app.add_plugin(WorldInspectorPlugin::new());
 
+    #[cfg(feature = "debug-collisions")]
+    app.add_plugin(RapierDebugRenderPlugin::default());
+
     app.run();
 }
 
@@ -90,7 +92,7 @@ mod tests {
         let mut app = App::new();
         app.add_plugin(HeadlessRenderPlugin)
             .add_plugin(InputPlugin)
-            .add_plugin(PhysicsPlugin::default())
+            .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
             .add_plugin(ScenePlugin)
             .add_plugin(CorePlugin);
     }

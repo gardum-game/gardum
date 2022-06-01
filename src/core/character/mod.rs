@@ -21,11 +21,11 @@
 pub(crate) mod hero;
 
 use bevy::prelude::*;
+use bevy_rapier3d::prelude::*;
 use derive_more::{AddAssign, From, SubAssign};
-use heron::{CollisionLayers, CollisionShape, RigidBody, RotationConstraints, Velocity};
 use leafwing_input_manager::prelude::ActionState;
 
-use super::{ability::Abilities, control_actions::ControlAction, health::Health, CollisionLayer};
+use super::{ability::Abilities, control_actions::ControlAction, health::Health, CollisionMask};
 use hero::HeroesPlugin;
 
 pub(super) struct CharactersPlugin;
@@ -44,9 +44,9 @@ pub(super) struct CharacterBundle {
     damage_modifier: DamageModifier,
     healing_modifier: HealingModifier,
     rigid_body: RigidBody,
-    rotation_constraints: RotationConstraints,
-    shape: CollisionShape,
-    collision_layers: CollisionLayers,
+    locked_axes: LockedAxes,
+    collider: Collider,
+    collision_groups: CollisionGroups,
     velocity: Velocity,
     action_state: ActionState<ControlAction>,
 
@@ -63,10 +63,12 @@ impl Default for CharacterBundle {
             damage_modifier: DamageModifier::default(),
             healing_modifier: HealingModifier::default(),
             rigid_body: RigidBody::Dynamic,
-            rotation_constraints: RotationConstraints::lock(),
-            shape: CollisionShape::default(),
-            collision_layers: CollisionLayers::all_masks::<CollisionLayer>()
-                .with_group(CollisionLayer::Character),
+            locked_axes: LockedAxes::ROTATION_LOCKED,
+            collider: Collider::capsule_y(0.5, 0.5),
+            collision_groups: CollisionGroups {
+                memberships: CollisionMask::CHARACTER.bits(),
+                filters: CollisionMask::all().bits(),
+            },
             velocity: Velocity::default(),
             action_state: ActionState::default(),
             pbr: PbrBundle::default(),

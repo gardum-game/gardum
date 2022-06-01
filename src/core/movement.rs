@@ -18,9 +18,9 @@
  *
  */
 
-use approx::ulps_eq;
+use approx::abs_diff_eq;
 use bevy::prelude::*;
-use heron::Velocity;
+use bevy_rapier3d::prelude::*;
 use leafwing_input_manager::prelude::ActionState;
 
 use super::{
@@ -54,8 +54,8 @@ impl MovementPlugin {
             let (speed_modifier, action_state, mut velocity) =
                 characters.get_mut(camera_target.0).unwrap();
 
-            let falling_velocity = velocity.linear.y; // Save Y velocity to avoid it interpolation
-            let on_floor = ulps_eq!(falling_velocity, 0.0, epsilon = FLOOR_VELOCITY_EPSILON);
+            let falling_velocity = velocity.linvel.y; // Save Y velocity to avoid it interpolation
+            let on_floor = abs_diff_eq!(falling_velocity, 0.0, epsilon = FLOOR_VELOCITY_EPSILON);
             let interpolation_speed = if on_floor {
                 MOVEMENT_INTERPOLATION_SPEED
             } else {
@@ -65,13 +65,13 @@ impl MovementPlugin {
             let motion = Self::movement_direction(action_state, camera_transform.rotation)
                 * MOVE_SPEED
                 * speed_modifier.0;
-            velocity.linear = velocity
-                .linear
+            velocity.linvel = velocity
+                .linvel
                 .lerp(motion, interpolation_speed * time.delta_seconds());
-            velocity.linear.y = falling_velocity;
+            velocity.linvel.y = falling_velocity;
 
             if on_floor && action_state.pressed(ControlAction::Jump) {
-                velocity.linear.y += JUMP_IMPULSE;
+                velocity.linvel.y += JUMP_IMPULSE;
             }
         }
     }
@@ -100,13 +100,12 @@ impl MovementPlugin {
 
 #[cfg(test)]
 mod tests {
-    use approx::{assert_relative_eq, assert_ulps_eq, assert_ulps_ne};
-    use bevy::input::InputPlugin;
-    use heron::{CollisionShape, Gravity, PhysicsPlugin, RigidBody};
+    use approx::{assert_abs_diff_eq, assert_abs_diff_ne, assert_ulps_eq};
+    use bevy::scene::ScenePlugin;
     use leafwing_input_manager::prelude::InputManagerPlugin;
 
     use super::*;
-    use crate::core::Authority;
+    use crate::{core::Authority, test_utils::HeadlessRenderPlugin};
 
     #[test]
     fn movement_direction_normalization() {
@@ -169,13 +168,7 @@ mod tests {
         app.update();
 
         let velocity = app.world.entity(character).get::<Velocity>().unwrap();
-        assert_ulps_ne!(velocity.linear.y, 0.0, epsilon = FLOOR_VELOCITY_EPSILON);
-
-        let transform = app.world.entity(character).get::<Transform>().unwrap();
-        assert!(
-            DummyCharacterBundle::default().transform.translation.y > transform.translation.y,
-            "Character should be affected by gravity"
-        );
+        assert_abs_diff_ne!(velocity.linvel.y, 0.0, epsilon = FLOOR_VELOCITY_EPSILON);
 
         let mut action_state = app
             .world
@@ -214,18 +207,8 @@ mod tests {
         app.update();
         app.update();
 
-        let previous_translation = app.world.get::<Transform>(character).unwrap().translation;
-
-        app.update();
-
         let velocity = app.world.entity(character).get::<Velocity>().unwrap();
-        assert_ulps_eq!(velocity.linear.y, 0.0, epsilon = FLOOR_VELOCITY_EPSILON);
-
-        let transform = app.world.entity(character).get::<Transform>().unwrap();
-        assert_eq!(
-            previous_translation.y, transform.translation.y,
-            "Character shouldn't be affected by gravity"
-        );
+        assert_abs_diff_eq!(velocity.linvel.y, 0.0, epsilon = FLOOR_VELOCITY_EPSILON);
 
         let mut action_state = app
             .world
@@ -276,7 +259,7 @@ mod tests {
             let previous_translation = app.world.get::<Transform>(character).unwrap().translation;
 
             // Clean previous velocity to avoid interpolation
-            app.world.get_mut::<Velocity>(character).unwrap().linear = Vec3::ZERO;
+            app.world.get_mut::<Velocity>(character).unwrap().linvel = Vec3::ZERO;
 
             app.update();
 
@@ -285,8 +268,8 @@ mod tests {
             direction.y = 0.0; // Remove gravity
             direction = direction.normalize();
 
-            assert_relative_eq!(direction.x, expected_direction.x);
-            assert_relative_eq!(direction.y, expected_direction.y);
+            assert_ulps_eq!(direction.x, expected_direction.x);
+            assert_ulps_eq!(direction.y, expected_direction.y);
         }
     }
 
@@ -318,12 +301,13 @@ mod tests {
 
         app.update();
 
+        let velocity = app.world.entity(character).get::<Velocity>().unwrap();
         let time = app.world.resource::<Time>().delta_seconds();
-        let distance = app.world.get::<Transform>(character).unwrap().translation.z;
-        assert_relative_eq!(
-            distance.abs() / time / MOVE_SPEED / MOVEMENT_INTERPOLATION_SPEED / SPEED_MODIFIER,
-            time,
-        )
+        assert_eq!(
+            -velocity.linvel.z,
+            MOVE_SPEED * SPEED_MODIFIER * MOVEMENT_INTERPOLATION_SPEED * time,
+            "Velocity movement should be accelerated to the expected value"
+        );
     }
 
     struct TestMovementPlugin;
@@ -331,12 +315,10 @@ mod tests {
     impl Plugin for TestMovementPlugin {
         fn build(&self, app: &mut App) {
             app.add_state(GameState::InGame)
-                .insert_resource(Gravity::from(Vec3::Y * -9.81))
-                .add_plugins(MinimalPlugins)
-                .add_plugin(InputPlugin)
+                .add_plugin(HeadlessRenderPlugin)
+                .add_plugin(ScenePlugin)
                 .add_plugin(InputManagerPlugin::<ControlAction>::default())
-                .add_plugin(PhysicsPlugin::default())
-                .add_plugin(InputPlugin)
+                .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
                 .add_plugin(MovementPlugin);
         }
     }
@@ -344,7 +326,7 @@ mod tests {
     #[derive(Bundle)]
     struct DummyPlainBundle {
         rigid_body: RigidBody,
-        shape: CollisionShape,
+        collider: Collider,
         transform: Transform,
         global_transform: GlobalTransform,
     }
@@ -352,11 +334,8 @@ mod tests {
     impl Default for DummyPlainBundle {
         fn default() -> Self {
             Self {
-                rigid_body: RigidBody::Static,
-                shape: CollisionShape::Cuboid {
-                    half_extends: Vec3::new(10.0, 1.0, 10.0),
-                    border_radius: None,
-                },
+                rigid_body: RigidBody::Fixed,
+                collider: Collider::cuboid(10.0, 1.0, 10.0),
                 transform: Transform::default(),
                 global_transform: GlobalTransform::default(),
             }
@@ -367,7 +346,8 @@ mod tests {
     struct DummyCharacterBundle {
         speed_modifier: SpeedModifier,
         rigid_body: RigidBody,
-        shape: CollisionShape,
+        collider: Collider,
+        locked_axes: LockedAxes,
         transform: Transform,
         global_transform: GlobalTransform,
         velocity: Velocity,
@@ -380,10 +360,8 @@ mod tests {
             Self {
                 speed_modifier: SpeedModifier::default(),
                 rigid_body: RigidBody::Dynamic,
-                shape: CollisionShape::Capsule {
-                    half_segment: 0.5,
-                    radius: 0.5,
-                },
+                collider: Collider::capsule_y(0.5, 0.5),
+                locked_axes: LockedAxes::ROTATION_LOCKED,
                 transform: Transform::default(),
                 global_transform: GlobalTransform::default(),
                 velocity: Velocity::default(),

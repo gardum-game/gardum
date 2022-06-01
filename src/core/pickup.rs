@@ -19,7 +19,7 @@
  */
 
 use bevy::{ecs::system::EntityCommands, prelude::*};
-use heron::{CollisionLayers, CollisionShape, Collisions, RigidBody};
+use bevy_rapier3d::prelude::*;
 #[cfg(test)]
 use strum::EnumIter;
 
@@ -31,7 +31,7 @@ use super::{
         EffectTarget, EffectTimer,
     },
     game_state::{GameState, InGameOnly},
-    AssetCommands, AssociatedAsset, CollisionLayer,
+    AssetCommands, AssociatedAsset, CollisionMask,
 };
 
 pub(super) struct PickupPlugin;
@@ -50,10 +50,13 @@ impl PickupPlugin {
     fn collision_system(
         mut commands: Commands,
         children: Query<&Children>,
-        mut pickups: Query<(Entity, &PickupKind, &mut Cooldown, &Collisions), Changed<Collisions>>,
+        mut pickups: Query<
+            (Entity, &PickupKind, &mut Cooldown, &CollidingEntities),
+            Changed<CollidingEntities>,
+        >,
     ) {
         for (pickup, pickup_kind, mut cooldown, collisions) in pickups.iter_mut() {
-            let character = match collisions.entities().next() {
+            let character = match collisions.iter().next() {
                 Some(character) => character,
                 None => continue,
             };
@@ -112,10 +115,11 @@ struct PickupBundle {
     name: Name,
     pickup_kind: PickupKind,
     cooldown: Cooldown,
-    rigid_body: RigidBody,
-    shape: CollisionShape,
-    collision_layers: CollisionLayers,
-    collision: Collisions,
+    sensor: Sensor,
+    collider: Collider,
+    collision_groups: CollisionGroups,
+    colliding_entities: CollidingEntities,
+    active_events: ActiveEvents,
     transform: Transform,
     global_transform: GlobalTransform,
     ingame_only: InGameOnly,
@@ -127,13 +131,14 @@ impl PickupBundle {
             name: "Pickup".into(),
             pickup_kind,
             cooldown: Cooldown::from_secs(10),
-            rigid_body: RigidBody::Sensor,
-            shape: CollisionShape::default(),
-            collision_layers: CollisionLayers::new(
-                CollisionLayer::Pickup,
-                CollisionLayer::Character,
-            ),
-            collision: Collisions::default(),
+            sensor: Sensor(true),
+            collider: Collider::capsule_y(0.5, 0.5),
+            collision_groups: CollisionGroups {
+                memberships: CollisionMask::PICKUP.bits(),
+                filters: CollisionMask::CHARACTER.bits(),
+            },
+            colliding_entities: CollidingEntities::default(),
+            active_events: ActiveEvents::COLLISION_EVENTS,
             transform: Transform::from_translation(translation),
             global_transform: GlobalTransform::default(),
             ingame_only: InGameOnly,
@@ -252,7 +257,6 @@ mod tests {
     use std::time::Duration;
 
     use bevy::{ecs::system::SystemState, gltf::GltfPlugin, scene::ScenePlugin};
-    use heron::PhysicsPlugin;
     use strum::IntoEnumIterator;
 
     use super::*;
@@ -389,7 +393,7 @@ mod tests {
                 .add_plugin(ScenePlugin)
                 .add_plugin(GltfPlugin)
                 .add_plugin(TransformPlugin)
-                .add_plugin(PhysicsPlugin::default())
+                .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
                 .add_plugin(PickupPlugin);
         }
     }

@@ -19,13 +19,13 @@
  */
 
 use bevy::{ecs::system::EntityCommands, prelude::*};
-use heron::{CollisionLayers, PendingConvexCollision, RigidBody};
+use bevy_rapier3d::prelude::*;
 use std::f32::consts::PI;
 
 use super::Map;
 use crate::core::{
     game_state::InGameOnly, pickup::PickupKind, session::spawn::SpawnPointBundle, AssetCommands,
-    AssociatedAsset, CollisionLayer,
+    AssociatedAsset, CollisionMask,
 };
 
 impl<'w, 's> AssetCommands<'w, 's> {
@@ -63,15 +63,21 @@ impl<'w, 's> AssetCommands<'w, 's> {
         self.spawn_pickup(PickupKind::Rage, Vec3::new(4.0, 0.1, 1.0));
 
         let mut scene_commands = self.commands.spawn_bundle(TransformBundle::default());
+        let map = self.asset_server.load(Map::SkyRoof.asset_path());
         scene_commands
-            .insert(PendingConvexCollision::default())
-            .insert(RigidBody::Static)
-            .insert(
-                CollisionLayers::all_masks::<CollisionLayer>().with_group(CollisionLayer::World),
-            )
+            .insert(AsyncSceneCollider {
+                handle: map.clone(),
+                shape: Some(ComputedColliderShape::TriMesh),
+                named_shapes: Default::default(),
+            })
+            .insert(RigidBody::Fixed)
+            .insert(CollisionGroups {
+                memberships: CollisionMask::WORLD.bits(),
+                filters: CollisionMask::all().bits(),
+            })
             .insert(InGameOnly)
             .with_children(|parent| {
-                parent.spawn_scene(self.asset_server.load(Map::SkyRoof.asset_path()));
+                parent.spawn_scene(map);
             });
         scene_commands
     }

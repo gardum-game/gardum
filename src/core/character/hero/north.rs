@@ -19,7 +19,7 @@
  */
 
 use bevy::{ecs::system::EntityCommands, prelude::*, render::camera::Camera};
-use heron::{CollisionShape, Collisions, Velocity};
+use bevy_rapier3d::prelude::*;
 
 use crate::core::{
     ability::{Activator, IconPath},
@@ -79,13 +79,13 @@ impl NorthPlugin {
         mut commands: Commands,
         mut health_events: EventWriter<HealthChanged>,
         projectiles: Query<
-            (Entity, &Owner, &Collisions),
-            (With<FrostBoltAbility>, Changed<Collisions>),
+            (Entity, &Owner, &CollidingEntities),
+            (With<FrostBoltAbility>, Changed<CollidingEntities>),
         >,
         health: Query<(), With<Health>>,
     ) {
         for (projectile, owner, collisions) in projectiles.iter() {
-            if let Some(first_collision) = collisions.entities().next() {
+            if let Some(first_collision) = collisions.iter().next() {
                 commands.entity(projectile).despawn();
                 if health.get(first_collision).is_ok() {
                     health_events.send(HealthChanged {
@@ -107,7 +107,7 @@ impl NorthPlugin {
         for (ability, activator) in abilities.iter() {
             let camera_transform = cameras.single();
             let mut velocity = characters.get_mut(activator.0).unwrap();
-            velocity.linear += character_direction(camera_transform.rotation) * FROST_PATH_IMPULSE;
+            velocity.linvel += character_direction(camera_transform.rotation) * FROST_PATH_IMPULSE;
 
             commands.entity(ability).remove::<Activator>();
         }
@@ -182,10 +182,6 @@ impl<'w, 's> AssetCommands<'w, 's> {
                 transform,
                 ..Default::default()
             },
-            shape: CollisionShape::Capsule {
-                half_segment: 0.5,
-                radius: 0.5,
-            },
             ..Default::default()
         });
         entity_commands
@@ -197,11 +193,7 @@ impl<'w, 's> AssetCommands<'w, 's> {
         transform: Transform,
     ) -> EntityCommands<'w, 's, 'a> {
         let mut entity_commands = self.commands.spawn_bundle(ProjectileBundle {
-            shape: CollisionShape::Capsule {
-                half_segment: 0.5,
-                radius: 0.5,
-            },
-            velocity: Velocity::from_linear(
+            velocity: Velocity::linear(
                 transform.rotation
                     * Quat::from_rotation_x(-90.0_f32.to_radians())
                     * -Vec3::Z
@@ -223,9 +215,8 @@ impl<'w, 's> AssetCommands<'w, 's> {
 
 #[cfg(test)]
 mod tests {
-    use approx::assert_relative_eq;
-    use bevy::ecs::event::Events;
-    use heron::PhysicsPlugin;
+    use approx::assert_abs_diff_eq;
+    use bevy::{ecs::event::Events, scene::ScenePlugin};
 
     use super::*;
     use crate::test_utils::HeadlessRenderPlugin;
@@ -260,15 +251,15 @@ mod tests {
         let projectile_transform = *projectiles.iter(&app.world).next().unwrap(); // TODO 0.8: Use single
         let character_transform = app.world.get::<Transform>(instigator).unwrap();
 
-        assert_relative_eq!(
+        assert_eq!(
             character_transform.translation.x,
             projectile_transform.translation.x
         );
-        assert_relative_eq!(
+        assert_eq!(
             character_transform.translation.y + FROST_BOLT_SPAWN_OFFSET,
             projectile_transform.translation.y
         );
-        assert_relative_eq!(
+        assert_eq!(
             character_transform.translation.z,
             projectile_transform.translation.z
         );
@@ -277,10 +268,11 @@ mod tests {
             "Spawned projectile must be of the same scale as the character"
         );
 
-        let camera_trasnform = app.world.get::<Transform>(camera).unwrap();
-        assert_relative_eq!(
+        let camera_transform = app.world.get::<Transform>(camera).unwrap();
+        assert_abs_diff_eq!(
             projectile_transform.rotation,
-            camera_trasnform.rotation * Quat::from_rotation_x(90.0_f32.to_radians()),
+            camera_transform.rotation * Quat::from_rotation_x(90.0_f32.to_radians()),
+            epsilon = 0.000001,
         );
 
         assert!(
@@ -330,7 +322,7 @@ mod tests {
             .world
             .spawn()
             .insert(Transform::default())
-            .insert(Velocity::from_linear(Vec3::ZERO))
+            .insert(Velocity::linear(Vec3::ZERO))
             .id();
         let ability = app
             .world
@@ -350,7 +342,7 @@ mod tests {
         let camera_transform = app.world.get::<Transform>(camera).unwrap();
 
         assert_eq!(
-            velocity.linear,
+            velocity.linvel,
             character_direction(camera_transform.rotation) * FROST_PATH_IMPULSE,
             "Character should recieve impulse in camera direction"
         );
@@ -368,7 +360,8 @@ mod tests {
             app.add_event::<HealthChanged>()
                 .add_state(GameState::InGame)
                 .add_plugin(HeadlessRenderPlugin)
-                .add_plugin(PhysicsPlugin::default())
+                .add_plugin(ScenePlugin)
+                .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
                 .add_plugin(NorthPlugin);
         }
     }

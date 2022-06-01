@@ -38,8 +38,9 @@ pub(super) mod session;
 pub(super) mod settings;
 
 use bevy::{ecs::system::SystemParam, prelude::*};
+use bevy_rapier3d::prelude::*;
+use bitflags::bitflags;
 use derive_more::From;
-use heron::{CollisionLayers, CollisionShape, Collisions, PhysicsLayer, RigidBody, Velocity};
 
 use ability::AbilityPlugin;
 use character::CharactersPlugin;
@@ -87,12 +88,13 @@ impl Plugin for CorePlugin {
 #[derive(Component)]
 pub(super) struct Authority;
 
-#[derive(PhysicsLayer)]
-pub(super) enum CollisionLayer {
-    World,
-    Character,
-    Projectile,
-    Pickup,
+bitflags! {
+    struct CollisionMask: u32 {
+        const WORLD = 0b00000001;
+        const CHARACTER = 0b00000010;
+        const PROJECTILE = 0b00000100;
+        const PICKUP = 0b00001000;
+    }
 }
 
 /// Used to store reference to the owner
@@ -103,11 +105,12 @@ struct Owner(Entity);
 pub(super) struct ProjectileBundle {
     name: Name,
     rigid_body: RigidBody,
-    shape: CollisionShape,
-    collision_layers: CollisionLayers,
+    collider: Collider,
+    collision_groups: CollisionGroups,
     velocity: Velocity,
     despawn_timer: DespawnTimer,
-    collisions: Collisions,
+    colliding_entities: CollidingEntities,
+    active_events: ActiveEvents,
     ingame_only: InGameOnly,
 
     #[bundle]
@@ -119,13 +122,15 @@ impl Default for ProjectileBundle {
         Self {
             name: "Projectile".into(),
             rigid_body: RigidBody::KinematicVelocityBased,
-            shape: CollisionShape::default(),
-            collision_layers: CollisionLayers::all_masks::<CollisionLayer>()
-                .without_mask(CollisionLayer::Projectile)
-                .with_group(CollisionLayer::Projectile),
+            collider: Collider::capsule_y(0.5, 0.5),
+            collision_groups: CollisionGroups {
+                memberships: CollisionMask::PROJECTILE.bits(),
+                filters: (CollisionMask::all() ^ CollisionMask::PROJECTILE).bits(),
+            },
             velocity: Velocity::default(),
             despawn_timer: DespawnTimer::from_secs(4),
-            collisions: Collisions::default(),
+            colliding_entities: CollidingEntities::default(),
+            active_events: ActiveEvents::COLLISION_EVENTS,
             ingame_only: InGameOnly,
             pbr: PbrBundle::default(),
         }
