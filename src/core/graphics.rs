@@ -57,10 +57,10 @@ mod tests {
 
         app.update();
 
-        let msaa = app.world.resource::<Msaa>().clone();
+        let samples = app.world.resource::<Msaa>().samples;
         let mut settings = app.world.resource_mut::<Settings>();
         assert_eq!(
-            settings.video.msaa, msaa.samples,
+            settings.video.msaa, samples,
             "MSAA setting should be loaded at startup"
         );
 
@@ -71,10 +71,10 @@ mod tests {
 
         app.update();
 
+        let samples = app.world.resource::<Msaa>().samples;
         let settings = app.world.resource::<Settings>();
-        let msaa = app.world.resource::<Msaa>();
         assert_eq!(
-            settings.video.msaa, msaa.samples,
+            settings.video.msaa, samples,
             "MSAA setting should be updated on apply event"
         );
     }
