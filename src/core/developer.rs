@@ -29,7 +29,8 @@ pub(super) struct DeveloperPlugin;
 impl Plugin for DeveloperPlugin {
     fn build(&self, app: &mut App) {
         app.add_system(Self::toggle_inspector_system)
-            .add_system(Self::toggle_debug_collisions_system);
+            .add_system(Self::toggle_debug_collisions_system)
+            .add_system(Self::update_inspector_setting_system);
     }
 }
 
@@ -51,6 +52,18 @@ impl DeveloperPlugin {
     ) {
         if apply_events.iter().next().is_some() || settings.is_added() {
             debug_render_ctx.enabled = settings.developer.debug_collisions;
+        }
+    }
+
+    /// Update the setting when closing the world inspector
+    fn update_inspector_setting_system(
+        mut settings: ResMut<Settings>,
+        world_inspector: Res<WorldInspectorParams>,
+    ) {
+        if world_inspector.is_changed()
+            && world_inspector.enabled != settings.developer.world_inspector
+        {
+            settings.developer.world_inspector = world_inspector.enabled;
         }
     }
 }
