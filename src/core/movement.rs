@@ -303,10 +303,9 @@ mod tests {
 
         let velocity = app.world.entity(character).get::<Velocity>().unwrap();
         let time = app.world.resource::<Time>().delta_seconds();
-        assert_eq!(
+        assert_ulps_eq!(
             -velocity.linvel.z,
             MOVE_SPEED * SPEED_MODIFIER * MOVEMENT_INTERPOLATION_SPEED * time,
-            "Velocity movement should be accelerated to the expected value"
         );
     }
 
