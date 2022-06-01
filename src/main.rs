@@ -43,7 +43,7 @@ use {
     ui::{ui_actions::UiAction, UiPlugin},
 };
 
-#[cfg(feature = "inspector")]
+#[cfg(feature = "developer")]
 use bevy_inspector_egui::WorldInspectorPlugin;
 
 #[cfg(not(tarpaulin_include))]
@@ -71,11 +71,9 @@ fn main() {
         .add_plugin(RenetClientPlugin)
         .add_plugin(UiPlugin);
 
-    #[cfg(feature = "inspector")]
-    app.add_plugin(WorldInspectorPlugin::new());
-
-    #[cfg(feature = "debug-collisions")]
-    app.add_plugin(RapierDebugRenderPlugin::default());
+    #[cfg(feature = "developer")]
+    app.add_plugin(WorldInspectorPlugin::new())
+        .add_plugin(RapierDebugRenderPlugin::default());
 
     app.run();
 }

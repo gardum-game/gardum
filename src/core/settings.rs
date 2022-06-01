@@ -53,6 +53,8 @@ pub(crate) struct SettingsApplied;
 pub(crate) struct Settings {
     pub(crate) video: VideoSettings,
     pub(crate) controls: ControlsSettings,
+    #[cfg(feature = "developer")]
+    pub(crate) developer: DeveloperSettings,
 }
 
 impl Settings {
@@ -133,6 +135,15 @@ impl Default for ControlsSettings {
 
         Self { mappings: input }
     }
+}
+
+#[cfg(feature = "developer")]
+#[derive(Default, Deserialize, Serialize, Clone)]
+#[cfg_attr(test, derive(Debug, PartialEq))]
+#[serde(default)]
+pub(crate) struct DeveloperSettings {
+    pub(crate) world_inspector: bool,
+    pub(crate) debug_collisions: bool,
 }
 
 #[cfg(test)]

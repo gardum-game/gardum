@@ -19,6 +19,8 @@
  */
 
 mod controls_tab;
+#[cfg(feature = "developer")]
+mod developer_tab;
 mod input_events;
 mod video_tab;
 
@@ -40,6 +42,8 @@ use crate::core::{
     settings::{Settings, SettingsApplied},
 };
 use controls_tab::ControlsTab;
+#[cfg(feature = "developer")]
+use developer_tab::DeveloperTab;
 use input_events::InputEvents;
 use video_tab::VideoTab;
 
@@ -83,6 +87,8 @@ impl SettingsMenuPlugin {
                     SettingsTab::Control => {
                         ControlsTab::new(&mut settings.controls).show(ui, &mut commands)
                     }
+                    #[cfg(feature = "developer")]
+                    SettingsTab::Developer => DeveloperTab::new(&mut settings.developer).show(ui),
                 };
                 ui.expand_to_include_rect(ui.available_rect_before_wrap());
             });
@@ -233,6 +239,8 @@ struct BindingConflict {
 enum SettingsTab {
     Video,
     Control,
+    #[cfg(feature = "developer")]
+    Developer,
 }
 
 impl Default for SettingsTab {

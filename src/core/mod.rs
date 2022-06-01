@@ -24,6 +24,8 @@ pub(super) mod cli;
 pub(super) mod control_actions;
 pub(super) mod cooldown;
 mod despawn_timer;
+#[cfg(feature = "developer")]
+mod developer;
 mod effect;
 pub(super) mod game_state;
 mod graphics;
@@ -48,6 +50,8 @@ use cli::Opts;
 use control_actions::ControlActionsPlugin;
 use despawn_timer::DespawnTimer;
 use despawn_timer::DespawnTimerPlugin;
+#[cfg(feature = "developer")]
+use developer::DeveloperPlugin;
 use effect::EffectPlugin;
 use game_state::AppStatePlugin;
 use game_state::InGameOnly;
@@ -81,6 +85,9 @@ impl Plugin for CorePlugin {
             .add_plugin(SessionPlugin)
             .add_plugin(DespawnTimerPlugin)
             .add_plugin(EffectPlugin);
+
+        #[cfg(feature = "developer")]
+        app.add_plugin(DeveloperPlugin);
     }
 }
 

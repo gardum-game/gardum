@@ -44,5 +44,4 @@ client = [
   "bevy_atmosphere",
   "bevy_egui",
 ]
-debug-collisions=["client", "bevy_rapier3d/debug-render"]
-inspector = ["client", "bevy-inspector-egui"]
+developer = ["client", "bevy-inspector-egui", "bevy_rapier3d/debug-render"]
