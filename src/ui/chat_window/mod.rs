@@ -22,7 +22,7 @@ mod messages_area;
 
 use bevy::prelude::*;
 use bevy_egui::{
-    egui::{Align2, Frame, Window},
+    egui::{Align2, Frame, Id, TextEdit, Window},
     EguiContext,
 };
 use bevy_renet::renet::ServerEvent;
@@ -47,6 +47,7 @@ impl Plugin for ChatWindowPlugin {
 
 impl ChatWindowPlugin {
     pub(super) fn chat_system(
+        input_field_id: Local<InputFieldId>,
         mut input: Local<InputField>,
         mut action_state: ResMut<ActionState<UiAction>>,
         mut egui: ResMut<EguiContext>,
@@ -76,12 +77,8 @@ impl ChatWindowPlugin {
             .show(egui.ctx_mut(), |ui| {
                 let chat_response = ui.add(MessagesArea::new(&mut chat));
                 if chat.active {
-                    let input_response = ui.text_edit_singleline(&mut input.message);
-                    if input.request_focus {
-                        input_response.request_focus();
-                        input.request_focus = false;
-                    }
-
+                    let input_response =
+                        ui.add(TextEdit::singleline(&mut input.message).id(input_field_id.0));
                     if action_state.just_pressed(UiAction::Chat) {
                         action_state.consume(UiAction::Chat);
                         if input_response.lost_focus() {
@@ -100,7 +97,7 @@ impl ChatWindowPlugin {
                 } else if ui.button("Chat").clicked() || action_state.just_pressed(UiAction::Chat) {
                     action_state.consume(UiAction::Chat);
                     chat.active = true;
-                    input.request_focus = true;
+                    ui.memory().request_focus(input_field_id.0);
                 }
 
                 if chat_response.gained_focus() {
@@ -161,5 +158,12 @@ impl Chat {
 #[derive(Default)]
 pub(super) struct InputField {
     message: String,
-    request_focus: bool,
+}
+
+pub(super) struct InputFieldId(Id);
+
+impl Default for InputFieldId {
+    fn default() -> Self {
+        Self(Id::new("Input field"))
+    }
 }
