@@ -27,7 +27,7 @@ use leafwing_input_manager::prelude::ActionState;
 
 use crate::core::game_state::GameState;
 
-use super::{chat::ChatPlugin, ui_actions::UiAction, ui_state::UiState};
+use super::{chat_window::ChatWindowPlugin, ui_actions::UiAction, ui_state::UiState};
 
 pub(super) struct InGameMenuPlugin;
 
@@ -36,7 +36,7 @@ impl Plugin for InGameMenuPlugin {
         app.add_system_set(
             SystemSet::on_update(UiState::InGameMenu)
                 .with_system(Self::ingame_menu_system)
-                .with_system(Self::hide_ingame_menu_system.after(ChatPlugin::chat_system)),
+                .with_system(Self::hide_ingame_menu_system.after(ChatWindowPlugin::chat_system)),
         );
     }
 }

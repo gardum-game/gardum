@@ -22,18 +22,18 @@ use bevy_egui::egui::{Color32, Response, ScrollArea, TextEdit, TextStyle, Ui, Wi
 
 use super::Chat;
 
-pub(super) struct ChatArea<'a> {
+pub(super) struct MessagesArea<'a> {
     chat: &'a mut Chat,
 }
 
-impl<'a> ChatArea<'a> {
+impl<'a> MessagesArea<'a> {
     #[must_use]
     pub(super) fn new(chat: &'a mut Chat) -> Self {
         Self { chat }
     }
 }
 
-impl<'a> Widget for ChatArea<'a> {
+impl<'a> Widget for MessagesArea<'a> {
     fn ui(self, ui: &mut Ui) -> Response {
         let extreme_bg_color = ui.visuals().extreme_bg_color;
         let bg_fill = ui.visuals().widgets.inactive.bg_fill;

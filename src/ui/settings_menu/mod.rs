@@ -33,8 +33,8 @@ use leafwing_input_manager::{prelude::ActionState, user_input::InputButton};
 use strum::{Display, EnumIter, IntoEnumIterator};
 
 use super::{
-    back_button::BackButton, chat::ChatPlugin, modal_window::ModalWindow, ui_actions::UiAction,
-    ui_state::UiState, UI_MARGIN,
+    back_button::BackButton, chat_window::ChatWindowPlugin, modal_window::ModalWindow,
+    ui_actions::UiAction, ui_state::UiState, UI_MARGIN,
 };
 use crate::core::{
     control_actions::ControlAction,
@@ -55,8 +55,8 @@ impl Plugin for SettingsMenuPlugin {
             SystemSet::on_update(UiState::SettingsMenu)
                 .with_system(Self::settings_menu_system)
                 .with_system(Self::buttons_system)
-                .with_system(Self::binding_window_system.before(ChatPlugin::chat_system))
-                .with_system(Self::back_system.after(ChatPlugin::chat_system)),
+                .with_system(Self::binding_window_system.before(ChatWindowPlugin::chat_system))
+                .with_system(Self::back_system.after(ChatWindowPlugin::chat_system)),
         );
     }
 }

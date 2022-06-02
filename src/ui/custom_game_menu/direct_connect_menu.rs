@@ -28,7 +28,7 @@ use leafwing_input_manager::prelude::ActionState;
 use crate::{
     core::network::{client::ConnectionSettings, NetworkingState, MAX_PORT},
     ui::{
-        back_button::BackButton, chat::ChatPlugin, error_dialog::ErrorMessage,
+        back_button::BackButton, chat_window::ChatWindowPlugin, error_dialog::ErrorMessage,
         modal_window::ModalWindow, ui_actions::UiAction, ui_state::UiState,
     },
 };
@@ -42,7 +42,7 @@ impl Plugin for DirectConnectMenuPlugin {
                 .with_system(Self::direct_connect_menu_system)
                 .with_system(Self::connection_dialog_system)
                 .with_system(Self::enter_lobby_system)
-                .with_system(Self::back_system.after(ChatPlugin::chat_system)),
+                .with_system(Self::back_system.after(ChatWindowPlugin::chat_system)),
         );
     }
 }

@@ -26,7 +26,7 @@ use bevy_egui::{
 use leafwing_input_manager::prelude::ActionState;
 
 use crate::ui::{
-    back_button::BackButton, chat::ChatPlugin, ui_actions::UiAction, ui_state::UiState,
+    back_button::BackButton, chat_window::ChatWindowPlugin, ui_actions::UiAction, ui_state::UiState,
 };
 
 pub(super) struct ServerBrowserPlugin;
@@ -36,7 +36,7 @@ impl Plugin for ServerBrowserPlugin {
         app.init_resource::<SearchText>().add_system_set(
             SystemSet::on_update(UiState::ServerBrowser)
                 .with_system(Self::game_browser_system)
-                .with_system(Self::back_system.after(ChatPlugin::chat_system)),
+                .with_system(Self::back_system.after(ChatWindowPlugin::chat_system)),
         );
     }
 }

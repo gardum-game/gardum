@@ -19,7 +19,7 @@
  */
 
 mod back_button;
-mod chat;
+mod chat_window;
 mod custom_game_menu;
 mod error_dialog;
 mod hero_selection;
@@ -35,7 +35,7 @@ pub(super) mod ui_state;
 
 use bevy::prelude::*;
 
-use chat::ChatPlugin;
+use chat_window::ChatWindowPlugin;
 use custom_game_menu::CustomGameMenuPlugin;
 use error_dialog::ErrorDialogPlugin;
 use hero_selection::HeroSelectionPlugin;
@@ -56,7 +56,7 @@ impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(UiActionsPlugin)
             .add_plugin(UiStatePlugin)
-            .add_plugin(ChatPlugin)
+            .add_plugin(ChatWindowPlugin)
             .add_plugin(SettingsMenuPlugin)
             .add_plugin(HeroSelectionPlugin)
             .add_plugin(HudPlugin)

@@ -18,7 +18,7 @@
  *
  */
 
-mod chat_area;
+mod messages_area;
 
 use bevy::prelude::*;
 use bevy_egui::{
@@ -30,11 +30,11 @@ use leafwing_input_manager::{plugin::ToggleActions, prelude::ActionState};
 
 use super::{ui_actions::UiAction, ui_state::UiState, UI_MARGIN};
 use crate::core::control_actions::ControlAction;
-use chat_area::ChatArea;
+use messages_area::MessagesArea;
 
-pub(super) struct ChatPlugin;
+pub(super) struct ChatWindowPlugin;
 
-impl Plugin for ChatPlugin {
+impl Plugin for ChatWindowPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<Chat>()
             .add_system(Self::chat_system)
@@ -45,7 +45,7 @@ impl Plugin for ChatPlugin {
     }
 }
 
-impl ChatPlugin {
+impl ChatWindowPlugin {
     pub(super) fn chat_system(
         mut input: Local<InputField>,
         mut action_state: ResMut<ActionState<UiAction>>,
@@ -74,7 +74,7 @@ impl ChatPlugin {
                 [UI_MARGIN, -UI_MARGIN - CHAT_BOTTOM_MARGIN],
             )
             .show(egui.ctx_mut(), |ui| {
-                let chat_response = ui.add(ChatArea::new(&mut chat));
+                let chat_response = ui.add(MessagesArea::new(&mut chat));
                 if chat.active {
                     let input_response = ui.text_edit_singleline(&mut input.message);
                     if input.request_focus {
