@@ -128,10 +128,10 @@ impl ChatWindowPlugin {
         for event in server_events.iter() {
             match event {
                 ServerEvent::ClientConnected(id, _) => {
-                    chat.add_message(format!("Client connected: {}", id).as_str());
+                    chat.add_message(&format!("Client connected: {}", id));
                 }
                 ServerEvent::ClientDisconnected(id) => {
-                    chat.add_message(format!("Client disconnected: {}", id).as_str());
+                    chat.add_message(&format!("Client disconnected: {}", id));
                 }
             }
         }

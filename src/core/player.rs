@@ -117,13 +117,10 @@ mod tests {
             let mut local_player = app
                 .world
                 .query_filtered::<Entity, (With<Authority>, With<Player>)>();
-            local_player.iter(&app.world).next().expect(
-                format!(
-                    "Local player should be created after entering {:?} state",
-                    state
-                )
-                .as_str(),
-            ); // TODO 0.8: Use single
+            local_player.iter(&app.world).next().expect(&format!(
+                "Local player should be created after entering {:?} state",
+                state
+            )); // TODO 0.8: Use single
 
             let mut networking_state = app.world.resource_mut::<State<NetworkingState>>();
             networking_state.set(NetworkingState::NoSocket).unwrap();
