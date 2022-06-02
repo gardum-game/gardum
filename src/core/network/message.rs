@@ -22,7 +22,7 @@ use bevy::prelude::*;
 use bevy_renet::renet::{RenetClient, RenetServer};
 use serde::{Deserialize, Serialize};
 
-use super::{Channels, NetworkingState};
+use super::{Channel, NetworkingState};
 
 pub(super) struct MessagePlugin;
 
@@ -47,7 +47,7 @@ impl MessagePlugin {
         mut server: ResMut<RenetServer>,
     ) {
         for client_id in server.clients_id().iter().copied() {
-            while let Some(message) = server.receive_message(client_id, Channels::Reliable.id()) {
+            while let Some(message) = server.receive_message(client_id, Channel::Reliable.id()) {
                 match bincode::deserialize(&message) {
                     Ok(message) => message_events.send(ClientMessageWithId { client_id, message }),
                     Err(error) => {
@@ -66,7 +66,7 @@ impl MessagePlugin {
         mut message_events: EventWriter<ServerMessage>,
         mut client: ResMut<RenetClient>,
     ) {
-        while let Some(message) = client.receive_message(Channels::Reliable.id()) {
+        while let Some(message) = client.receive_message(Channel::Reliable.id()) {
             match bincode::deserialize(&message) {
                 Ok(message) => message_events.send(message),
                 Err(error) => {
@@ -81,20 +81,20 @@ impl MessagePlugin {
 }
 
 #[allow(dead_code)]
-struct ClientMessageWithId {
-    client_id: u64,
-    message: ClientMessage,
+pub(crate) struct ClientMessageWithId {
+    pub(crate) client_id: u64,
+    pub(crate) message: ClientMessage,
 }
 
 #[derive(Serialize, Deserialize)]
 #[cfg_attr(test, derive(Debug, PartialEq))]
-enum ServerMessage {
+pub(crate) enum ServerMessage {
     ChatMessage { sender_id: u64, message: String },
 }
 
 #[derive(Serialize, Deserialize)]
 #[cfg_attr(test, derive(Debug, PartialEq))]
-enum ClientMessage {
+pub(crate) enum ClientMessage {
     ChatMessage(String),
 }
 
@@ -148,7 +148,7 @@ mod tests {
 
         let client_message = ClientMessage::ChatMessage("Hi from client".into());
         client.send_message(
-            Channels::Reliable.id(),
+            Channel::Reliable.id(),
             bincode::serialize(&client_message).expect("Unable to serialize client message"),
         );
 
@@ -176,7 +176,7 @@ mod tests {
         };
         server.send_message(
             event.client_id,
-            Channels::Reliable.id(),
+            Channel::Reliable.id(),
             bincode::serialize(&server_message).expect("Unable to serialize server message"),
         );
 

@@ -23,8 +23,8 @@ pub(crate) mod message;
 pub(crate) mod server;
 
 use bevy::prelude::*;
-
 use bevy_renet::renet::{ChannelConfig, ReliableChannelConfig, NETCODE_KEY_BYTES};
+
 use client::ClientPlugin;
 use message::MessagePlugin;
 use server::ServerPlugin;
@@ -53,20 +53,20 @@ pub(crate) enum NetworkingState {
     Hosting,
 }
 
-enum Channels {
+pub(crate) enum Channel {
     Reliable,
 }
 
-impl Channels {
-    fn id(&self) -> u8 {
+impl Channel {
+    pub(crate) fn id(&self) -> u8 {
         match self {
-            Channels::Reliable => 0,
+            Channel::Reliable => 0,
         }
     }
 
     fn config() -> Vec<ChannelConfig> {
         let reliable_channel = ChannelConfig::Reliable(ReliableChannelConfig {
-            channel_id: Channels::Reliable.id(),
+            channel_id: Channel::Reliable.id(),
             ..Default::default()
         });
 

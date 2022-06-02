@@ -27,7 +27,7 @@ use std::{
     time::SystemTime,
 };
 
-use super::{Channels, NetworkingState, DEFAULT_PORT, PROTOCOL_ID, PUBLIC_GAME_KEY};
+use super::{Channel, NetworkingState, DEFAULT_PORT, PROTOCOL_ID, PUBLIC_GAME_KEY};
 use crate::core::cli::{Opts, SubCommand};
 
 pub(super) struct ClientPlugin;
@@ -136,7 +136,7 @@ impl ConnectionSettings {
             client_id,
             token,
             RenetConnectionConfig {
-                channels_config: Channels::config(),
+                channels_config: Channel::config(),
                 ..Default::default()
             },
         )

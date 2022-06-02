@@ -27,7 +27,7 @@ use std::{
     time::SystemTime,
 };
 
-use super::{Channels, NetworkingState, DEFAULT_PORT, PROTOCOL_ID, PUBLIC_GAME_KEY};
+use super::{Channel, NetworkingState, DEFAULT_PORT, PROTOCOL_ID, PUBLIC_GAME_KEY};
 use crate::core::{
     cli::{Opts, SubCommand},
     map::Map,
@@ -124,7 +124,7 @@ impl ServerSettings {
             SystemTime::now().duration_since(SystemTime::UNIX_EPOCH)?,
             ServerConfig::new(64, PROTOCOL_ID, server_addr, PUBLIC_GAME_KEY),
             RenetConnectionConfig {
-                channels_config: Channels::config(),
+                channels_config: Channel::config(),
                 ..Default::default()
             },
             UdpSocket::bind(server_addr)?,
