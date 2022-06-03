@@ -65,7 +65,7 @@ impl PerfStatsPlugin {
                 if let Some(client) = client {
                     let network_info = client.network_info();
                     ui.strong(format!(
-                        "RTT: {} ⬇ {} kbps ⬆ {} kbps",
+                        "RTT: {:.02} ⬇ {:.02} kbps ⬆ {:.02} kbps",
                         network_info.rtt,
                         network_info.received_bandwidth_kbps,
                         network_info.sent_bandwidth_kbps,
