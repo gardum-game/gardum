@@ -32,6 +32,7 @@ use server::ServerPlugin;
 pub(crate) const DEFAULT_PORT: u16 = 4761;
 pub(crate) const MAX_PORT: u16 = 65535;
 const PUBLIC_GAME_KEY: [u8; NETCODE_KEY_BYTES] = [0; NETCODE_KEY_BYTES];
+const SERVER_ID: u64 = 0;
 const PROTOCOL_ID: u64 = 7;
 
 pub(super) struct NetworkPlugin;
