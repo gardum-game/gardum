@@ -350,7 +350,7 @@ mod tests {
         wait_for_asset_loading(&mut app, PLATFORM_PATH, 5);
 
         let mut system_state: SystemState<Query<&Children>> = SystemState::new(&mut app.world);
-        let children = system_state.get(&mut app.world);
+        let children = system_state.get(&app.world);
         let mesh = PickupPlugin::pickup_child_mesh(pickup, &children);
 
         app.world
