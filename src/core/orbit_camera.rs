@@ -156,7 +156,7 @@ mod tests {
     use std::f32::consts::PI;
 
     use super::*;
-    use crate::test_utils::HeadlessRenderPlugin;
+    use crate::core::headless::HeadlessRenderPlugin;
 
     #[test]
     fn camera_spawn() {

@@ -219,7 +219,7 @@ mod tests {
     use bevy::{ecs::event::Events, scene::ScenePlugin};
 
     use super::*;
-    use crate::test_utils::HeadlessRenderPlugin;
+    use crate::core::headless::HeadlessRenderPlugin;
 
     #[test]
     fn frost_bolt() {

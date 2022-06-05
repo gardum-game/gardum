@@ -105,7 +105,7 @@ mod tests {
     use leafwing_input_manager::prelude::InputManagerPlugin;
 
     use super::*;
-    use crate::{core::Authority, test_utils::HeadlessRenderPlugin};
+    use crate::core::{headless::HeadlessRenderPlugin, Authority};
 
     #[test]
     fn movement_direction_normalization() {

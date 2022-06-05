@@ -260,9 +260,9 @@ mod tests {
     use strum::IntoEnumIterator;
 
     use super::*;
-    use crate::{
-        core::character::CharacterBundle,
-        test_utils::{wait_for_asset_loading, HeadlessRenderPlugin},
+    use crate::core::{
+        character::CharacterBundle,
+        headless::{self, HeadlessRenderPlugin},
     };
 
     #[test]
@@ -278,8 +278,8 @@ mod tests {
                 .id();
             system_state.apply(&mut app.world);
 
-            wait_for_asset_loading(&mut app, pickup_kind.asset_path());
-            wait_for_asset_loading(&mut app, PLATFORM_PATH);
+            headless::wait_for_asset_loading(&mut app, pickup_kind.asset_path());
+            headless::wait_for_asset_loading(&mut app, PLATFORM_PATH);
 
             let character = app
                 .world
@@ -346,8 +346,8 @@ mod tests {
             .id();
         system_state.apply(&mut app.world);
 
-        wait_for_asset_loading(&mut app, PICKUP_KIND.asset_path());
-        wait_for_asset_loading(&mut app, PLATFORM_PATH);
+        headless::wait_for_asset_loading(&mut app, PICKUP_KIND.asset_path());
+        headless::wait_for_asset_loading(&mut app, PLATFORM_PATH);
 
         let mut system_state: SystemState<Query<&Children>> = SystemState::new(&mut app.world);
         let children = system_state.get(&app.world);

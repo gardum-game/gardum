@@ -29,6 +29,8 @@ mod developer;
 mod effect;
 pub(super) mod game_state;
 mod graphics;
+#[cfg(test)]
+pub(super) mod headless;
 pub(super) mod health;
 pub(super) mod map;
 mod movement;

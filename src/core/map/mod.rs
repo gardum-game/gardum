@@ -63,7 +63,7 @@ mod tests {
     use bevy::{gltf::GltfPlugin, scene::ScenePlugin};
 
     use super::*;
-    use crate::test_utils::{wait_for_asset_loading, HeadlessRenderPlugin};
+    use crate::core::headless::{self, HeadlessRenderPlugin};
 
     #[test]
     fn loading_on_start() {
@@ -72,7 +72,7 @@ mod tests {
 
         let map = app.world.resource::<ServerSettings>().map;
 
-        wait_for_asset_loading(&mut app, map.asset_path());
+        headless::wait_for_asset_loading(&mut app, map.asset_path());
 
         app.world.clear_entities();
     }

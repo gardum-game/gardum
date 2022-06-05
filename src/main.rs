@@ -21,8 +21,6 @@
 #![allow(clippy::type_complexity)] // Do not warn about long queries
 
 mod core;
-#[cfg(test)]
-mod test_utils;
 #[cfg(feature = "client")]
 mod ui;
 
@@ -81,9 +79,9 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use bevy::{input::InputPlugin, scene::ScenePlugin};
-    use test_utils::HeadlessRenderPlugin;
 
     use super::*;
+    use crate::core::headless::HeadlessRenderPlugin;
 
     #[test]
     fn plugins_initialization() {

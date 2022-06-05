@@ -28,7 +28,7 @@ use bevy::{
 };
 
 // Allows to run tests for systems containing rendering related things without GPU
-pub(super) struct HeadlessRenderPlugin;
+pub(crate) struct HeadlessRenderPlugin;
 
 impl Plugin for HeadlessRenderPlugin {
     fn build(&self, app: &mut App) {
@@ -44,7 +44,7 @@ impl Plugin for HeadlessRenderPlugin {
     }
 }
 
-pub(super) fn wait_for_asset_loading(app: &mut App, path: &str) {
+pub(crate) fn wait_for_asset_loading(app: &mut App, path: &str) {
     let asset_server = app.world.resource::<AssetServer>();
     let handle: Handle<Scene> = asset_server.load(path);
 

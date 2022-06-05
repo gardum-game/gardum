@@ -143,7 +143,7 @@ mod tests {
     use strum::IntoEnumIterator;
 
     use super::*;
-    use crate::{core::game_state::GameState, test_utils::HeadlessRenderPlugin};
+    use crate::core::{game_state::GameState, headless::HeadlessRenderPlugin};
 
     #[test]
     fn heroes_randomization() {
