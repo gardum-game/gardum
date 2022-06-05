@@ -18,9 +18,6 @@
  *
  */
 
-use crate::core::network::{
-    client::ConnectionSettings, server::ServerSettings, DEFAULT_PORT, MAX_PORT,
-};
 use bevy::{
     asset::{AssetPlugin, LoadState},
     core::CorePlugin,
@@ -29,13 +26,6 @@ use bevy::{
     render::{settings::WgpuSettings, RenderPlugin},
     window::WindowPlugin,
 };
-use bevy_renet::{renet::RenetClient, RenetClientPlugin, RenetServerPlugin};
-use parking_lot::Mutex;
-use std::ops::Range;
-
-/// To use known different ports for different test
-pub(super) static AVAILABLE_PORT: Mutex<Range<u16>> =
-    parking_lot::const_mutex(DEFAULT_PORT..MAX_PORT);
 
 // Allows to run tests for systems containing rendering related things without GPU
 pub(super) struct HeadlessRenderPlugin;
@@ -51,49 +41,6 @@ impl Plugin for HeadlessRenderPlugin {
         .add_plugin(AssetPlugin::default())
         .add_plugin(RenderPlugin::default())
         .add_plugin(PbrPlugin::default());
-    }
-}
-
-/// Creates server and client and initializes connection between them
-pub(super) struct ConnectionPlugin;
-
-impl Plugin for ConnectionPlugin {
-    fn build(&self, app: &mut App) {
-        let server_settings = ServerSettings {
-            port: AVAILABLE_PORT
-                .lock()
-                .next()
-                .expect("No available empty ports left"),
-            ..Default::default()
-        };
-        let connection_settings = ConnectionSettings {
-            port: server_settings.port,
-            ..Default::default()
-        };
-
-        app.add_plugins(MinimalPlugins)
-            .add_plugin(RenetServerPlugin)
-            .add_plugin(RenetClientPlugin)
-            .insert_resource(
-                server_settings
-                    .create_server()
-                    .expect("Server should be created succesfully from settings"),
-            )
-            .insert_resource(
-                connection_settings
-                    .create_client()
-                    .expect("Client should be created succesfully from settings"),
-            );
-
-        app.update();
-        app.update();
-        app.update();
-
-        let client = app.world.resource::<RenetClient>();
-        assert!(
-            client.is_connected(),
-            "The client must be connected to the server to send messages",
-        );
     }
 }
 

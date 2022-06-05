@@ -74,3 +74,107 @@ impl Channel {
         vec![reliable_channel]
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use bevy_renet::{
+        renet::{RenetClient, RenetServer},
+        RenetClientPlugin, RenetServerPlugin,
+    };
+
+    use super::*;
+    use crate::core::network::{client::ConnectionSettings, server::ServerSettings};
+
+    /// Automates server and / or client creation for unit tests
+    pub(super) struct TestNetworkPlugin {
+        with_server: bool,
+        with_client: bool,
+        ensure_connectred: bool,
+    }
+
+    impl Plugin for TestNetworkPlugin {
+        fn build(&self, app: &mut App) {
+            app.add_plugins(MinimalPlugins);
+
+            if self.with_server {
+                let server_settings = ServerSettings {
+                    port: 0,
+                    ..Default::default()
+                };
+
+                app.insert_resource(
+                    server_settings
+                        .create_server()
+                        .unwrap_or_else(|error| panic!("Unable to create server: {}", error)),
+                )
+                .add_plugin(RenetServerPlugin);
+            }
+
+            if self.with_client {
+                let connection_settings = ConnectionSettings {
+                    port: if self.with_server {
+                        app.world.resource::<RenetServer>().addr().port()
+                    } else {
+                        0
+                    },
+                    ..Default::default()
+                };
+
+                app.insert_resource(
+                    connection_settings
+                        .create_client()
+                        .unwrap_or_else(|error| panic!("Unable to create client: {}", error)),
+                )
+                .add_plugin(RenetClientPlugin);
+            }
+
+            if self.ensure_connectred {
+                app.update();
+                app.update();
+                app.update();
+                assert!(
+                    app.world.resource::<RenetClient>().is_connected(),
+                    "Client should be connected"
+                );
+            }
+        }
+    }
+
+    impl TestNetworkPlugin {
+        /// Initializes server and client connecting to it
+        pub(super) fn server_and_client() -> Self {
+            Self {
+                with_server: true,
+                with_client: true,
+                ensure_connectred: false,
+            }
+        }
+
+        /// Initializes server and client connected to it
+        pub(super) fn server_and_connected_client() -> Self {
+            Self {
+                with_server: true,
+                with_client: true,
+                ensure_connectred: true,
+            }
+        }
+
+        /// Initializes only server
+        pub(super) fn server_only() -> Self {
+            Self {
+                with_server: true,
+                with_client: false,
+                ensure_connectred: false,
+            }
+        }
+
+        /// Initializes only client
+        pub(super) fn client_only() -> Self {
+            Self {
+                with_server: false,
+                with_client: true,
+                ensure_connectred: false,
+            }
+        }
+    }
+}

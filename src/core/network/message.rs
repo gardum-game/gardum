@@ -196,18 +196,14 @@ pub(crate) enum ClientMessage {
 #[cfg(test)]
 mod tests {
     use bevy::ecs::event::Events;
-    use bevy_renet::RenetServerPlugin;
 
     use super::*;
-    use crate::{
-        core::network::server::ServerSettings,
-        test_utils::{ConnectionPlugin, AVAILABLE_PORT},
-    };
+    use crate::core::network::tests::TestNetworkPlugin;
 
     #[test]
     fn client_messages() {
         let mut app = App::new();
-        app.add_plugin(ConnectionPlugin)
+        app.add_plugin(TestNetworkPlugin::server_and_connected_client())
             .add_plugin(TestMessagePlugin);
 
         let mut networking_state = app.world.resource_mut::<State<NetworkingState>>();
@@ -245,23 +241,9 @@ mod tests {
 
     #[test]
     fn local_client_messages() {
-        let server_settings = ServerSettings {
-            port: AVAILABLE_PORT
-                .lock()
-                .next()
-                .expect("No available empty ports left"),
-            ..Default::default()
-        };
-
         let mut app = App::new();
-        app.insert_resource(
-            server_settings
-                .create_server()
-                .expect("Unable to create server from settings"),
-        )
-        .add_plugins(MinimalPlugins)
-        .add_plugin(RenetServerPlugin)
-        .add_plugin(TestMessagePlugin);
+        app.add_plugin(TestNetworkPlugin::server_only())
+            .add_plugin(TestMessagePlugin);
 
         let mut networking_state = app.world.resource_mut::<State<NetworkingState>>();
         networking_state.set(NetworkingState::Hosting).unwrap();
@@ -294,7 +276,7 @@ mod tests {
     #[test]
     fn server_messages() {
         let mut app = App::new();
-        app.add_plugin(ConnectionPlugin)
+        app.add_plugin(TestNetworkPlugin::server_and_connected_client())
             .add_plugin(TestMessagePlugin);
 
         let mut networking_state = app.world.resource_mut::<State<NetworkingState>>();

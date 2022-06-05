@@ -146,10 +146,8 @@ impl ConnectionSettings {
 
 #[cfg(test)]
 mod tests {
-    use bevy_renet::{RenetClientPlugin, RenetServerPlugin};
-
     use super::*;
-    use crate::{core::network::server::ServerSettings, test_utils::AVAILABLE_PORT};
+    use crate::core::network::tests::TestNetworkPlugin;
 
     #[test]
     fn defaulted_without_connect() {
@@ -172,7 +170,7 @@ mod tests {
     fn initializes_from_connect() {
         let mut app = App::new();
         let connection_settings = ConnectionSettings {
-            port: AVAILABLE_PORT.lock().next().unwrap(),
+            port: 0,
             ..Default::default()
         };
         app.world.insert_resource(Opts {
@@ -193,30 +191,9 @@ mod tests {
 
     #[test]
     fn connects() {
-        let server_settings = ServerSettings {
-            port: AVAILABLE_PORT.lock().next().unwrap(),
-            ..Default::default()
-        };
-        let connection_settings = ConnectionSettings {
-            port: server_settings.port,
-            ..Default::default()
-        };
-
         let mut app = App::new();
-        app.add_plugin(TestClientPlugin)
-            .add_plugins(MinimalPlugins)
-            .add_plugin(RenetServerPlugin)
-            .add_plugin(RenetClientPlugin)
-            .insert_resource(
-                server_settings
-                    .create_server()
-                    .expect("Server should be created succesfully from settings"),
-            )
-            .insert_resource(
-                connection_settings
-                    .create_client()
-                    .expect("Client should be created succesfully from settings"),
-            );
+        app.add_plugin(TestNetworkPlugin::server_and_client())
+            .add_plugin(TestClientPlugin);
 
         app.update();
 
@@ -254,17 +231,10 @@ mod tests {
 
     #[test]
     fn connection_cancels() {
-        let connection_settings = ConnectionSettings {
-            port: AVAILABLE_PORT.lock().next().unwrap(),
-            ..Default::default()
-        };
-
         let mut app = App::new();
-        app.add_plugin(TestClientPlugin).insert_resource(
-            connection_settings
-                .create_client()
-                .expect("Client should be created succesfully from settings"),
-        );
+        app.add_plugin(TestNetworkPlugin::client_only())
+            .add_plugin(TestClientPlugin);
+
         let mut networking_state = app.world.resource_mut::<State<NetworkingState>>();
         networking_state.set(NetworkingState::Connecting).unwrap();
 
