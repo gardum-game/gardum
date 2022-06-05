@@ -72,7 +72,7 @@ mod tests {
 
         let map = app.world.resource::<ServerSettings>().map;
 
-        wait_for_asset_loading(&mut app, map.asset_path(), 25);
+        wait_for_asset_loading(&mut app, map.asset_path());
 
         app.world.clear_entities();
     }

@@ -44,18 +44,21 @@ impl Plugin for HeadlessRenderPlugin {
     }
 }
 
-pub(super) fn wait_for_asset_loading(app: &mut App, path: &str, max_updates: u8) {
+pub(super) fn wait_for_asset_loading(app: &mut App, path: &str) {
     let asset_server = app.world.resource::<AssetServer>();
     let handle: Handle<Scene> = asset_server.load(path);
 
-    for _ in 0..max_updates {
+    loop {
         app.update();
         let asset_server = app.world.resource::<AssetServer>();
-        match asset_server.get_load_state(handle.clone()) {
+        match asset_server.get_load_state(&handle) {
+            LoadState::NotLoaded => unreachable!("Asset {path} should start loading"),
+            LoadState::Loading => continue,
             LoadState::Loaded => return,
             LoadState::Failed => panic!("Unable to load {path}"),
-            _ => {}
+            LoadState::Unloaded => {
+                unreachable!("Asset {path} can't be unloaded while holding handle")
+            }
         }
     }
-    panic!("Unable to load asset {path} with {max_updates} app updates");
 }

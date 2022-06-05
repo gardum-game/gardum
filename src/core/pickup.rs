@@ -278,8 +278,8 @@ mod tests {
                 .id();
             system_state.apply(&mut app.world);
 
-            wait_for_asset_loading(&mut app, pickup_kind.asset_path(), 5);
-            wait_for_asset_loading(&mut app, PLATFORM_PATH, 5);
+            wait_for_asset_loading(&mut app, pickup_kind.asset_path());
+            wait_for_asset_loading(&mut app, PLATFORM_PATH);
 
             let character = app
                 .world
@@ -346,8 +346,8 @@ mod tests {
             .id();
         system_state.apply(&mut app.world);
 
-        wait_for_asset_loading(&mut app, PICKUP_KIND.asset_path(), 5);
-        wait_for_asset_loading(&mut app, PLATFORM_PATH, 5);
+        wait_for_asset_loading(&mut app, PICKUP_KIND.asset_path());
+        wait_for_asset_loading(&mut app, PLATFORM_PATH);
 
         let mut system_state: SystemState<Query<&Children>> = SystemState::new(&mut app.world);
         let children = system_state.get(&app.world);
