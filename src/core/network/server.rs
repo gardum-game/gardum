@@ -120,14 +120,15 @@ impl Default for ServerSettings {
 impl ServerSettings {
     pub(crate) fn create_server(&self) -> Result<RenetServer, Box<dyn Error>> {
         let server_addr = SocketAddr::new(self.ip.parse()?, self.port);
+        let socket = UdpSocket::bind(server_addr)?;
         RenetServer::new(
             SystemTime::now().duration_since(SystemTime::UNIX_EPOCH)?,
-            ServerConfig::new(64, PROTOCOL_ID, server_addr, PUBLIC_GAME_KEY),
+            ServerConfig::new(64, PROTOCOL_ID, socket.local_addr()?, PUBLIC_GAME_KEY),
             RenetConnectionConfig {
                 channels_config: Channel::config(),
                 ..Default::default()
             },
-            UdpSocket::bind(server_addr)?,
+            socket,
         )
         .map_err(From::from)
     }
