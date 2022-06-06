@@ -27,20 +27,46 @@ use bevy_egui::{
 };
 use bevy_renet::renet::ServerEvent;
 use leafwing_input_manager::{plugin::ToggleActions, prelude::ActionState};
+use std::mem;
 
 use super::{ui_actions::UiAction, ui_state::UiState, UI_MARGIN};
-use crate::core::control_actions::ControlAction;
+use crate::core::{
+    control_actions::ControlAction,
+    network::{
+        message::{ClientMessage, ServerMessage},
+        NetworkingState,
+    },
+    player::Player,
+    Authority,
+};
 use messages_area::MessagesArea;
 
 pub(super) struct ChatWindowPlugin;
 
 impl Plugin for ChatWindowPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<Chat>()
+        app.add_event::<MessageAccepted>()
+            .init_resource::<Chat>()
             .add_system(Self::chat_system)
             .add_system(Self::announce_connected_system)
             .add_system_set(
                 SystemSet::on_update(UiState::Hud).with_system(Self::toggle_controls_system),
+            )
+            .add_system_set(
+                SystemSet::on_update(NetworkingState::Connected)
+                    .with_system(Self::send_message_system),
+            )
+            .add_system_set(
+                SystemSet::on_update(NetworkingState::Hosting)
+                    .with_system(Self::send_message_system),
+            )
+            .add_system_set(
+                SystemSet::on_update(NetworkingState::Connected)
+                    .with_system(Self::receive_message_system),
+            )
+            .add_system_set(
+                SystemSet::on_update(NetworkingState::Hosting)
+                    .with_system(Self::receive_message_system),
             );
     }
 }
@@ -48,7 +74,7 @@ impl Plugin for ChatWindowPlugin {
 impl ChatWindowPlugin {
     pub(super) fn chat_system(
         input_field_id: Local<InputFieldId>,
-        mut input: Local<InputField>,
+        mut send_events: EventWriter<MessageAccepted>,
         mut action_state: ResMut<ActionState<UiAction>>,
         mut egui: ResMut<EguiContext>,
         mut chat: ResMut<Chat>,
@@ -77,13 +103,12 @@ impl ChatWindowPlugin {
             .show(egui.ctx_mut(), |ui| {
                 let chat_response = ui.add(MessagesArea::new(&mut chat));
                 if chat.active {
-                    let input_response =
-                        ui.add(TextEdit::singleline(&mut input.message).id(input_field_id.0));
+                    let input_response = ui
+                        .add(TextEdit::singleline(&mut chat.current_message).id(input_field_id.0));
                     if action_state.just_pressed(UiAction::Chat) {
                         action_state.consume(UiAction::Chat);
                         if input_response.lost_focus() {
-                            chat.add_message(input.message.trim());
-                            input.message.clear();
+                            send_events.send(MessageAccepted);
                             chat.active = false;
                         } else {
                             input_response.request_focus();
@@ -104,6 +129,31 @@ impl ChatWindowPlugin {
                     chat.active = true;
                 }
             });
+    }
+
+    fn send_message_system(
+        mut send_events: EventReader<MessageAccepted>,
+        mut client_events: EventWriter<ClientMessage>,
+        mut chat: ResMut<Chat>,
+        local_player: Query<&Name, (With<Authority>, With<Player>)>,
+    ) {
+        if send_events.iter().next().is_some() {
+            let player_name = local_player.single();
+            let message = mem::take(&mut chat.current_message);
+            chat.add_player_message(player_name.to_string(), &message);
+            client_events.send(ClientMessage::ChatMessage(message));
+        }
+    }
+
+    fn receive_message_system(
+        mut message_events: EventReader<ServerMessage>,
+        mut chat: ResMut<Chat>,
+    ) {
+        for event in message_events.iter() {
+            let ServerMessage::ChatMessage { sender_id, message } = event;
+            // TODO: Get player name from response
+            chat.add_player_message(sender_id.to_string(), message);
+        }
     }
 
     fn toggle_controls_system(
@@ -142,22 +192,20 @@ impl ChatWindowPlugin {
 pub(super) struct Chat {
     text: String,
     active: bool,
+    current_message: String,
 }
 
 impl Chat {
     fn add_message(&mut self, message: &str) {
-        if !message.is_empty() {
-            if !self.text.is_empty() {
-                self.text.push('\n');
-            }
-            self.text.push_str(message);
+        if !self.text.is_empty() {
+            self.text.push('\n');
         }
+        self.text.push_str(message);
     }
-}
 
-#[derive(Default)]
-pub(super) struct InputField {
-    message: String,
+    fn add_player_message(&mut self, player_name: String, message: &str) {
+        self.add_message(&format!("[{}]: {}", player_name, message));
+    }
 }
 
 pub(super) struct InputFieldId(Id);
@@ -167,3 +215,5 @@ impl Default for InputFieldId {
         Self(Id::new("Input field"))
     }
 }
+
+pub(crate) struct MessageAccepted;

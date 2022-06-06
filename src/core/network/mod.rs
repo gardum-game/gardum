@@ -18,6 +18,7 @@
  *
  */
 
+mod chat;
 pub(crate) mod client;
 pub(crate) mod message;
 pub(crate) mod server;
@@ -25,14 +26,15 @@ pub(crate) mod server;
 use bevy::prelude::*;
 use bevy_renet::renet::{ChannelConfig, ReliableChannelConfig, NETCODE_KEY_BYTES};
 
+use chat::ChatPlugin;
 use client::ClientPlugin;
 use message::MessagePlugin;
 use server::ServerPlugin;
 
 pub(crate) const DEFAULT_PORT: u16 = 4761;
 pub(crate) const MAX_PORT: u16 = 65535;
+pub(crate) const SERVER_ID: u64 = 0;
 const PUBLIC_GAME_KEY: [u8; NETCODE_KEY_BYTES] = [0; NETCODE_KEY_BYTES];
-const SERVER_ID: u64 = 0;
 const PROTOCOL_ID: u64 = 7;
 
 pub(super) struct NetworkPlugin;
@@ -42,7 +44,8 @@ impl Plugin for NetworkPlugin {
         app.add_state(NetworkingState::NoSocket)
             .add_plugin(ServerPlugin)
             .add_plugin(ClientPlugin)
-            .add_plugin(MessagePlugin);
+            .add_plugin(MessagePlugin)
+            .add_plugin(ChatPlugin);
     }
 }
 
