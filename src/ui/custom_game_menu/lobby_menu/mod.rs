@@ -76,7 +76,7 @@ impl LobbyMenuPlugin {
                         )
                         .show(ui);
                     }
-                    GameSettingsGrid::new(&mut server_settings).show(ui);
+                    GameSettingsGrid::new(&mut server_settings, server.is_some()).show(ui);
                 });
                 ui.vertical_centered(|ui| {
                     if client.is_none() && server.is_none() {
