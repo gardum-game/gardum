@@ -193,7 +193,7 @@ mod tests {
     fn connects() {
         let mut app = App::new();
         app.add_plugin(TestNetworkPlugin::server_and_client())
-            .add_plugin(TestClientPlugin);
+            .add_plugin(TestClientPlugin::new(NetworkingState::NoSocket));
 
         app.update();
 
@@ -233,10 +233,7 @@ mod tests {
     fn connection_cancels() {
         let mut app = App::new();
         app.add_plugin(TestNetworkPlugin::client_only())
-            .add_plugin(TestClientPlugin);
-
-        let mut networking_state = app.world.resource_mut::<State<NetworkingState>>();
-        networking_state.set(NetworkingState::Connecting).unwrap();
+            .add_plugin(TestClientPlugin::new(NetworkingState::Connecting));
 
         app.update();
 
@@ -252,12 +249,20 @@ mod tests {
         );
     }
 
-    struct TestClientPlugin;
+    struct TestClientPlugin {
+        networking_state: NetworkingState,
+    }
+
+    impl TestClientPlugin {
+        fn new(networking_state: NetworkingState) -> Self {
+            Self { networking_state }
+        }
+    }
 
     impl Plugin for TestClientPlugin {
         fn build(&self, app: &mut App) {
             app.init_resource::<Opts>()
-                .add_state(NetworkingState::NoSocket)
+                .add_state(self.networking_state)
                 .add_plugin(ClientPlugin);
         }
     }

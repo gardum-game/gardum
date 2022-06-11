@@ -204,10 +204,7 @@ mod tests {
     fn client_messages() {
         let mut app = App::new();
         app.add_plugin(TestNetworkPlugin::server_and_connected_client())
-            .add_plugin(TestMessagePlugin);
-
-        let mut networking_state = app.world.resource_mut::<State<NetworkingState>>();
-        networking_state.set(NetworkingState::Connected).unwrap();
+            .add_plugin(TestMessagePlugin::new(NetworkingState::Connected));
 
         let mut client_events = app.world.resource_mut::<Events<ClientMessage>>();
         let client_message = ClientMessage::ChatMessage("Hi from client".into());
@@ -243,10 +240,7 @@ mod tests {
     fn local_client_messages() {
         let mut app = App::new();
         app.add_plugin(TestNetworkPlugin::server_only())
-            .add_plugin(TestMessagePlugin);
-
-        let mut networking_state = app.world.resource_mut::<State<NetworkingState>>();
-        networking_state.set(NetworkingState::Hosting).unwrap();
+            .add_plugin(TestMessagePlugin::new(NetworkingState::Hosting));
 
         let mut client_events = app.world.resource_mut::<Events<ClientMessage>>();
         let client_message = ClientMessage::ChatMessage("Hi from local client".into());
@@ -277,10 +271,7 @@ mod tests {
     fn server_messages() {
         let mut app = App::new();
         app.add_plugin(TestNetworkPlugin::server_and_connected_client())
-            .add_plugin(TestMessagePlugin);
-
-        let mut networking_state = app.world.resource_mut::<State<NetworkingState>>();
-        networking_state.set(NetworkingState::Hosting).unwrap();
+            .add_plugin(TestMessagePlugin::new(NetworkingState::Hosting));
 
         let server_message = ServerMessage::ChatMessage {
             sender_id: SERVER_ID,
@@ -324,11 +315,19 @@ mod tests {
         );
     }
 
-    struct TestMessagePlugin;
+    struct TestMessagePlugin {
+        networking_state: NetworkingState,
+    }
+
+    impl TestMessagePlugin {
+        fn new(networking_state: NetworkingState) -> Self {
+            Self { networking_state }
+        }
+    }
 
     impl Plugin for TestMessagePlugin {
         fn build(&self, app: &mut App) {
-            app.add_state(NetworkingState::NoSocket)
+            app.add_state(self.networking_state)
                 .add_plugin(MessagePlugin);
         }
     }
