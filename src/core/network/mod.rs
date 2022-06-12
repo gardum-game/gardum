@@ -22,14 +22,18 @@ mod chat;
 pub(crate) mod client;
 pub(crate) mod message;
 pub(crate) mod server;
+mod unreliable_message;
 
 use bevy::prelude::*;
-use bevy_renet::renet::{ChannelConfig, ReliableChannelConfig, NETCODE_KEY_BYTES};
+use bevy_renet::renet::{
+    ChannelConfig, ReliableChannelConfig, UnreliableChannelConfig, NETCODE_KEY_BYTES,
+};
 
 use chat::ChatPlugin;
 use client::ClientPlugin;
 use message::MessagePlugin;
 use server::ServerPlugin;
+use unreliable_message::UnreliableMessagePlugin;
 
 pub(crate) const DEFAULT_PORT: u16 = 4761;
 pub(crate) const MAX_PORT: u16 = 65535;
@@ -45,6 +49,7 @@ impl Plugin for NetworkPlugin {
             .add_plugin(ServerPlugin)
             .add_plugin(ClientPlugin)
             .add_plugin(MessagePlugin)
+            .add_plugin(UnreliableMessagePlugin)
             .add_plugin(ChatPlugin);
     }
 }
@@ -59,12 +64,14 @@ pub(crate) enum NetworkingState {
 
 pub(crate) enum Channel {
     Reliable,
+    Unreliable,
 }
 
 impl Channel {
     pub(crate) fn id(&self) -> u8 {
         match self {
             Channel::Reliable => 0,
+            Channel::Unreliable => 1,
         }
     }
 
@@ -74,7 +81,12 @@ impl Channel {
             ..Default::default()
         });
 
-        vec![reliable_channel]
+        let unreliable_channel = ChannelConfig::Unreliable(UnreliableChannelConfig {
+            channel_id: Channel::Unreliable.id(),
+            ..Default::default()
+        });
+
+        vec![reliable_channel, unreliable_channel]
     }
 }
 
