@@ -147,7 +147,7 @@ impl ConnectionSettings {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::core::network::tests::TestNetworkPlugin;
+    use crate::core::network::tests::{NetworkPreset, TestNetworkPlugin};
 
     #[test]
     fn defaulted_without_connect() {
@@ -192,8 +192,10 @@ mod tests {
     #[test]
     fn connects() {
         let mut app = App::new();
-        app.add_plugin(TestNetworkPlugin::server_and_client())
-            .add_plugin(TestClientPlugin::new(NetworkingState::NoSocket));
+        app.add_plugin(TestClientPlugin::new(
+            NetworkPreset::ServerAndClient { connected: false },
+            NetworkingState::NoSocket,
+        ));
 
         app.update();
 
@@ -232,8 +234,10 @@ mod tests {
     #[test]
     fn connection_cancels() {
         let mut app = App::new();
-        app.add_plugin(TestNetworkPlugin::client_only())
-            .add_plugin(TestClientPlugin::new(NetworkingState::Connecting));
+        app.add_plugin(TestClientPlugin::new(
+            NetworkPreset::Client,
+            NetworkingState::Connecting,
+        ));
 
         app.update();
 
@@ -250,18 +254,23 @@ mod tests {
     }
 
     struct TestClientPlugin {
+        preset: NetworkPreset,
         networking_state: NetworkingState,
     }
 
     impl TestClientPlugin {
-        fn new(networking_state: NetworkingState) -> Self {
-            Self { networking_state }
+        fn new(preset: NetworkPreset, networking_state: NetworkingState) -> Self {
+            Self {
+                preset,
+                networking_state,
+            }
         }
     }
 
     impl Plugin for TestClientPlugin {
         fn build(&self, app: &mut App) {
             app.init_resource::<Opts>()
+                .add_plugin(TestNetworkPlugin::new(self.preset))
                 .add_state(self.networking_state)
                 .add_plugin(ClientPlugin);
         }

@@ -88,18 +88,26 @@ mod tests {
     use super::*;
     use crate::core::network::{client::ConnectionSettings, server::ServerSettings};
 
+    /// Preset for quickly testing networking
+    #[derive(Clone, Copy)]
+    pub(super) enum NetworkPreset {
+        Server,
+        Client,
+        ServerAndClient { connected: bool },
+    }
+
     /// Automates server and / or client creation for unit tests
     pub(super) struct TestNetworkPlugin {
-        with_server: bool,
-        with_client: bool,
-        ensure_connectred: bool,
+        server: bool,
+        client: bool,
+        connected: bool,
     }
 
     impl Plugin for TestNetworkPlugin {
         fn build(&self, app: &mut App) {
             app.add_plugins(MinimalPlugins);
 
-            if self.with_server {
+            if self.server {
                 let server_settings = ServerSettings {
                     port: 0,
                     ..Default::default()
@@ -113,9 +121,9 @@ mod tests {
                 .add_plugin(RenetServerPlugin);
             }
 
-            if self.with_client {
+            if self.client {
                 let connection_settings = ConnectionSettings {
-                    port: if self.with_server {
+                    port: if self.server {
                         app.world.resource::<RenetServer>().addr().port()
                     } else {
                         0
@@ -131,7 +139,7 @@ mod tests {
                 .add_plugin(RenetClientPlugin);
             }
 
-            if self.ensure_connectred {
+            if self.connected {
                 app.update();
                 app.update();
                 app.update();
@@ -144,39 +152,24 @@ mod tests {
     }
 
     impl TestNetworkPlugin {
-        /// Initializes server and client connecting to it
-        pub(super) fn server_and_client() -> Self {
-            Self {
-                with_server: true,
-                with_client: true,
-                ensure_connectred: false,
-            }
-        }
-
-        /// Initializes server and client connected to it
-        pub(super) fn server_and_connected_client() -> Self {
-            Self {
-                with_server: true,
-                with_client: true,
-                ensure_connectred: true,
-            }
-        }
-
-        /// Initializes only server
-        pub(super) fn server_only() -> Self {
-            Self {
-                with_server: true,
-                with_client: false,
-                ensure_connectred: false,
-            }
-        }
-
-        /// Initializes only client
-        pub(super) fn client_only() -> Self {
-            Self {
-                with_server: false,
-                with_client: true,
-                ensure_connectred: false,
+        pub(super) fn new(preset: NetworkPreset) -> Self {
+            // Split into booleans for easily handling the logic
+            match preset {
+                NetworkPreset::Server => Self {
+                    server: true,
+                    client: false,
+                    connected: false,
+                },
+                NetworkPreset::Client => Self {
+                    server: false,
+                    client: true,
+                    connected: false,
+                },
+                NetworkPreset::ServerAndClient { connected } => Self {
+                    server: true,
+                    client: true,
+                    connected,
+                },
             }
         }
     }

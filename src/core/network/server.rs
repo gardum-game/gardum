@@ -136,7 +136,7 @@ impl ServerSettings {
 
 #[cfg(test)]
 mod tests {
-    use crate::core::network::tests::TestNetworkPlugin;
+    use crate::core::network::tests::{NetworkPreset, TestNetworkPlugin};
 
     use super::*;
 
@@ -183,8 +183,7 @@ mod tests {
     #[test]
     fn hosts() {
         let mut app = App::new();
-        app.add_plugin(TestNetworkPlugin::server_only())
-            .add_plugin(TestServerPlugin);
+        app.add_plugin(TestServerPlugin);
 
         app.update();
 
@@ -210,6 +209,7 @@ mod tests {
     impl Plugin for TestServerPlugin {
         fn build(&self, app: &mut App) {
             app.init_resource::<Opts>()
+                .add_plugin(TestNetworkPlugin::new(NetworkPreset::Server))
                 .add_state(NetworkingState::NoSocket)
                 .add_plugin(ServerPlugin);
         }
