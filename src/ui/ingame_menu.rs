@@ -48,7 +48,6 @@ impl InGameMenuPlugin {
         mut commands: Commands,
         mut exit_events: EventWriter<AppExit>,
         mut egui: ResMut<EguiContext>,
-        mut game_state: ResMut<State<GameState>>,
     ) {
         Area::new("Main Menu")
             .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
@@ -61,7 +60,7 @@ impl InGameMenuPlugin {
                 }
                 if ui.button("Main menu").clicked() {
                     commands.insert_resource(NextState(UiState::MainMenu));
-                    game_state.set(GameState::Menu).unwrap();
+                    commands.insert_resource(NextState(GameState::Menu));
                 }
                 if ui.button("Exit").clicked() {
                     exit_events.send(AppExit);

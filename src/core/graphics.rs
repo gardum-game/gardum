@@ -19,6 +19,7 @@
  */
 
 use bevy::prelude::*;
+use iyes_loopless::prelude::*;
 
 use super::settings::{Settings, SettingsApplied};
 
@@ -26,21 +27,16 @@ pub(super) struct GraphicsPlugin;
 
 impl Plugin for GraphicsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(Self::apply_graphics_system);
+        app.add_startup_system(Self::apply_graphics_system)
+            .add_system(Self::apply_graphics_system.run_on_event::<SettingsApplied>());
     }
 }
 
 impl GraphicsPlugin {
-    fn apply_graphics_system(
-        mut commands: Commands,
-        mut apply_events: EventReader<SettingsApplied>,
-        settings: Res<Settings>,
-    ) {
-        if apply_events.iter().next().is_some() || settings.is_added() {
-            commands.insert_resource(Msaa {
-                samples: settings.video.msaa,
-            });
-        }
+    fn apply_graphics_system(mut commands: Commands, settings: Res<Settings>) {
+        commands.insert_resource(Msaa {
+            samples: settings.video.msaa,
+        });
     }
 }
 

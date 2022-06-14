@@ -19,6 +19,7 @@
  */
 
 use bevy::prelude::*;
+use iyes_loopless::prelude::*;
 
 use super::{
     message::{ClientMessage, MessageReceived, MessageSent, SendKind, ServerMessage},
@@ -29,10 +30,7 @@ pub(super) struct ChatPlugin;
 
 impl Plugin for ChatPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(
-            SystemSet::on_update(NetworkingState::Hosting)
-                .with_system(Self::broadcast_messages_system),
-        );
+        app.add_system(Self::broadcast_messages_system.run_in_state(NetworkingState::Hosting));
     }
 }
 
@@ -101,7 +99,7 @@ mod tests {
 
     impl Plugin for TestChatPlugin {
         fn build(&self, app: &mut App) {
-            app.add_state(NetworkingState::Hosting)
+            app.add_loopless_state(NetworkingState::Hosting)
                 .add_event::<MessageReceived>()
                 .add_event::<MessageSent>()
                 .add_plugin(ChatPlugin);

@@ -36,7 +36,7 @@ impl Plugin for ScoreboardPlugin {
         app.add_system(
             Self::scoreboard_system
                 .run_in_state(UiState::Hud)
-                .run_if(Self::scoreboard_action_pressed),
+                .run_if(scoreboard_action_pressed),
         );
     }
 }
@@ -70,8 +70,8 @@ impl ScoreboardPlugin {
                 })
             });
     }
+}
 
-    fn scoreboard_action_pressed(action_state: Res<ActionState<UiAction>>) -> bool {
-        action_state.pressed(UiAction::Scoreboard)
-    }
+fn scoreboard_action_pressed(action_state: Res<ActionState<UiAction>>) -> bool {
+    action_state.pressed(UiAction::Scoreboard)
 }

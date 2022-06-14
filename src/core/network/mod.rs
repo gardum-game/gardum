@@ -28,6 +28,7 @@ use bevy::prelude::*;
 use bevy_renet::renet::{
     ChannelConfig, ReliableChannelConfig, UnreliableChannelConfig, NETCODE_KEY_BYTES,
 };
+use iyes_loopless::prelude::*;
 
 use chat::ChatPlugin;
 use client::ClientPlugin;
@@ -45,7 +46,7 @@ pub(super) struct NetworkPlugin;
 
 impl Plugin for NetworkPlugin {
     fn build(&self, app: &mut App) {
-        app.add_state(NetworkingState::NoSocket)
+        app.add_loopless_state(NetworkingState::NoSocket)
             .add_plugin(ServerPlugin)
             .add_plugin(ClientPlugin)
             .add_plugin(MessagePlugin)

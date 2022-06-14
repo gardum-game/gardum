@@ -21,6 +21,7 @@
 use bevy::prelude::*;
 use bevy_renet::renet::{RenetConnectionConfig, RenetServer, ServerConfig};
 use clap::Args;
+use iyes_loopless::prelude::*;
 use std::{
     error::Error,
     net::{SocketAddr, UdpSocket},
@@ -38,13 +39,8 @@ pub(super) struct ServerPlugin;
 
 impl Plugin for ServerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(
-            SystemSet::on_update(NetworkingState::NoSocket)
-                .with_system(Self::waiting_for_socket_system),
-        )
-        .add_system_set(
-            SystemSet::on_exit(NetworkingState::Hosting).with_system(Self::shutdown_system),
-        );
+        app.add_system(Self::waiting_for_socket_system.run_in_state(NetworkingState::NoSocket))
+            .add_exit_system(NetworkingState::Hosting, Self::shutdown_system);
 
         let opts = app
             .world
@@ -61,12 +57,9 @@ impl Plugin for ServerPlugin {
 }
 
 impl ServerPlugin {
-    fn waiting_for_socket_system(
-        server: Option<Res<RenetServer>>,
-        mut networking_state: ResMut<State<NetworkingState>>,
-    ) {
+    fn waiting_for_socket_system(mut commands: Commands, server: Option<Res<RenetServer>>) {
         if server.is_some() {
-            networking_state.set(NetworkingState::Hosting).unwrap();
+            commands.insert_resource(NextState(NetworkingState::Hosting));
         }
     }
 
@@ -74,6 +67,10 @@ impl ServerPlugin {
         server.disconnect_clients();
         commands.remove_resource::<RenetServer>();
     }
+}
+
+pub(crate) fn random_heroes(server_settings: Res<ServerSettings>) -> bool {
+    server_settings.random_heroes
 }
 
 #[derive(Args, Clone)]
@@ -144,7 +141,7 @@ mod tests {
     fn defaulted_without_host() {
         let mut app = App::new();
         app.init_resource::<Opts>();
-        app.add_plugin(ServerPlugin);
+        app.add_plugin(TestServerPlugin::new(None));
 
         assert_eq!(
             *app.world.resource::<ServerSettings>(),
@@ -167,7 +164,7 @@ mod tests {
         app.world.insert_resource(Opts {
             subcommand: Some(SubCommand::Host(server_settings.clone())),
         });
-        app.add_plugin(ServerPlugin);
+        app.add_plugin(TestServerPlugin::new(None));
 
         assert_eq!(
             *app.world.resource::<ServerSettings>(),
@@ -183,17 +180,19 @@ mod tests {
     #[test]
     fn hosts() {
         let mut app = App::new();
-        app.add_plugin(TestServerPlugin);
+        app.add_plugin(TestServerPlugin::new(Some(NetworkPreset::Server)));
 
         app.update();
+        app.update();
 
-        let mut networking_state = app.world.resource_mut::<State<NetworkingState>>();
+        let networking_state = app.world.resource::<CurrentState<NetworkingState>>();
         assert!(
-            matches!(networking_state.current(), NetworkingState::Hosting),
+            matches!(networking_state.0, NetworkingState::Hosting),
             "Networking state should be in {:?} state after server creation",
             NetworkingState::Hosting,
         );
-        networking_state.set(NetworkingState::NoSocket).unwrap();
+        app.world
+            .insert_resource(NextState(NetworkingState::NoSocket));
 
         app.update();
 
@@ -204,13 +203,24 @@ mod tests {
         );
     }
 
-    struct TestServerPlugin;
+    struct TestServerPlugin {
+        preset: Option<NetworkPreset>,
+    }
+
+    impl TestServerPlugin {
+        fn new(preset: Option<NetworkPreset>) -> Self {
+            Self { preset }
+        }
+    }
 
     impl Plugin for TestServerPlugin {
         fn build(&self, app: &mut App) {
+            if let Some(preset) = self.preset {
+                app.add_plugin(TestNetworkPlugin::new(preset));
+            }
+
             app.init_resource::<Opts>()
-                .add_plugin(TestNetworkPlugin::new(NetworkPreset::Server))
-                .add_state(NetworkingState::NoSocket)
+                .add_loopless_state(NetworkingState::NoSocket)
                 .add_plugin(ServerPlugin);
         }
     }

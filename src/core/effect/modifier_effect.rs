@@ -19,6 +19,7 @@
  */
 
 use bevy::prelude::*;
+use iyes_loopless::prelude::*;
 use std::{
     marker::PhantomData,
     ops::{AddAssign, SubAssign},
@@ -34,11 +35,8 @@ pub(super) struct ModifierEffectPlugin<T> {
 
 impl<T: Component + AddAssign + SubAssign + Copy> Plugin for ModifierEffectPlugin<T> {
     fn build(&self, app: &mut App) {
-        app.add_system_set(
-            SystemSet::on_update(GameState::InGame)
-                .with_system(Self::apply_modifier_system)
-                .with_system(Self::remove_modifier_system),
-        );
+        app.add_system(Self::apply_modifier_system.run_in_state(GameState::InGame))
+            .add_system(Self::remove_modifier_system.run_in_state(GameState::InGame));
     }
 }
 
@@ -107,7 +105,7 @@ mod tests {
 
     impl Plugin for TestModifierEffectPlugin {
         fn build(&self, app: &mut App) {
-            app.add_state(GameState::InGame)
+            app.add_loopless_state(GameState::InGame)
                 .add_plugins(MinimalPlugins)
                 .add_plugin(ModifierEffectPlugin::<DummyModifier>::default());
         }

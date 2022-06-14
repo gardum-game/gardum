@@ -41,35 +41,22 @@ impl Plugin for UnreliableMessagePlugin {
             NetworkStage::Tick,
             FixedTimestepStage::new(Duration::from_secs_f64(Self::TIMESTEP))
                 .with_stage(SystemStage::single(
-                    Self::receive_client_message_system.run_in_bevy_state(NetworkingState::Hosting),
+                    Self::receive_client_message_system.run_in_state(NetworkingState::Hosting),
                 ))
                 .with_stage(SystemStage::single(
-                    Self::send_server_message_system.run_in_bevy_state(NetworkingState::Hosting),
+                    Self::send_server_message_system.run_in_state(NetworkingState::Hosting),
                 ))
                 .with_stage(SystemStage::single(
-                    Self::receive_server_message_system
-                        .run_in_bevy_state(NetworkingState::Connected),
+                    Self::receive_server_message_system.run_in_state(NetworkingState::Connected),
                 ))
                 .with_stage(SystemStage::single(
-                    Self::send_client_message_system.run_in_bevy_state(NetworkingState::Connected),
+                    Self::send_client_message_system.run_in_state(NetworkingState::Connected),
                 )),
         )
-        .add_system_set(
-            SystemSet::on_enter(NetworkingState::Hosting)
-                .with_system(Self::server_ticks_init_system),
-        )
-        .add_system_set(
-            SystemSet::on_enter(NetworkingState::Connected)
-                .with_system(Self::client_ticks_init_system),
-        )
-        .add_system_set(
-            SystemSet::on_exit(NetworkingState::Hosting)
-                .with_system(Self::server_ticks_reset_system),
-        )
-        .add_system_set(
-            SystemSet::on_exit(NetworkingState::Connected)
-                .with_system(Self::client_ticks_reset_system),
-        );
+        .add_enter_system(NetworkingState::Hosting, Self::server_ticks_init_system)
+        .add_enter_system(NetworkingState::Connected, Self::client_ticks_init_system)
+        .add_exit_system(NetworkingState::Hosting, Self::server_ticks_reset_system)
+        .add_exit_system(NetworkingState::Connected, Self::client_ticks_reset_system);
     }
 }
 
@@ -228,8 +215,8 @@ mod tests {
             "The client tick resource should be created when connected"
         );
 
-        let mut networking_state = app.world.resource_mut::<State<NetworkingState>>();
-        networking_state.set(NetworkingState::NoSocket).unwrap();
+        app.world
+            .insert_resource(NextState(NetworkingState::NoSocket));
 
         app.update();
 
@@ -262,8 +249,8 @@ mod tests {
             "The clients acks resource should be created on server creation"
         );
 
-        let mut networking_state = app.world.resource_mut::<State<NetworkingState>>();
-        networking_state.set(NetworkingState::NoSocket).unwrap();
+        app.world
+            .insert_resource(NextState(NetworkingState::NoSocket));
 
         app.update();
 
@@ -300,8 +287,8 @@ mod tests {
             "Server tick should be increased after timestep"
         );
 
-        let mut networking_state = app.world.resource_mut::<State<NetworkingState>>();
-        networking_state.set(NetworkingState::Connected).unwrap();
+        app.world
+            .insert_resource(NextState(NetworkingState::Connected));
 
         // Wait for the next timestep since system wasn't executed in [`NetworkingState::Hosting`]
         // state
@@ -344,7 +331,7 @@ mod tests {
                 app.add_plugin(TestNetworkPlugin::new(preset));
             }
 
-            app.add_state(self.networking_state)
+            app.add_loopless_state(self.networking_state)
                 .add_plugin(UnreliableMessagePlugin);
         }
     }

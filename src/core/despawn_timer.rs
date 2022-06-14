@@ -19,6 +19,7 @@
  */
 
 use bevy::prelude::*;
+use iyes_loopless::prelude::*;
 use std::time::Duration;
 
 use super::game_state::GameState;
@@ -27,9 +28,7 @@ pub(super) struct DespawnTimerPlugin;
 
 impl Plugin for DespawnTimerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(
-            SystemSet::on_update(GameState::InGame).with_system(Self::despawn_timer_system),
-        );
+        app.add_system(Self::despawn_timer_system.run_in_state(GameState::InGame));
     }
 }
 
@@ -111,7 +110,7 @@ mod tests {
 
     impl Plugin for TestDespawnTimerPlugin {
         fn build(&self, app: &mut App) {
-            app.add_state(GameState::InGame)
+            app.add_loopless_state(GameState::InGame)
                 .add_plugins(MinimalPlugins)
                 .add_plugin(DespawnTimerPlugin);
         }

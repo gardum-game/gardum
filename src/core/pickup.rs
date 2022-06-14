@@ -20,6 +20,7 @@
 
 use bevy::{ecs::system::EntityCommands, prelude::*};
 use bevy_rapier3d::prelude::*;
+use iyes_loopless::prelude::*;
 #[cfg(test)]
 use strum::EnumIter;
 
@@ -38,11 +39,8 @@ pub(super) struct PickupPlugin;
 
 impl Plugin for PickupPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(
-            SystemSet::on_update(GameState::InGame)
-                .with_system(Self::collision_system)
-                .with_system(Self::cooldown_system),
-        );
+        app.add_system(Self::collision_system.run_in_state(GameState::InGame))
+            .add_system(Self::cooldown_system.run_in_state(GameState::InGame));
     }
 }
 
@@ -387,7 +385,7 @@ mod tests {
 
     impl Plugin for TestPickupPlugin {
         fn build(&self, app: &mut App) {
-            app.add_state(GameState::InGame)
+            app.add_loopless_state(GameState::InGame)
                 .add_plugin(HeadlessRenderPlugin)
                 .add_plugin(HierarchyPlugin)
                 .add_plugin(ScenePlugin)

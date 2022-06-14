@@ -62,7 +62,6 @@ impl LobbyMenuPlugin {
         server: Option<Res<RenetServer>>,
         mut egui: ResMut<EguiContext>,
         mut server_settings: ResMut<ServerSettings>,
-        mut game_state: ResMut<State<GameState>>,
         player_names: Query<&Name, With<Player>>,
     ) {
         Window::new("Lobby")
@@ -95,7 +94,7 @@ impl LobbyMenuPlugin {
                         .add_enabled(server.is_some(), Button::new("Start"))
                         .clicked()
                     {
-                        game_state.set(GameState::InGame).unwrap();
+                        commands.insert_resource(NextState(GameState::InGame));
                     }
                 })
             });

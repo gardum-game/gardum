@@ -128,7 +128,7 @@ impl SettingsMenuPlugin {
 
     fn back_system(
         mut commands: Commands,
-        game_state: Res<State<GameState>>,
+        game_state: Res<CurrentState<GameState>>,
         mut egui: ResMut<EguiContext>,
         mut action_state: ResMut<ActionState<UiAction>>,
     ) {
@@ -136,7 +136,7 @@ impl SettingsMenuPlugin {
             .show(egui.ctx_mut())
             .clicked()
         {
-            let state = match game_state.current() {
+            let state = match game_state.0 {
                 GameState::Menu => UiState::MainMenu,
                 GameState::InGame => UiState::InGameMenu,
             };

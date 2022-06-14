@@ -20,6 +20,7 @@
 
 use bevy::prelude::*;
 use bevy_renet::renet::{RenetClient, RenetServer};
+use iyes_loopless::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use super::{Channel, NetworkingState, SERVER_ID};
@@ -32,25 +33,21 @@ impl Plugin for MessagePlugin {
             .add_event::<ClientMessage>()
             .add_event::<MessageReceived>()
             .add_event::<MessageSent>()
-            .add_system_set(
-                SystemSet::on_update(NetworkingState::Connected)
-                    .with_system(MessagePlugin::receive_server_message_system),
+            .add_system(
+                MessagePlugin::receive_server_message_system
+                    .run_in_state(NetworkingState::Connected),
             )
-            .add_system_set(
-                SystemSet::on_update(NetworkingState::Connected)
-                    .with_system(MessagePlugin::send_client_message_system),
+            .add_system(
+                MessagePlugin::send_client_message_system.run_in_state(NetworkingState::Connected),
             )
-            .add_system_set(
-                SystemSet::on_update(NetworkingState::Hosting)
-                    .with_system(MessagePlugin::local_client_message_system),
+            .add_system(
+                MessagePlugin::local_client_message_system.run_in_state(NetworkingState::Hosting),
             )
-            .add_system_set(
-                SystemSet::on_update(NetworkingState::Hosting)
-                    .with_system(MessagePlugin::receive_client_message_system),
+            .add_system(
+                MessagePlugin::receive_client_message_system.run_in_state(NetworkingState::Hosting),
             )
-            .add_system_set(
-                SystemSet::on_update(NetworkingState::Hosting)
-                    .with_system(MessagePlugin::send_server_message_system),
+            .add_system(
+                MessagePlugin::send_server_message_system.run_in_state(NetworkingState::Hosting),
             );
     }
 }
@@ -214,8 +211,8 @@ mod tests {
 
         app.update();
 
-        let mut networking_state = app.world.resource_mut::<State<NetworkingState>>();
-        networking_state.set(NetworkingState::Hosting).unwrap();
+        app.world
+            .insert_resource(NextState(NetworkingState::Hosting));
 
         app.update();
 
@@ -291,8 +288,8 @@ mod tests {
 
         app.update();
 
-        let mut networking_state = app.world.resource_mut::<State<NetworkingState>>();
-        networking_state.set(NetworkingState::Connected).unwrap();
+        app.world
+            .insert_resource(NextState(NetworkingState::Connected));
 
         app.update();
 
@@ -337,7 +334,7 @@ mod tests {
 
     impl Plugin for TestMessagePlugin {
         fn build(&self, app: &mut App) {
-            app.add_state(self.networking_state)
+            app.add_loopless_state(self.networking_state)
                 .add_plugin(TestNetworkPlugin::new(self.preset))
                 .add_plugin(MessagePlugin);
         }

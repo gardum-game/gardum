@@ -23,6 +23,7 @@ pub(super) mod periodic_effect;
 
 use bevy::prelude::*;
 use derive_more::From;
+use iyes_loopless::prelude::*;
 
 use super::{
     character::{DamageModifier, HealingModifier, SpeedModifier},
@@ -40,12 +41,9 @@ impl Plugin for EffectPlugin {
             .add_plugin(ModifierEffectPlugin::<DamageModifier>::default())
             .add_plugin(ModifierEffectPlugin::<HealingModifier>::default())
             .add_plugin(PeriodicEffectPlugin)
-            .add_system_set(
-                SystemSet::on_update(GameState::InGame)
-                    .with_system(Self::dispell_on_death_system)
-                    .with_system(Self::timer_system)
-                    .with_system(Self::despawn_system),
-            );
+            .add_system(Self::dispell_on_death_system.run_in_state(GameState::InGame))
+            .add_system(Self::timer_system.run_in_state(GameState::InGame))
+            .add_system(Self::despawn_system.run_in_state(GameState::InGame));
     }
 }
 
@@ -146,7 +144,7 @@ mod tests {
 
     impl Plugin for TestEffectPlugin {
         fn build(&self, app: &mut App) {
-            app.add_state(GameState::InGame)
+            app.add_loopless_state(GameState::InGame)
                 .add_event::<HealthChanged>()
                 .add_plugins(MinimalPlugins)
                 .add_plugin(EffectPlugin);

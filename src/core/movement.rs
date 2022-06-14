@@ -21,6 +21,7 @@
 use approx::abs_diff_eq;
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
+use iyes_loopless::prelude::*;
 use leafwing_input_manager::prelude::ActionState;
 
 use super::{
@@ -38,9 +39,7 @@ pub(super) struct MovementPlugin;
 
 impl Plugin for MovementPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(
-            SystemSet::on_update(GameState::InGame).with_system(Self::movement_system),
-        );
+        app.add_system(Self::movement_system.run_in_state(GameState::InGame));
     }
 }
 
@@ -313,7 +312,7 @@ mod tests {
 
     impl Plugin for TestMovementPlugin {
         fn build(&self, app: &mut App) {
-            app.add_state(GameState::InGame)
+            app.add_loopless_state(GameState::InGame)
                 .add_plugin(HeadlessRenderPlugin)
                 .add_plugin(ScenePlugin)
                 .add_plugin(InputManagerPlugin::<ControlAction>::default())

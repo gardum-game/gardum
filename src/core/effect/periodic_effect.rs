@@ -20,6 +20,7 @@
 
 use bevy::prelude::*;
 use derive_more::From;
+use iyes_loopless::prelude::*;
 
 use super::EffectTarget;
 use crate::core::{game_state::GameState, health::HealthChanged, Owner};
@@ -28,11 +29,8 @@ pub(super) struct PeriodicEffectPlugin;
 
 impl Plugin for PeriodicEffectPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(
-            SystemSet::on_update(GameState::InGame)
-                .with_system(Self::update_health_system)
-                .with_system(Self::periodic_timer_system),
-        );
+        app.add_system(Self::update_health_system.run_in_state(GameState::InGame))
+            .add_system(Self::periodic_timer_system.run_in_state(GameState::InGame));
     }
 }
 
@@ -146,7 +144,7 @@ mod tests {
 
     impl Plugin for TestPeriodicEffectPlugin {
         fn build(&self, app: &mut App) {
-            app.add_state(GameState::InGame)
+            app.add_loopless_state(GameState::InGame)
                 .add_event::<HealthChanged>()
                 .add_plugins(MinimalPlugins)
                 .add_plugin(PeriodicEffectPlugin);

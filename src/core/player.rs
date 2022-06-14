@@ -19,6 +19,7 @@
  */
 
 use bevy::prelude::*;
+use iyes_loopless::prelude::*;
 
 use super::{network::NetworkingState, Authority};
 
@@ -26,19 +27,10 @@ pub(super) struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(
-            SystemSet::on_enter(NetworkingState::Connected).with_system(Self::spawn_player_system),
-        )
-        .add_system_set(
-            SystemSet::on_enter(NetworkingState::Hosting).with_system(Self::spawn_player_system),
-        )
-        .add_system_set(
-            SystemSet::on_exit(NetworkingState::Connected)
-                .with_system(Self::despawn_players_system),
-        )
-        .add_system_set(
-            SystemSet::on_exit(NetworkingState::Hosting).with_system(Self::despawn_players_system),
-        );
+        app.add_enter_system(NetworkingState::Connected, Self::spawn_player_system)
+            .add_enter_system(NetworkingState::Hosting, Self::spawn_player_system)
+            .add_exit_system(NetworkingState::Connected, Self::despawn_players_system)
+            .add_exit_system(NetworkingState::Hosting, Self::despawn_players_system);
     }
 }
 
@@ -109,8 +101,7 @@ mod tests {
         app.add_plugin(TestPlayerPlugin);
 
         for state in [NetworkingState::Connected, NetworkingState::Hosting] {
-            let mut networking_state = app.world.resource_mut::<State<NetworkingState>>();
-            networking_state.set(state).unwrap();
+            app.world.insert_resource(NextState(state));
 
             app.update();
 
@@ -124,8 +115,8 @@ mod tests {
                 )
             }); // TODO 0.8: Use single
 
-            let mut networking_state = app.world.resource_mut::<State<NetworkingState>>();
-            networking_state.set(NetworkingState::NoSocket).unwrap();
+            app.world
+                .insert_resource(NextState(NetworkingState::NoSocket));
 
             app.update();
 
@@ -141,7 +132,7 @@ mod tests {
 
     impl Plugin for TestPlayerPlugin {
         fn build(&self, app: &mut App) {
-            app.add_state(NetworkingState::NoSocket)
+            app.add_loopless_state(NetworkingState::NoSocket)
                 .add_plugin(PlayerPlugin);
         }
     }

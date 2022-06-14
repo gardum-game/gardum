@@ -20,6 +20,7 @@
 
 use bevy::prelude::*;
 use derive_more::From;
+use iyes_loopless::prelude::*;
 use leafwing_input_manager::prelude::ActionState;
 
 use super::{control_actions::ControlAction, cooldown::Cooldown, game_state::GameState};
@@ -28,11 +29,8 @@ pub(super) struct AbilityPlugin;
 
 impl Plugin for AbilityPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(
-            SystemSet::on_update(GameState::InGame)
-                .with_system(Self::activation_system)
-                .with_system(Self::abilities_to_children_system),
-        );
+        app.add_system(Self::activation_system.run_in_state(GameState::InGame))
+            .add_system(Self::abilities_to_children_system.run_in_state(GameState::InGame));
     }
 }
 
@@ -226,7 +224,7 @@ mod tests {
 
     impl Plugin for TestAbilityPlugin {
         fn build(&self, app: &mut App) {
-            app.add_state(GameState::InGame)
+            app.add_loopless_state(GameState::InGame)
                 .add_plugins(MinimalPlugins)
                 .add_plugin(InputPlugin)
                 .add_plugin(AbilityPlugin);

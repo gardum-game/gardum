@@ -54,15 +54,15 @@ impl Plugin for ChatWindowPlugin {
             .add_system(
                 Self::send_message_system
                     .run_on_event::<MessageAccepted>()
-                    .run_in_bevy_state(NetworkingState::Connected),
+                    .run_in_state(NetworkingState::Connected),
             )
             .add_system(
                 Self::send_message_system
                     .run_on_event::<MessageAccepted>()
-                    .run_in_bevy_state(NetworkingState::Hosting),
+                    .run_in_state(NetworkingState::Hosting),
             )
-            .add_system(Self::receive_message_system.run_in_bevy_state(NetworkingState::Connected))
-            .add_system(Self::receive_message_system.run_in_bevy_state(NetworkingState::Hosting));
+            .add_system(Self::receive_message_system.run_in_state(NetworkingState::Connected))
+            .add_system(Self::receive_message_system.run_in_state(NetworkingState::Hosting));
     }
 }
 

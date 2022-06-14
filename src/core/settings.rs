@@ -19,6 +19,7 @@
  */
 
 use bevy::prelude::*;
+use iyes_loopless::prelude::*;
 use leafwing_input_manager::prelude::InputMap;
 use serde::{Deserialize, Serialize};
 use standard_paths::{LocationType, StandardPaths};
@@ -32,15 +33,13 @@ impl Plugin for SettingsPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<SettingsApplied>()
             .insert_resource(Settings::read())
-            .add_system(Self::write_system);
+            .add_system(Self::write_system.run_on_event::<SettingsApplied>());
     }
 }
 
 impl SettingsPlugin {
-    fn write_system(mut apply_events: EventReader<SettingsApplied>, settings: Res<Settings>) {
-        if apply_events.iter().next().is_some() {
-            settings.write();
-        }
+    fn write_system(settings: Res<Settings>) {
+        settings.write();
     }
 }
 

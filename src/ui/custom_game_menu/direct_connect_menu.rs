@@ -41,12 +41,12 @@ impl Plugin for DirectConnectMenuPlugin {
         app.add_system(Self::direct_connect_menu_system.run_in_state(UiState::DirectConnectMenu))
             .add_system(
                 Self::connection_dialog_system
-                    .run_in_bevy_state(NetworkingState::Connecting)
+                    .run_in_state(NetworkingState::Connecting)
                     .run_in_state(UiState::DirectConnectMenu),
             )
             .add_system(
                 Self::enter_lobby_system
-                    .run_in_bevy_state(NetworkingState::Connected)
+                    .run_in_state(NetworkingState::Connected)
                     .run_in_state(UiState::DirectConnectMenu),
             )
             .add_system(
@@ -96,9 +96,9 @@ impl DirectConnectMenuPlugin {
     }
 
     fn connection_dialog_system(
+        mut commands: Commands,
         connection_setttings: Res<ConnectionSettings>,
         mut egui: ResMut<EguiContext>,
-        mut networking_state: ResMut<State<NetworkingState>>,
     ) {
         ModalWindow::new("Connecting").show(egui.ctx_mut(), |ui| {
             ui.label(format!(
@@ -106,7 +106,7 @@ impl DirectConnectMenuPlugin {
                 connection_setttings.ip, connection_setttings.port
             ));
             if ui.button("Cancel").clicked() {
-                networking_state.set(NetworkingState::NoSocket).unwrap();
+                commands.insert_resource(NextState(NetworkingState::NoSocket));
             }
         });
     }

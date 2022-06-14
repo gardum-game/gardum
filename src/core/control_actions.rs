@@ -20,6 +20,7 @@
 
 use bevy::prelude::*;
 use derive_more::Display;
+use iyes_loopless::prelude::*;
 use leafwing_input_manager::{prelude::InputMap, Actionlike};
 use serde::{Deserialize, Serialize};
 
@@ -34,22 +35,18 @@ pub(super) struct ControlActionsPlugin;
 
 impl Plugin for ControlActionsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(Self::load_mappings_system).add_system_set(
-            SystemSet::on_enter(GameState::InGame).with_system(Self::setup_mappings_system),
-        );
+        app.add_system(Self::load_mappings_system.run_on_event::<SettingsApplied>())
+            .add_enter_system(GameState::InGame, Self::setup_mappings_system);
     }
 }
 
 impl ControlActionsPlugin {
     fn load_mappings_system(
-        mut apply_events: EventReader<SettingsApplied>,
         settings: Res<Settings>,
         mut local_player: Query<&mut InputMap<ControlAction>, With<Authority>>,
     ) {
-        if apply_events.iter().next().is_some() {
-            if let Ok(mut mappings) = local_player.get_single_mut() {
-                *mappings = settings.controls.mappings.clone();
-            }
+        if let Ok(mut mappings) = local_player.get_single_mut() {
+            *mappings = settings.controls.mappings.clone();
         }
     }
 
@@ -139,7 +136,7 @@ mod tests {
 
     impl Plugin for TestControlActionsPlugin {
         fn build(&self, app: &mut App) {
-            app.add_state(GameState::InGame)
+            app.add_loopless_state(GameState::InGame)
                 .add_event::<SettingsApplied>()
                 .init_resource::<Settings>()
                 .add_plugin(ControlActionsPlugin);

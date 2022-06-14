@@ -19,14 +19,14 @@
  */
 
 use bevy::prelude::*;
+use iyes_loopless::prelude::*;
 
 pub(super) struct AppStatePlugin;
 
 impl Plugin for AppStatePlugin {
     fn build(&self, app: &mut App) {
-        app.add_state(GameState::Menu).add_system_set(
-            SystemSet::on_exit(GameState::InGame).with_system(Self::cleanup_ingame_entities_system),
-        );
+        app.add_loopless_state(GameState::Menu)
+            .add_exit_system(GameState::InGame, Self::cleanup_ingame_entities_system);
     }
 }
 
@@ -60,10 +60,7 @@ mod tests {
         let mut app = App::new();
         app.add_plugin(AppStatePlugin);
 
-        app.world
-            .resource_mut::<State<GameState>>()
-            .set(GameState::InGame)
-            .expect("In-game entities should be spawned in a different state");
+        app.world.insert_resource(NextState(GameState::InGame));
         let child_entity = app.world.spawn().id();
         let ingame_entity = app
             .world
@@ -74,10 +71,7 @@ mod tests {
 
         app.update();
 
-        app.world
-            .resource_mut::<State<GameState>>()
-            .set(GameState::Menu)
-            .expect("State should be swithed to cleanup ingame entities");
+        app.world.insert_resource(NextState(GameState::Menu));
 
         app.update();
 

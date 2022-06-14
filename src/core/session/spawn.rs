@@ -20,12 +20,13 @@
 
 use bevy::prelude::*;
 use derive_more::From;
+use iyes_loopless::prelude::*;
 
 use crate::core::{
     character::hero::HeroKind,
     game_state::{GameState, InGameOnly},
     health::Death,
-    network::server::ServerSettings,
+    network::server,
     player::Player,
     AssetCommands,
 };
@@ -34,28 +35,20 @@ pub(super) struct SpawnPlugin;
 
 impl Plugin for SpawnPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(
-            SystemSet::on_enter(GameState::InGame).with_system(Self::randomize_heroes_system),
+        app.add_enter_system(
+            GameState::InGame,
+            Self::randomize_heroes_system.run_if(server::random_heroes),
         )
-        .add_system_set(
-            SystemSet::on_update(GameState::InGame)
-                .with_system(Self::spawn_system)
-                .with_system(Self::assign_respawn_timer_system)
-                .with_system(Self::respawn_system),
-        );
+        .add_system(Self::spawn_system.run_in_state(GameState::InGame))
+        .add_system(Self::assign_respawn_timer_system.run_in_state(GameState::InGame))
+        .add_system(Self::respawn_system.run_in_state(GameState::InGame));
     }
 }
 
 impl SpawnPlugin {
-    fn randomize_heroes_system(
-        mut commands: Commands,
-        server_settings: Res<ServerSettings>,
-        players: Query<Entity, Added<Player>>,
-    ) {
-        if server_settings.random_heroes {
-            for player in players.iter() {
-                commands.entity(player).insert(HeroKind::North); // TODO: Implement random selection when there are more than one hero
-            }
+    fn randomize_heroes_system(mut commands: Commands, players: Query<Entity, Added<Player>>) {
+        for player in players.iter() {
+            commands.entity(player).insert(HeroKind::North); // TODO: Implement random selection when there are more than one hero
         }
     }
 
@@ -143,7 +136,9 @@ mod tests {
     use strum::IntoEnumIterator;
 
     use super::*;
-    use crate::core::{game_state::GameState, headless::HeadlessRenderPlugin};
+    use crate::core::{
+        game_state::GameState, headless::HeadlessRenderPlugin, network::server::ServerSettings,
+    };
 
     #[test]
     fn heroes_randomization() {
@@ -268,7 +263,7 @@ mod tests {
     impl Plugin for TestSpawnPlugin {
         fn build(&self, app: &mut App) {
             app.init_resource::<ServerSettings>()
-                .add_state(GameState::InGame)
+                .add_loopless_state(GameState::InGame)
                 .add_plugin(HeadlessRenderPlugin)
                 .add_plugin(SpawnPlugin);
         }

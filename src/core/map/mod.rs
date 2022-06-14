@@ -21,7 +21,7 @@
 mod sky_roof;
 
 use bevy::prelude::*;
-
+use iyes_loopless::prelude::*;
 use strum::{Display, EnumIter, EnumString};
 
 use super::{network::server::ServerSettings, AssetCommands, AssociatedAsset};
@@ -31,9 +31,7 @@ pub(super) struct MapsPlugin;
 
 impl Plugin for MapsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(
-            SystemSet::on_enter(GameState::InGame).with_system(Self::load_map_system),
-        );
+        app.add_enter_system(GameState::InGame, Self::load_map_system);
     }
 }
 
@@ -81,7 +79,7 @@ mod tests {
 
     impl Plugin for TestMapPlugin {
         fn build(&self, app: &mut App) {
-            app.add_state(GameState::InGame)
+            app.add_loopless_state(GameState::InGame)
                 .init_resource::<ServerSettings>()
                 .add_plugin(HeadlessRenderPlugin)
                 .add_plugin(HierarchyPlugin)

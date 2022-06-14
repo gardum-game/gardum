@@ -20,6 +20,7 @@
 
 use bevy::{ecs::system::EntityCommands, prelude::*, render::camera::Camera};
 use bevy_rapier3d::prelude::*;
+use iyes_loopless::prelude::*;
 
 use crate::core::{
     ability::{Activator, IconPath},
@@ -40,12 +41,9 @@ pub(super) struct NorthPlugin;
 
 impl Plugin for NorthPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(
-            SystemSet::on_update(GameState::InGame)
-                .with_system(Self::frost_bolt_system)
-                .with_system(Self::frost_bolt_hit_system)
-                .with_system(Self::frost_path_system),
-        );
+        app.add_system(Self::frost_bolt_system.run_in_state(GameState::InGame))
+            .add_system(Self::frost_bolt_hit_system.run_in_state(GameState::InGame))
+            .add_system(Self::frost_path_system.run_in_state(GameState::InGame));
     }
 }
 
@@ -358,7 +356,7 @@ mod tests {
     impl Plugin for TestNorthPlugin {
         fn build(&self, app: &mut App) {
             app.add_event::<HealthChanged>()
-                .add_state(GameState::InGame)
+                .add_loopless_state(GameState::InGame)
                 .add_plugin(HeadlessRenderPlugin)
                 .add_plugin(ScenePlugin)
                 .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())

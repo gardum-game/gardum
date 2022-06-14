@@ -25,6 +25,7 @@ use bevy::{
     transform::TransformSystem,
 };
 use derive_more::From;
+use iyes_loopless::prelude::*;
 
 use super::{
     character::hero::HeroKind,
@@ -39,15 +40,14 @@ pub(super) struct OrbitCameraPlugin;
 
 impl Plugin for OrbitCameraPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(
-            SystemSet::on_update(GameState::InGame)
-                .with_system(Self::spawn_system)
-                .with_system(Self::input_system),
-        )
-        .add_system_to_stage(
-            CoreStage::PostUpdate,
-            Self::position_system.before(TransformSystem::TransformPropagate),
-        );
+        app.add_system(Self::spawn_system.run_in_state(GameState::InGame))
+            .add_system(Self::input_system.run_in_state(GameState::InGame))
+            .add_system_to_stage(
+                CoreStage::PostUpdate,
+                Self::position_system
+                    .run_in_state(GameState::InGame)
+                    .before(TransformSystem::TransformPropagate),
+            );
     }
 }
 
@@ -90,14 +90,9 @@ impl OrbitCameraPlugin {
     }
 
     fn position_system(
-        game_state: Res<State<GameState>>,
         transforms: Query<&Transform, Without<OrbitRotation>>,
         mut cameras: Query<(&mut Transform, &OrbitRotation, &CameraTarget)>,
     ) {
-        if *game_state.current() != GameState::InGame {
-            return;
-        }
-
         for (mut camera_transform, orbit_rotation, target) in cameras.iter_mut() {
             let character_translation = transforms.get(target.0).unwrap().translation;
             camera_transform.translation =
@@ -277,7 +272,7 @@ mod tests {
 
     impl Plugin for TestOrbitCameraPlugin {
         fn build(&self, app: &mut App) {
-            app.add_state(GameState::InGame)
+            app.add_loopless_state(GameState::InGame)
                 .add_plugin(HeadlessRenderPlugin)
                 .add_plugin(InputPlugin)
                 .add_plugin(ScenePlugin)

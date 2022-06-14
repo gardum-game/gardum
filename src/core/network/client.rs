@@ -21,6 +21,7 @@
 use bevy::prelude::*;
 use bevy_renet::renet::{ConnectToken, RenetClient, RenetConnectionConfig};
 use clap::Args;
+use iyes_loopless::prelude::*;
 use std::{
     error::Error,
     net::{SocketAddr, UdpSocket},
@@ -34,20 +35,10 @@ pub(super) struct ClientPlugin;
 
 impl Plugin for ClientPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(
-            SystemSet::on_update(NetworkingState::NoSocket)
-                .with_system(Self::waiting_for_socket_system),
-        )
-        .add_system_set(
-            SystemSet::on_update(NetworkingState::Connecting).with_system(Self::connecting_system),
-        )
-        .add_system_set(
-            SystemSet::on_exit(NetworkingState::Connected).with_system(Self::disconnect_system),
-        )
-        .add_system_set(
-            SystemSet::on_exit(NetworkingState::Connecting)
-                .with_system(Self::cancel_connection_system),
-        );
+        app.add_system(Self::waiting_for_socket_system.run_in_state(NetworkingState::NoSocket))
+            .add_system(Self::connecting_system.run_in_state(NetworkingState::Connecting))
+            .add_exit_system(NetworkingState::Connected, Self::disconnect_system)
+            .add_exit_system(NetworkingState::Connecting, Self::cancel_connection_system);
 
         let opts = app
             .world
@@ -64,21 +55,15 @@ impl Plugin for ClientPlugin {
 }
 
 impl ClientPlugin {
-    fn waiting_for_socket_system(
-        client: Option<Res<RenetClient>>,
-        mut networking_state: ResMut<State<NetworkingState>>,
-    ) {
+    fn waiting_for_socket_system(mut commands: Commands, client: Option<Res<RenetClient>>) {
         if client.is_some() {
-            networking_state.set(NetworkingState::Connecting).unwrap();
+            commands.insert_resource(NextState(NetworkingState::Connecting));
         }
     }
 
-    fn connecting_system(
-        client: Res<RenetClient>,
-        mut networking_state: ResMut<State<NetworkingState>>,
-    ) {
+    fn connecting_system(mut commands: Commands, client: Res<RenetClient>) {
         if client.is_connected() {
-            networking_state.set(NetworkingState::Connected).unwrap();
+            commands.insert_resource(NextState(NetworkingState::Connected));
         }
     }
 
@@ -153,7 +138,10 @@ mod tests {
     fn defaulted_without_connect() {
         let mut app = App::new();
         app.init_resource::<Opts>();
-        app.add_plugin(ClientPlugin);
+        app.add_plugin(TestClientPlugin {
+            preset: None,
+            networking_state: NetworkingState::NoSocket,
+        });
 
         assert_eq!(
             *app.world.resource::<ConnectionSettings>(),
@@ -176,7 +164,10 @@ mod tests {
         app.world.insert_resource(Opts {
             subcommand: Some(SubCommand::Connect(connection_settings.clone())),
         });
-        app.add_plugin(ClientPlugin);
+        app.add_plugin(TestClientPlugin {
+            preset: None,
+            networking_state: NetworkingState::NoSocket,
+        });
 
         assert_eq!(
             *app.world.resource::<ConnectionSettings>(),
@@ -193,15 +184,16 @@ mod tests {
     fn connects() {
         let mut app = App::new();
         app.add_plugin(TestClientPlugin::new(
-            NetworkPreset::ServerAndClient { connected: false },
+            Some(NetworkPreset::ServerAndClient { connected: false }),
             NetworkingState::NoSocket,
         ));
 
         app.update();
+        app.update();
 
-        let networking_state = app.world.resource::<State<NetworkingState>>();
+        let networking_state = app.world.resource::<CurrentState<NetworkingState>>();
         assert!(
-            matches!(networking_state.current(), NetworkingState::Connecting),
+            matches!(networking_state.0, NetworkingState::Connecting),
             "Networking state should be in {:?} state after client creation",
             NetworkingState::Connecting,
         );
@@ -214,13 +206,14 @@ mod tests {
             "Client should be connected",
         );
 
-        let mut networking_state = app.world.resource_mut::<State<NetworkingState>>();
+        let networking_state = app.world.resource::<CurrentState<NetworkingState>>();
         assert!(
-            matches!(networking_state.current(), NetworkingState::Connected),
+            matches!(networking_state.0, NetworkingState::Connected),
             "Networking state should be in {:?} state after connection",
             NetworkingState::Connected,
         );
-        networking_state.set(NetworkingState::NoSocket).unwrap();
+        app.world
+            .insert_resource(NextState(NetworkingState::NoSocket));
 
         app.update();
 
@@ -235,14 +228,12 @@ mod tests {
     fn connection_cancels() {
         let mut app = App::new();
         app.add_plugin(TestClientPlugin::new(
-            NetworkPreset::Client,
+            Some(NetworkPreset::Client),
             NetworkingState::Connecting,
         ));
 
-        app.update();
-
-        let mut networking_state = app.world.resource_mut::<State<NetworkingState>>();
-        networking_state.set(NetworkingState::NoSocket).unwrap();
+        app.world
+            .insert_resource(NextState(NetworkingState::NoSocket));
 
         app.update();
 
@@ -254,12 +245,12 @@ mod tests {
     }
 
     struct TestClientPlugin {
-        preset: NetworkPreset,
+        preset: Option<NetworkPreset>,
         networking_state: NetworkingState,
     }
 
     impl TestClientPlugin {
-        fn new(preset: NetworkPreset, networking_state: NetworkingState) -> Self {
+        fn new(preset: Option<NetworkPreset>, networking_state: NetworkingState) -> Self {
             Self {
                 preset,
                 networking_state,
@@ -269,9 +260,12 @@ mod tests {
 
     impl Plugin for TestClientPlugin {
         fn build(&self, app: &mut App) {
+            if let Some(preset) = self.preset {
+                app.add_plugin(TestNetworkPlugin::new(preset));
+            }
+
             app.init_resource::<Opts>()
-                .add_plugin(TestNetworkPlugin::new(self.preset))
-                .add_state(self.networking_state)
+                .add_loopless_state(self.networking_state)
                 .add_plugin(ClientPlugin);
         }
     }

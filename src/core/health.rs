@@ -19,6 +19,7 @@
  */
 
 use bevy::prelude::*;
+use iyes_loopless::prelude::*;
 
 use super::{
     character::{DamageModifier, HealingModifier},
@@ -30,11 +31,9 @@ pub(super) struct HealthPlugin;
 
 impl Plugin for HealthPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<HealthChanged>().add_system_set(
-            SystemSet::on_update(GameState::InGame)
-                .with_system(Self::healing_system)
-                .with_system(Self::damage_system),
-        );
+        app.add_event::<HealthChanged>()
+            .add_system(Self::healing_system.run_in_state(GameState::InGame))
+            .add_system(Self::damage_system.run_in_state(GameState::InGame));
     }
 }
 
@@ -303,7 +302,7 @@ mod tests {
 
     impl Plugin for TestHealthPlugin {
         fn build(&self, app: &mut App) {
-            app.add_state(GameState::InGame)
+            app.add_loopless_state(GameState::InGame)
                 .add_plugins(MinimalPlugins)
                 .add_plugin(HealthPlugin);
         }

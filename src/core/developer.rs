@@ -21,6 +21,7 @@
 use bevy::prelude::*;
 use bevy_inspector_egui::WorldInspectorParams;
 use bevy_rapier3d::prelude::*;
+use iyes_loopless::prelude::*;
 
 use super::settings::{Settings, SettingsApplied};
 
@@ -28,31 +29,27 @@ pub(super) struct DeveloperPlugin;
 
 impl Plugin for DeveloperPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(Self::toggle_inspector_system)
-            .add_system(Self::toggle_debug_collisions_system)
+        app.add_startup_system(Self::toggle_inspector_system)
+            .add_startup_system(Self::toggle_debug_collisions_system)
+            .add_system(Self::toggle_inspector_system.run_on_event::<SettingsApplied>())
+            .add_system(Self::toggle_debug_collisions_system.run_on_event::<SettingsApplied>())
             .add_system(Self::update_inspector_setting_system);
     }
 }
 
 impl DeveloperPlugin {
     fn toggle_inspector_system(
-        mut apply_events: EventReader<SettingsApplied>,
         settings: Res<Settings>,
         mut world_inspector: ResMut<WorldInspectorParams>,
     ) {
-        if apply_events.iter().next().is_some() || settings.is_added() {
-            world_inspector.enabled = settings.developer.world_inspector;
-        }
+        world_inspector.enabled = settings.developer.world_inspector;
     }
 
     fn toggle_debug_collisions_system(
-        mut apply_events: EventReader<SettingsApplied>,
         settings: Res<Settings>,
         mut debug_render_ctx: ResMut<DebugRenderContext>,
     ) {
-        if apply_events.iter().next().is_some() || settings.is_added() {
-            debug_render_ctx.enabled = settings.developer.debug_collisions;
-        }
+        debug_render_ctx.enabled = settings.developer.debug_collisions;
     }
 
     /// Update the setting when closing the world inspector
