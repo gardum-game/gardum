@@ -37,12 +37,12 @@ use {
     bevy::diagnostic::FrameTimeDiagnosticsPlugin,
     bevy_atmosphere::AtmospherePlugin,
     bevy_renet::RenetClientPlugin,
-    leafwing_input_manager::prelude::InputManagerPlugin,
+    leafwing_input_manager::prelude::*,
     ui::{ui_actions::UiAction, UiPlugin},
 };
 
 #[cfg(feature = "developer")]
-use bevy_inspector_egui::WorldInspectorPlugin;
+use bevy_inspector_egui::prelude::*;
 
 #[cfg(not(tarpaulin_include))]
 fn main() {

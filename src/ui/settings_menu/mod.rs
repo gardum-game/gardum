@@ -30,7 +30,7 @@ use bevy_egui::{
     EguiContext,
 };
 use iyes_loopless::prelude::*;
-use leafwing_input_manager::{prelude::ActionState, user_input::InputButton};
+use leafwing_input_manager::{prelude::*, user_input::InputButton};
 use strum::{Display, EnumIter, IntoEnumIterator};
 
 use super::{

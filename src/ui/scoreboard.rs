@@ -24,7 +24,7 @@ use bevy_egui::{
     EguiContext,
 };
 use iyes_loopless::prelude::*;
-use leafwing_input_manager::prelude::ActionState;
+use leafwing_input_manager::prelude::*;
 
 use super::{ui_actions::UiAction, ui_state::UiState};
 use crate::core::player::{Damage, Deaths, Healing, Kills};

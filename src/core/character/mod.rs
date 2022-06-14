@@ -23,7 +23,7 @@ pub(crate) mod hero;
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 use derive_more::{AddAssign, From, SubAssign};
-use leafwing_input_manager::prelude::ActionState;
+use leafwing_input_manager::prelude::*;
 
 use super::{ability::Abilities, control_actions::ControlAction, health::Health, CollisionMask};
 use hero::HeroesPlugin;

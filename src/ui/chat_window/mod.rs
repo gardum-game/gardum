@@ -27,7 +27,7 @@ use bevy_egui::{
 };
 use bevy_renet::renet::ServerEvent;
 use iyes_loopless::prelude::*;
-use leafwing_input_manager::{plugin::ToggleActions, prelude::ActionState};
+use leafwing_input_manager::prelude::*;
 use std::mem;
 
 use super::{ui_actions::UiAction, ui_state::UiState, UI_MARGIN};

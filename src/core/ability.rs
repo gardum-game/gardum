@@ -21,7 +21,7 @@
 use bevy::prelude::*;
 use derive_more::From;
 use iyes_loopless::prelude::*;
-use leafwing_input_manager::prelude::ActionState;
+use leafwing_input_manager::prelude::*;
 
 use super::{control_actions::ControlAction, cooldown::Cooldown, game_state::GameState};
 

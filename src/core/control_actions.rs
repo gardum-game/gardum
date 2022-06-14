@@ -21,7 +21,7 @@
 use bevy::prelude::*;
 use derive_more::Display;
 use iyes_loopless::prelude::*;
-use leafwing_input_manager::{prelude::InputMap, Actionlike};
+use leafwing_input_manager::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use super::{

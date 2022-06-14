@@ -19,7 +19,7 @@
  */
 
 use bevy_egui::egui::{Align2, Area, Context, PointerButton, Response};
-use leafwing_input_manager::prelude::ActionState;
+use leafwing_input_manager::prelude::*;
 
 use super::{ui_actions::UiAction, UI_MARGIN};
 

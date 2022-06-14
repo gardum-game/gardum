@@ -27,7 +27,7 @@ use bevy_egui::{
     EguiContext,
 };
 use iyes_loopless::prelude::*;
-use leafwing_input_manager::{plugin::ToggleActions, prelude::ActionState};
+use leafwing_input_manager::prelude::*;
 
 use super::{chat_window::ChatWindowPlugin, ui_actions::UiAction, ui_state::UiState, UI_MARGIN};
 use crate::core::{

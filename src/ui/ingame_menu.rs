@@ -24,7 +24,7 @@ use bevy_egui::{
     EguiContext,
 };
 use iyes_loopless::prelude::*;
-use leafwing_input_manager::prelude::ActionState;
+use leafwing_input_manager::prelude::*;
 
 use crate::core::game_state::GameState;
 

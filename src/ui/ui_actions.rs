@@ -18,10 +18,7 @@
  *
  */
 use bevy::prelude::*;
-use leafwing_input_manager::{
-    prelude::{ActionState, InputMap},
-    Actionlike,
-};
+use leafwing_input_manager::prelude::*;
 
 pub(super) struct UiActionsPlugin;
 

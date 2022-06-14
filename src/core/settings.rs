@@ -20,7 +20,7 @@
 
 use bevy::prelude::*;
 use iyes_loopless::prelude::*;
-use leafwing_input_manager::prelude::InputMap;
+use leafwing_input_manager::prelude::*;
 use serde::{Deserialize, Serialize};
 use standard_paths::{LocationType, StandardPaths};
 use std::{fs, path::PathBuf};

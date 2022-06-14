@@ -20,10 +20,7 @@
 
 use bevy::prelude::Commands;
 use bevy_egui::egui::{Grid, Ui};
-use leafwing_input_manager::{
-    user_input::{InputButton, UserInput},
-    Actionlike,
-};
+use leafwing_input_manager::{prelude::*, user_input::InputButton};
 
 use crate::{
     core::{control_actions::ControlAction, settings::ControlsSettings},

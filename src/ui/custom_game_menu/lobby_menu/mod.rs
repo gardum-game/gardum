@@ -28,7 +28,7 @@ use bevy_egui::{
 };
 use bevy_renet::renet::{RenetClient, RenetServer};
 use iyes_loopless::prelude::*;
-use leafwing_input_manager::prelude::ActionState;
+use leafwing_input_manager::prelude::*;
 
 use crate::{
     core::{game_state::GameState, network::server::ServerSettings, player::Player},

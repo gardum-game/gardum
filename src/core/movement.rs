@@ -22,7 +22,7 @@ use approx::abs_diff_eq;
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 use iyes_loopless::prelude::*;
-use leafwing_input_manager::prelude::ActionState;
+use leafwing_input_manager::prelude::*;
 
 use super::{
     character::SpeedModifier, control_actions::ControlAction, game_state::GameState,
@@ -101,7 +101,7 @@ impl MovementPlugin {
 mod tests {
     use approx::{assert_abs_diff_eq, assert_abs_diff_ne, assert_ulps_eq};
     use bevy::scene::ScenePlugin;
-    use leafwing_input_manager::prelude::InputManagerPlugin;
+    use leafwing_input_manager::prelude::*;
 
     use super::*;
     use crate::core::{headless::HeadlessRenderPlugin, Authority};
