@@ -26,6 +26,7 @@ use bevy_egui::{
     EguiContext,
 };
 use bevy_renet::renet::ServerEvent;
+use iyes_loopless::prelude::*;
 use leafwing_input_manager::{plugin::ToggleActions, prelude::ActionState};
 use std::mem;
 
@@ -49,25 +50,19 @@ impl Plugin for ChatWindowPlugin {
             .init_resource::<Chat>()
             .add_system(Self::chat_system)
             .add_system(Self::announce_connected_system)
-            .add_system_set(
-                SystemSet::on_update(UiState::Hud).with_system(Self::toggle_controls_system),
+            .add_system(Self::toggle_controls_system.run_in_state(UiState::Hud))
+            .add_system(
+                Self::send_message_system
+                    .run_on_event::<MessageAccepted>()
+                    .run_in_bevy_state(NetworkingState::Connected),
             )
-            .add_system_set(
-                SystemSet::on_update(NetworkingState::Connected)
-                    .with_system(Self::send_message_system),
+            .add_system(
+                Self::send_message_system
+                    .run_on_event::<MessageAccepted>()
+                    .run_in_bevy_state(NetworkingState::Hosting),
             )
-            .add_system_set(
-                SystemSet::on_update(NetworkingState::Hosting)
-                    .with_system(Self::send_message_system),
-            )
-            .add_system_set(
-                SystemSet::on_update(NetworkingState::Connected)
-                    .with_system(Self::receive_message_system),
-            )
-            .add_system_set(
-                SystemSet::on_update(NetworkingState::Hosting)
-                    .with_system(Self::receive_message_system),
-            );
+            .add_system(Self::receive_message_system.run_in_bevy_state(NetworkingState::Connected))
+            .add_system(Self::receive_message_system.run_in_bevy_state(NetworkingState::Hosting));
     }
 }
 
@@ -132,17 +127,14 @@ impl ChatWindowPlugin {
     }
 
     fn send_message_system(
-        mut send_events: EventReader<MessageAccepted>,
         mut client_events: EventWriter<ClientMessage>,
         mut chat: ResMut<Chat>,
         local_player: Query<&Name, (With<Authority>, With<Player>)>,
     ) {
-        if send_events.iter().next().is_some() {
-            let player_name = local_player.single();
-            let message = mem::take(&mut chat.current_message);
-            chat.add_player_message(player_name.to_string(), &message);
-            client_events.send(ClientMessage::ChatMessage(message));
-        }
+        let player_name = local_player.single();
+        let message = mem::take(&mut chat.current_message);
+        chat.add_player_message(player_name.to_string(), &message);
+        client_events.send(ClientMessage::ChatMessage(message));
     }
 
     fn receive_message_system(

@@ -23,6 +23,7 @@ use bevy_egui::{
     egui::{Align2, DragValue, Grid, Window},
     EguiContext,
 };
+use iyes_loopless::prelude::*;
 use leafwing_input_manager::prelude::ActionState;
 
 use crate::{
@@ -37,13 +38,22 @@ pub(super) struct DirectConnectMenuPlugin;
 
 impl Plugin for DirectConnectMenuPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(
-            SystemSet::on_update(UiState::DirectConnectMenu)
-                .with_system(Self::direct_connect_menu_system)
-                .with_system(Self::connection_dialog_system)
-                .with_system(Self::enter_lobby_system)
-                .with_system(Self::back_system.after(ChatWindowPlugin::chat_system)),
-        );
+        app.add_system(Self::direct_connect_menu_system.run_in_state(UiState::DirectConnectMenu))
+            .add_system(
+                Self::connection_dialog_system
+                    .run_in_bevy_state(NetworkingState::Connecting)
+                    .run_in_state(UiState::DirectConnectMenu),
+            )
+            .add_system(
+                Self::enter_lobby_system
+                    .run_in_bevy_state(NetworkingState::Connected)
+                    .run_in_state(UiState::DirectConnectMenu),
+            )
+            .add_system(
+                Self::back_system
+                    .run_in_state(UiState::DirectConnectMenu)
+                    .after(ChatWindowPlugin::chat_system),
+            );
     }
 }
 
@@ -90,11 +100,6 @@ impl DirectConnectMenuPlugin {
         mut egui: ResMut<EguiContext>,
         mut networking_state: ResMut<State<NetworkingState>>,
     ) {
-        // TODO 0.8: Refactor using stageless to check if both states are active
-        if !matches!(networking_state.current(), NetworkingState::Connecting) {
-            return;
-        }
-
         ModalWindow::new("Connecting").show(egui.ctx_mut(), |ui| {
             ui.label(format!(
                 "Connecting to {}:{}...",
@@ -106,25 +111,20 @@ impl DirectConnectMenuPlugin {
         });
     }
 
-    fn enter_lobby_system(
-        mut ui_state: ResMut<State<UiState>>,
-        networking_state: ResMut<State<NetworkingState>>,
-    ) {
-        if let NetworkingState::Connected = networking_state.current() {
-            ui_state.set(UiState::LobbyMenu).unwrap();
-        }
+    fn enter_lobby_system(mut commands: Commands) {
+        commands.insert_resource(NextState(UiState::LobbyMenu));
     }
 
     fn back_system(
+        mut commands: Commands,
         mut egui: ResMut<EguiContext>,
         mut action_state: ResMut<ActionState<UiAction>>,
-        mut ui_state: ResMut<State<UiState>>,
     ) {
         if BackButton::new(&mut action_state)
             .show(egui.ctx_mut())
             .clicked()
         {
-            ui_state.set(UiState::ServerBrowser).unwrap();
+            commands.insert_resource(NextState(UiState::ServerBrowser));
         }
     }
 }

@@ -23,6 +23,7 @@ use bevy_egui::{
     egui::{epaint::WHITE_UV, vec2, Align2, Area, ImageButton, Rect, TextureId, Window},
     EguiContext,
 };
+use iyes_loopless::prelude::*;
 use strum::IntoEnumIterator;
 
 use super::{ui_state::UiState, UI_MARGIN};
@@ -35,12 +36,11 @@ pub struct HeroSelectionPlugin;
 
 impl Plugin for HeroSelectionPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(
-            SystemSet::on_update(UiState::HeroSelection).with_system(Self::hero_selection_system),
-        )
-        .add_system_set(
-            SystemSet::on_enter(GameState::InGame).with_system(Self::show_hero_selection_system),
-        );
+        app.add_system(Self::hero_selection_system.run_in_state(UiState::HeroSelection))
+            .add_system_set(
+                SystemSet::on_enter(GameState::InGame)
+                    .with_system(Self::show_hero_selection_system),
+            );
     }
 }
 
@@ -48,7 +48,6 @@ impl HeroSelectionPlugin {
     fn hero_selection_system(
         mut commands: Commands,
         mut egui: ResMut<EguiContext>,
-        mut ui_state: ResMut<State<UiState>>,
         mut local_player: Query<(Entity, Option<&mut HeroKind>), (With<Authority>, With<Player>)>,
     ) {
         let (player, current_hero_kind) = local_player.single_mut();
@@ -58,7 +57,7 @@ impl HeroSelectionPlugin {
             .show(egui.ctx_mut(), |ui| {
                 ui.add_enabled_ui(current_hero_kind.is_some(), |ui| {
                     if ui.button("Confirm").clicked() {
-                        ui_state.set(UiState::Hud).unwrap();
+                        commands.insert_resource(NextState(UiState::Hud));
                     }
                 })
             });
@@ -94,15 +93,12 @@ impl HeroSelectionPlugin {
             });
     }
 
-    fn show_hero_selection_system(
-        server_settings: Res<ServerSettings>,
-        mut ui_state: ResMut<State<UiState>>,
-    ) {
+    fn show_hero_selection_system(mut commands: Commands, server_settings: Res<ServerSettings>) {
         if server_settings.random_heroes {
             // Skip hero selection
-            ui_state.set(UiState::Hud).unwrap();
+            commands.insert_resource(NextState(UiState::Hud));
         } else {
-            ui_state.set(UiState::HeroSelection).unwrap();
+            commands.insert_resource(NextState(UiState::HeroSelection));
         }
     }
 }

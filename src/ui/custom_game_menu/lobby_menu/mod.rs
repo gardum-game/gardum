@@ -27,6 +27,7 @@ use bevy_egui::{
     EguiContext,
 };
 use bevy_renet::renet::{RenetClient, RenetServer};
+use iyes_loopless::prelude::*;
 use leafwing_input_manager::prelude::ActionState;
 
 use crate::{
@@ -43,12 +44,13 @@ pub(super) struct LobbyMenuPlugin;
 
 impl Plugin for LobbyMenuPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(
-            SystemSet::on_update(UiState::LobbyMenu)
-                .with_system(Self::lobby_menu_system)
-                .with_system(Self::back_system)
-                .with_system(Self::confirmation_dialog_system),
-        );
+        app.add_system(Self::lobby_menu_system.run_in_state(UiState::LobbyMenu))
+            .add_system(Self::back_system.run_in_state(UiState::LobbyMenu))
+            .add_system(
+                Self::confirmation_dialog_system
+                    .run_if_resource_exists::<Confirmation>()
+                    .run_in_state(UiState::LobbyMenu),
+            );
     }
 }
 
@@ -112,22 +114,12 @@ impl LobbyMenuPlugin {
         }
     }
 
-    fn confirmation_dialog_system(
-        mut commands: Commands,
-        confirmation: Option<Res<Confirmation>>,
-        mut egui: ResMut<EguiContext>,
-        mut ui_state: ResMut<State<UiState>>,
-    ) {
-        // TODO 0.8: Refactor using stageless to check if the resource exists
-        if confirmation.is_none() {
-            return;
-        }
-
+    fn confirmation_dialog_system(mut commands: Commands, mut egui: ResMut<EguiContext>) {
         ModalWindow::new("Exit lobby").show(egui.ctx_mut(), |ui| {
             ui.label("Are you shoule you want to leave?");
             ui.horizontal(|ui| {
                 if ui.button("Yes").clicked() {
-                    ui_state.set(UiState::ServerBrowser).unwrap();
+                    commands.insert_resource(UiState::ServerBrowser);
                     commands.remove_resource::<Confirmation>();
                 }
                 if ui.button("No").clicked() {

@@ -29,6 +29,7 @@ use bevy_egui::{
     egui::{Align2, Area, Window},
     EguiContext,
 };
+use iyes_loopless::prelude::*;
 use leafwing_input_manager::{prelude::ActionState, user_input::InputButton};
 use strum::{Display, EnumIter, IntoEnumIterator};
 
@@ -51,13 +52,19 @@ pub(super) struct SettingsMenuPlugin;
 
 impl Plugin for SettingsMenuPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(
-            SystemSet::on_update(UiState::SettingsMenu)
-                .with_system(Self::settings_menu_system)
-                .with_system(Self::buttons_system)
-                .with_system(Self::binding_window_system.before(ChatWindowPlugin::chat_system))
-                .with_system(Self::back_system.after(ChatWindowPlugin::chat_system)),
-        );
+        app.add_system(Self::settings_menu_system.run_in_state(UiState::SettingsMenu))
+            .add_system(Self::buttons_system.run_in_state(UiState::SettingsMenu))
+            .add_system(
+                Self::binding_window_system
+                    .run_in_state(UiState::SettingsMenu)
+                    .run_if_resource_exists::<ActiveBinding>()
+                    .before(ChatWindowPlugin::chat_system),
+            )
+            .add_system(
+                Self::back_system
+                    .run_in_state(UiState::SettingsMenu)
+                    .after(ChatWindowPlugin::chat_system),
+            );
     }
 }
 
@@ -120,10 +127,10 @@ impl SettingsMenuPlugin {
     }
 
     fn back_system(
+        mut commands: Commands,
         game_state: Res<State<GameState>>,
         mut egui: ResMut<EguiContext>,
         mut action_state: ResMut<ActionState<UiAction>>,
-        mut ui_state: ResMut<State<UiState>>,
     ) {
         if BackButton::new(&mut action_state)
             .show(egui.ctx_mut())
@@ -133,23 +140,18 @@ impl SettingsMenuPlugin {
                 GameState::Menu => UiState::MainMenu,
                 GameState::InGame => UiState::InGameMenu,
             };
-            ui_state.set(state).unwrap();
+            commands.insert_resource(NextState(state));
         }
     }
 
     fn binding_window_system(
         mut commands: Commands,
         mut input_events: InputEvents,
-        active_binding: Option<ResMut<ActiveBinding>>,
+        mut active_binding: ResMut<ActiveBinding>,
         mut egui: ResMut<EguiContext>,
         mut settings: ResMut<Settings>,
         mut action_state: ResMut<ActionState<UiAction>>,
     ) {
-        let mut active_binding = match active_binding {
-            Some(active_binding) => active_binding,
-            None => return,
-        };
-
         ModalWindow::new(format!("Binding \"{}\"", active_binding.action)).show(
             egui.ctx_mut(),
             |ui| {

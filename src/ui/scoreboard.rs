@@ -23,6 +23,7 @@ use bevy_egui::{
     egui::{Align2, Grid, Window},
     EguiContext,
 };
+use iyes_loopless::prelude::*;
 use leafwing_input_manager::prelude::ActionState;
 
 use super::{ui_actions::UiAction, ui_state::UiState};
@@ -32,20 +33,19 @@ pub(super) struct ScoreboardPlugin;
 
 impl Plugin for ScoreboardPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(SystemSet::on_update(UiState::Hud).with_system(Self::scoreboard_system));
+        app.add_system(
+            Self::scoreboard_system
+                .run_in_state(UiState::Hud)
+                .run_if(Self::scoreboard_action_pressed),
+        );
     }
 }
 
 impl ScoreboardPlugin {
     fn scoreboard_system(
-        action_state: Res<ActionState<UiAction>>,
         mut egui: ResMut<EguiContext>,
         players: Query<(&Name, &Kills, &Deaths, &Damage, &Healing)>,
     ) {
-        if !action_state.pressed(UiAction::Scoreboard) {
-            return;
-        }
-
         Window::new("Scoreboard")
             .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
             .collapsible(false)
@@ -69,5 +69,9 @@ impl ScoreboardPlugin {
                     }
                 })
             });
+    }
+
+    fn scoreboard_action_pressed(action_state: Res<ActionState<UiAction>>) -> bool {
+        action_state.pressed(UiAction::Scoreboard)
     }
 }

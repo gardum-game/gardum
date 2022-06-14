@@ -23,6 +23,7 @@ use bevy_egui::{
     egui::{Align2, TextEdit, Window},
     EguiContext,
 };
+use iyes_loopless::prelude::*;
 use leafwing_input_manager::prelude::ActionState;
 
 use crate::ui::{
@@ -33,19 +34,21 @@ pub(super) struct ServerBrowserPlugin;
 
 impl Plugin for ServerBrowserPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<SearchText>().add_system_set(
-            SystemSet::on_update(UiState::ServerBrowser)
-                .with_system(Self::game_browser_system)
-                .with_system(Self::back_system.after(ChatWindowPlugin::chat_system)),
-        );
+        app.init_resource::<SearchText>()
+            .add_system(Self::game_browser_system.run_in_state(UiState::ServerBrowser))
+            .add_system(
+                Self::back_system
+                    .run_in_state(UiState::ServerBrowser)
+                    .after(ChatWindowPlugin::chat_system),
+            );
     }
 }
 
 impl ServerBrowserPlugin {
     fn game_browser_system(
+        mut commands: Commands,
         mut search_text: Local<SearchText>,
         mut egui: ResMut<EguiContext>,
-        mut ui_state: ResMut<State<UiState>>,
     ) {
         Window::new("Game browser")
             .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
@@ -58,10 +61,10 @@ impl ServerBrowserPlugin {
                         TextEdit::singleline(&mut search_text.0).hint_text("Search servers"),
                     );
                     if ui.button("Connect").clicked() {
-                        ui_state.set(UiState::DirectConnectMenu).unwrap();
+                        commands.insert_resource(NextState(UiState::DirectConnectMenu));
                     }
                     if ui.button("Create").clicked() {
-                        ui_state.set(UiState::LobbyMenu).unwrap();
+                        commands.insert_resource(NextState(UiState::LobbyMenu));
                     }
                 });
                 ui.add_space(ui.available_height());
@@ -69,15 +72,15 @@ impl ServerBrowserPlugin {
     }
 
     fn back_system(
+        mut commands: Commands,
         mut egui: ResMut<EguiContext>,
         mut action_state: ResMut<ActionState<UiAction>>,
-        mut ui_state: ResMut<State<UiState>>,
     ) {
         if BackButton::new(&mut action_state)
             .show(egui.ctx_mut())
             .clicked()
         {
-            ui_state.set(UiState::MainMenu).unwrap();
+            commands.insert_resource(NextState(UiState::MainMenu));
         }
     }
 }

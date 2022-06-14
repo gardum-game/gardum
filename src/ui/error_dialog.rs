@@ -20,6 +20,7 @@
 
 use bevy::prelude::*;
 use bevy_egui::EguiContext;
+use iyes_loopless::prelude::*;
 
 use super::{modal_window::ModalWindow, ui_state::UiState};
 
@@ -27,11 +28,15 @@ pub(super) struct ErrorDialogPlugin;
 
 impl Plugin for ErrorDialogPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(
-            SystemSet::on_update(UiState::LobbyMenu).with_system(Self::error_dialog_system),
+        app.add_system(
+            Self::error_dialog_system
+                .run_if_resource_exists::<ErrorMessage>()
+                .run_in_state(UiState::LobbyMenu),
         )
-        .add_system_set(
-            SystemSet::on_update(UiState::DirectConnectMenu).with_system(Self::error_dialog_system),
+        .add_system(
+            Self::error_dialog_system
+                .run_if_resource_exists::<ErrorMessage>()
+                .run_in_state(UiState::DirectConnectMenu),
         );
     }
 }
@@ -39,17 +44,15 @@ impl Plugin for ErrorDialogPlugin {
 impl ErrorDialogPlugin {
     fn error_dialog_system(
         mut commands: Commands,
-        error_message: Option<Res<ErrorMessage>>,
+        error_message: Res<ErrorMessage>,
         mut egui: ResMut<EguiContext>,
     ) {
-        if let Some(error_message) = error_message {
-            ModalWindow::new(&error_message.title).show(egui.ctx_mut(), |ui| {
-                ui.label(&error_message.text);
-                if ui.button("Ok").clicked() {
-                    commands.remove_resource::<ErrorMessage>();
-                }
-            });
-        }
+        ModalWindow::new(&error_message.title).show(egui.ctx_mut(), |ui| {
+            ui.label(&error_message.text);
+            if ui.button("Ok").clicked() {
+                commands.remove_resource::<ErrorMessage>();
+            }
+        });
     }
 }
 

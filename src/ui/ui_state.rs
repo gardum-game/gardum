@@ -20,17 +20,18 @@
 
 use bevy::prelude::*;
 use bevy_renet::renet::{RenetClient, RenetServer};
+use iyes_loopless::prelude::*;
 
 pub(super) struct UiStatePlugin;
 
 impl Plugin for UiStatePlugin {
     fn build(&self, app: &mut App) {
         if app.world.get_resource::<RenetClient>().is_some() {
-            app.add_state(UiState::DirectConnectMenu);
+            app.add_loopless_state(UiState::DirectConnectMenu);
         } else if app.world.get_resource::<RenetServer>().is_some() {
-            app.add_state(UiState::LobbyMenu);
+            app.add_loopless_state(UiState::LobbyMenu);
         } else {
-            app.add_state(UiState::MainMenu);
+            app.add_loopless_state(UiState::MainMenu);
         }
     }
 }
@@ -45,10 +46,4 @@ pub(super) enum UiState {
     HeroSelection,
     Hud,
     InGameMenu,
-}
-
-impl Default for UiState {
-    fn default() -> Self {
-        Self::MainMenu
-    }
 }

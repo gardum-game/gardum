@@ -26,9 +26,10 @@ use bevy_egui::{
     egui::{Align2, Area, TextureId},
     EguiContext,
 };
+use iyes_loopless::prelude::*;
 use leafwing_input_manager::{plugin::ToggleActions, prelude::ActionState};
 
-use super::{ui_actions::UiAction, ui_state::UiState, UI_MARGIN};
+use super::{chat_window::ChatWindowPlugin, ui_actions::UiAction, ui_state::UiState, UI_MARGIN};
 use crate::core::{
     ability::{Abilities, IconPath},
     control_actions::ControlAction,
@@ -46,21 +47,17 @@ impl Plugin for HudPlugin {
         app.world
             .resource_mut::<ToggleActions<ControlAction>>()
             .enabled = false; // Should be initialized in disabled state and enabled only on hud
-        app.add_system_set(
-            SystemSet::on_update(UiState::Hud)
-                .with_system(Self::health_and_abilities_system)
-                .with_system(Self::show_ingame_menu_system),
-        )
-        .add_system_set(
-            SystemSet::on_enter(UiState::Hud)
-                .with_system(Self::enable_control_actions_system)
-                .with_system(Self::hide_cursor_system),
-        )
-        .add_system_set(
-            SystemSet::on_exit(UiState::Hud)
-                .with_system(Self::disable_control_actions_system)
-                .with_system(Self::show_cursor_system),
-        );
+
+        app.add_system(Self::health_and_abilities_system.run_in_state(UiState::Hud))
+            .add_system(
+                Self::show_ingame_menu_system
+                    .run_in_state(UiState::Hud)
+                    .after(ChatWindowPlugin::chat_system),
+            )
+            .add_enter_system(UiState::Hud, Self::enable_control_actions_system)
+            .add_enter_system(UiState::Hud, Self::hide_cursor_system)
+            .add_exit_system(UiState::Hud, Self::disable_control_actions_system)
+            .add_exit_system(UiState::Hud, Self::show_cursor_system);
     }
 }
 
@@ -122,12 +119,12 @@ impl HudPlugin {
     }
 
     fn show_ingame_menu_system(
+        mut commands: Commands,
         mut action_state: ResMut<ActionState<UiAction>>,
-        mut ui_state: ResMut<State<UiState>>,
     ) {
         if action_state.just_pressed(UiAction::Back) {
             action_state.consume(UiAction::Back);
-            ui_state.set(UiState::InGameMenu).unwrap();
+            commands.insert_resource(NextState(UiState::InGameMenu));
         }
     }
 }

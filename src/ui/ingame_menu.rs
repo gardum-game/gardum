@@ -23,6 +23,7 @@ use bevy_egui::{
     egui::{Align2, Area},
     EguiContext,
 };
+use iyes_loopless::prelude::*;
 use leafwing_input_manager::prelude::ActionState;
 
 use crate::core::game_state::GameState;
@@ -33,32 +34,33 @@ pub(super) struct InGameMenuPlugin;
 
 impl Plugin for InGameMenuPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(
-            SystemSet::on_update(UiState::InGameMenu)
-                .with_system(Self::ingame_menu_system)
-                .with_system(Self::hide_ingame_menu_system.after(ChatWindowPlugin::chat_system)),
-        );
+        app.add_system(Self::ingame_menu_system.run_in_state(UiState::InGameMenu))
+            .add_system(
+                Self::hide_ingame_menu_system
+                    .run_in_state(UiState::InGameMenu)
+                    .after(ChatWindowPlugin::chat_system),
+            );
     }
 }
 
 impl InGameMenuPlugin {
     fn ingame_menu_system(
+        mut commands: Commands,
         mut exit_events: EventWriter<AppExit>,
         mut egui: ResMut<EguiContext>,
-        mut ui_state: ResMut<State<UiState>>,
         mut game_state: ResMut<State<GameState>>,
     ) {
         Area::new("Main Menu")
             .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
             .show(egui.ctx_mut(), |ui| {
                 if ui.button("Resume").clicked() {
-                    ui_state.set(UiState::Hud).unwrap();
+                    commands.insert_resource(NextState(UiState::Hud));
                 }
                 if ui.button("Settings").clicked() {
-                    ui_state.set(UiState::SettingsMenu).unwrap();
+                    commands.insert_resource(NextState(UiState::SettingsMenu));
                 }
                 if ui.button("Main menu").clicked() {
-                    ui_state.set(UiState::MainMenu).unwrap();
+                    commands.insert_resource(NextState(UiState::MainMenu));
                     game_state.set(GameState::Menu).unwrap();
                 }
                 if ui.button("Exit").clicked() {
@@ -68,12 +70,12 @@ impl InGameMenuPlugin {
     }
 
     fn hide_ingame_menu_system(
+        mut commands: Commands,
         mut action_state: ResMut<ActionState<UiAction>>,
-        mut ui_state: ResMut<State<UiState>>,
     ) {
         if action_state.just_pressed(UiAction::Back) {
             action_state.consume(UiAction::Back);
-            ui_state.set(UiState::Hud).unwrap();
+            commands.insert_resource(NextState(UiState::Hud));
         }
     }
 }

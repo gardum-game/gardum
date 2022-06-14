@@ -23,6 +23,7 @@ use bevy_egui::{
     egui::{Align2, Area, Button, RichText, TextStyle},
     EguiContext,
 };
+use iyes_loopless::prelude::*;
 
 use super::{ui_state::UiState, UI_MARGIN};
 
@@ -30,17 +31,15 @@ pub(super) struct MainMenuPlugin;
 
 impl Plugin for MainMenuPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(
-            SystemSet::on_update(UiState::MainMenu).with_system(Self::main_menu_system),
-        );
+        app.add_system(Self::main_menu_system.run_in_state(UiState::MainMenu));
     }
 }
 
 impl MainMenuPlugin {
     fn main_menu_system(
+        mut commands: Commands,
         mut exit_events: EventWriter<AppExit>,
         mut egui: ResMut<EguiContext>,
-        mut ui_state: ResMut<State<UiState>>,
     ) {
         Area::new("Main Menu")
             .anchor(Align2::LEFT_CENTER, (UI_MARGIN, 0.0))
@@ -55,7 +54,7 @@ impl MainMenuPlugin {
                     ))
                     .clicked()
                 {
-                    ui_state.set(UiState::ServerBrowser).unwrap();
+                    commands.insert_resource(NextState(UiState::ServerBrowser));
                 }
                 ui.add_enabled(
                     false,
@@ -67,7 +66,7 @@ impl MainMenuPlugin {
                     ))
                     .clicked()
                 {
-                    ui_state.set(UiState::SettingsMenu).unwrap();
+                    commands.insert_resource(NextState(UiState::SettingsMenu));
                 }
                 if ui
                     .add(Button::new(
