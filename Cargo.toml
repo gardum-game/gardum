@@ -17,7 +17,7 @@ bevy-inspector-egui = { version = "0.11", default-features = false, features = [
 bevy_rapier3d = { version = "0.14", default-features = false, features = [
   "dim3",
 ] }
-iyes_loopless = { version = "0.5" }
+iyes_loopless = { version = "0.6" }
 leafwing-input-manager = { version = "0.3", default-features = false }
 clap = { version = "3.1", features = ["derive"] }
 serde = "1.0"

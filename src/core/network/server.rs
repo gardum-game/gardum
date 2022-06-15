@@ -39,8 +39,12 @@ pub(super) struct ServerPlugin;
 
 impl Plugin for ServerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(Self::waiting_for_socket_system.run_in_state(NetworkingState::NoSocket))
-            .add_exit_system(NetworkingState::Hosting, Self::shutdown_system);
+        app.add_system(
+            Self::enter_hosting_system
+                .run_in_state(NetworkingState::NoSocket)
+                .run_if_resource_added::<RenetServer>(),
+        )
+        .add_exit_system(NetworkingState::Hosting, Self::shutdown_system);
 
         let opts = app
             .world
@@ -57,10 +61,8 @@ impl Plugin for ServerPlugin {
 }
 
 impl ServerPlugin {
-    fn waiting_for_socket_system(mut commands: Commands, server: Option<Res<RenetServer>>) {
-        if server.is_some() {
-            commands.insert_resource(NextState(NetworkingState::Hosting));
-        }
+    fn enter_hosting_system(mut commands: Commands) {
+        commands.insert_resource(NextState(NetworkingState::Hosting));
     }
 
     fn shutdown_system(mut commands: Commands, mut server: ResMut<RenetServer>) {

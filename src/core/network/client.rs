@@ -35,10 +35,21 @@ pub(super) struct ClientPlugin;
 
 impl Plugin for ClientPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(Self::waiting_for_socket_system.run_in_state(NetworkingState::NoSocket))
-            .add_system(Self::connecting_system.run_in_state(NetworkingState::Connecting))
-            .add_exit_system(NetworkingState::Connected, Self::disconnect_system)
-            .add_exit_system(NetworkingState::Connecting, Self::cancel_connection_system);
+        app.add_system(
+            Self::enter_connecting_system
+                .run_in_state(NetworkingState::NoSocket)
+                .run_if_resource_added::<RenetClient>(),
+        )
+        .add_system(
+            Self::enter_connected_system
+                .run_in_state(NetworkingState::Connecting)
+                .run_if(connected),
+        )
+        .add_exit_system(NetworkingState::Connected, Self::disconnect_system)
+        .add_exit_system(
+            NetworkingState::Connecting,
+            Self::client_removal_system.run_if_not(connected),
+        );
 
         let opts = app
             .world
@@ -55,16 +66,12 @@ impl Plugin for ClientPlugin {
 }
 
 impl ClientPlugin {
-    fn waiting_for_socket_system(mut commands: Commands, client: Option<Res<RenetClient>>) {
-        if client.is_some() {
-            commands.insert_resource(NextState(NetworkingState::Connecting));
-        }
+    fn enter_connecting_system(mut commands: Commands) {
+        commands.insert_resource(NextState(NetworkingState::Connecting));
     }
 
-    fn connecting_system(mut commands: Commands, client: Res<RenetClient>) {
-        if client.is_connected() {
-            commands.insert_resource(NextState(NetworkingState::Connected));
-        }
+    fn enter_connected_system(mut commands: Commands) {
+        commands.insert_resource(NextState(NetworkingState::Connected));
     }
 
     fn disconnect_system(mut commands: Commands, mut client: ResMut<RenetClient>) {
@@ -72,11 +79,13 @@ impl ClientPlugin {
         commands.remove_resource::<RenetClient>();
     }
 
-    fn cancel_connection_system(mut commands: Commands, client: Res<RenetClient>) {
-        if !client.is_connected() {
-            commands.remove_resource::<RenetClient>();
-        }
+    fn client_removal_system(mut commands: Commands) {
+        commands.remove_resource::<RenetClient>();
     }
+}
+
+fn connected(client: Res<RenetClient>) -> bool {
+    client.is_connected()
 }
 
 #[derive(Args, Clone)]
