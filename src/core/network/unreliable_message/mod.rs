@@ -199,10 +199,7 @@ mod tests {
     #[test]
     fn client_ticks_init_and_cleanup() {
         let mut app = App::new();
-        app.add_plugin(TestUnreliableMessagePlugin::new(
-            None,
-            NetworkingState::Connected,
-        ));
+        app.add_plugin(TestUnreliableMessagePlugin::new(NetworkingState::Connected));
 
         app.update();
 
@@ -233,10 +230,7 @@ mod tests {
     #[test]
     fn server_ticks_init_and_cleanup() {
         let mut app = App::new();
-        app.add_plugin(TestUnreliableMessagePlugin::new(
-            None,
-            NetworkingState::Hosting,
-        ));
+        app.add_plugin(TestUnreliableMessagePlugin::new(NetworkingState::Hosting));
 
         app.update();
 
@@ -267,10 +261,10 @@ mod tests {
     #[test]
     fn sending_and_receiving() {
         let mut app = App::new();
-        app.add_plugin(TestUnreliableMessagePlugin::new(
-            Some(NetworkPreset::ServerAndClient { connected: true }),
-            NetworkingState::Hosting,
-        ));
+        app.add_plugin(TestUnreliableMessagePlugin::new(NetworkingState::Hosting))
+            .add_plugin(TestNetworkPlugin::new(NetworkPreset::ServerAndClient {
+                connected: true,
+            }));
 
         // TODO 0.8: Use [`Time::update_with_instant`]
         let init_time = app.world.resource::<Time>().seconds_since_startup();
@@ -312,25 +306,17 @@ mod tests {
     }
 
     struct TestUnreliableMessagePlugin {
-        preset: Option<NetworkPreset>,
         networking_state: NetworkingState,
     }
 
     impl TestUnreliableMessagePlugin {
-        fn new(preset: Option<NetworkPreset>, networking_state: NetworkingState) -> Self {
-            Self {
-                preset,
-                networking_state,
-            }
+        fn new(networking_state: NetworkingState) -> Self {
+            Self { networking_state }
         }
     }
 
     impl Plugin for TestUnreliableMessagePlugin {
         fn build(&self, app: &mut App) {
-            if let Some(preset) = self.preset {
-                app.add_plugin(TestNetworkPlugin::new(preset));
-            }
-
             app.add_loopless_state(self.networking_state)
                 .add_plugin(UnreliableMessagePlugin);
         }

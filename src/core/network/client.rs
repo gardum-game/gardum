@@ -147,10 +147,7 @@ mod tests {
     fn defaulted_without_connect() {
         let mut app = App::new();
         app.init_resource::<Opts>();
-        app.add_plugin(TestClientPlugin {
-            preset: None,
-            networking_state: NetworkingState::NoSocket,
-        });
+        app.add_plugin(TestClientPlugin::new(NetworkingState::NoSocket));
 
         assert_eq!(
             *app.world.resource::<ConnectionSettings>(),
@@ -173,10 +170,7 @@ mod tests {
         app.world.insert_resource(Opts {
             subcommand: Some(SubCommand::Connect(connection_settings.clone())),
         });
-        app.add_plugin(TestClientPlugin {
-            preset: None,
-            networking_state: NetworkingState::NoSocket,
-        });
+        app.add_plugin(TestClientPlugin::new(NetworkingState::NoSocket));
 
         assert_eq!(
             *app.world.resource::<ConnectionSettings>(),
@@ -192,10 +186,10 @@ mod tests {
     #[test]
     fn connects() {
         let mut app = App::new();
-        app.add_plugin(TestClientPlugin::new(
-            Some(NetworkPreset::ServerAndClient { connected: false }),
-            NetworkingState::NoSocket,
-        ));
+        app.add_plugin(TestClientPlugin::new(NetworkingState::NoSocket))
+            .add_plugin(TestNetworkPlugin::new(NetworkPreset::ServerAndClient {
+                connected: false,
+            }));
 
         app.update();
         app.update();
@@ -236,10 +230,8 @@ mod tests {
     #[test]
     fn connection_cancels() {
         let mut app = App::new();
-        app.add_plugin(TestClientPlugin::new(
-            Some(NetworkPreset::Client),
-            NetworkingState::Connecting,
-        ));
+        app.add_plugin(TestClientPlugin::new(NetworkingState::Connecting))
+            .add_plugin(TestNetworkPlugin::new(NetworkPreset::Client));
 
         app.world
             .insert_resource(NextState(NetworkingState::NoSocket));
@@ -254,25 +246,17 @@ mod tests {
     }
 
     struct TestClientPlugin {
-        preset: Option<NetworkPreset>,
         networking_state: NetworkingState,
     }
 
     impl TestClientPlugin {
-        fn new(preset: Option<NetworkPreset>, networking_state: NetworkingState) -> Self {
-            Self {
-                preset,
-                networking_state,
-            }
+        fn new(networking_state: NetworkingState) -> Self {
+            Self { networking_state }
         }
     }
 
     impl Plugin for TestClientPlugin {
         fn build(&self, app: &mut App) {
-            if let Some(preset) = self.preset {
-                app.add_plugin(TestNetworkPlugin::new(preset));
-            }
-
             app.init_resource::<Opts>()
                 .add_loopless_state(self.networking_state)
                 .add_plugin(ClientPlugin);

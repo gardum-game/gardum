@@ -143,7 +143,7 @@ mod tests {
     fn defaulted_without_host() {
         let mut app = App::new();
         app.init_resource::<Opts>();
-        app.add_plugin(TestServerPlugin::new(None));
+        app.add_plugin(TestServerPlugin);
 
         assert_eq!(
             *app.world.resource::<ServerSettings>(),
@@ -166,7 +166,7 @@ mod tests {
         app.world.insert_resource(Opts {
             subcommand: Some(SubCommand::Host(server_settings.clone())),
         });
-        app.add_plugin(TestServerPlugin::new(None));
+        app.add_plugin(TestServerPlugin);
 
         assert_eq!(
             *app.world.resource::<ServerSettings>(),
@@ -182,7 +182,8 @@ mod tests {
     #[test]
     fn hosts() {
         let mut app = App::new();
-        app.add_plugin(TestServerPlugin::new(Some(NetworkPreset::Server)));
+        app.add_plugin(TestServerPlugin)
+            .add_plugin(TestNetworkPlugin::new(NetworkPreset::Server));
 
         app.update();
         app.update();
@@ -205,22 +206,10 @@ mod tests {
         );
     }
 
-    struct TestServerPlugin {
-        preset: Option<NetworkPreset>,
-    }
-
-    impl TestServerPlugin {
-        fn new(preset: Option<NetworkPreset>) -> Self {
-            Self { preset }
-        }
-    }
+    struct TestServerPlugin;
 
     impl Plugin for TestServerPlugin {
         fn build(&self, app: &mut App) {
-            if let Some(preset) = self.preset {
-                app.add_plugin(TestNetworkPlugin::new(preset));
-            }
-
             app.init_resource::<Opts>()
                 .add_loopless_state(NetworkingState::NoSocket)
                 .add_plugin(ServerPlugin);
