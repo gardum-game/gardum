@@ -1,1 +1,5 @@
+# Binaries
 target
+
+# Neovim
+neovim.json
