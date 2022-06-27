@@ -65,9 +65,7 @@ impl PerfStatsPlugin {
                     let network_info = client.network_info();
                     ui.strong(format!(
                         "RTT: {:.02} ⬇ {:.02} kbps ⬆ {:.02} kbps",
-                        network_info.rtt,
-                        network_info.received_bandwidth_kbps,
-                        network_info.sent_bandwidth_kbps,
+                        network_info.rtt, network_info.received_kbps, network_info.sent_kbps,
                     ));
                 }
             });
