@@ -117,7 +117,7 @@ impl LobbyMenuPlugin {
             ui.label("Are you shoule you want to leave?");
             ui.horizontal(|ui| {
                 if ui.button("Yes").clicked() {
-                    commands.insert_resource(UiState::ServerBrowser);
+                    commands.insert_resource(NextState(UiState::ServerBrowser));
                     commands.remove_resource::<Confirmation>();
                 }
                 if ui.button("No").clicked() {
