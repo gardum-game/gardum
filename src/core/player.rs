@@ -18,18 +18,18 @@
  */
 
 use bevy::prelude::*;
+use bevy_renet::renet::{RenetClient, RenetServer};
 use iyes_loopless::prelude::*;
 
-use super::{network::NetworkingState, Authority};
+use super::Authority;
 
 pub(super) struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_enter_system(NetworkingState::Connected, Self::spawn_player_system)
-            .add_enter_system(NetworkingState::Hosting, Self::spawn_player_system)
-            .add_exit_system(NetworkingState::Connected, Self::despawn_players_system)
-            .add_exit_system(NetworkingState::Hosting, Self::despawn_players_system);
+        app.add_system(Self::spawn_player_system.run_if_resource_added::<RenetServer>())
+            .add_system(Self::despawn_players_system.run_if_resource_removed::<RenetServer>())
+            .add_system(Self::despawn_players_system.run_if_resource_removed::<RenetClient>());
     }
 }
 
@@ -92,47 +92,54 @@ pub(crate) struct Healing(pub(crate) u32);
 
 #[cfg(test)]
 mod tests {
+    use crate::core::network::tests::{NetworkPreset, TestNetworkPlugin};
+
     use super::*;
 
     #[test]
-    fn player_spawns_despawns() {
+    fn player_spawns_despawns_on_server() {
         let mut app = App::new();
-        app.add_plugin(TestPlayerPlugin);
+        app.add_plugin(PlayerPlugin)
+            .add_plugin(TestNetworkPlugin::new(NetworkPreset::Server));
 
-        for state in [NetworkingState::Connected, NetworkingState::Hosting] {
-            app.world.insert_resource(NextState(state));
+        app.update();
 
-            app.update();
+        let mut local_player = app
+            .world
+            .query_filtered::<Entity, (With<Authority>, With<Player>)>();
+        let local_player = local_player
+            .iter(&app.world)
+            .next()
+            .expect("Local player should be created after inserting server resource"); // TODO 0.8: Use single
 
-            let mut local_player = app
-                .world
-                .query_filtered::<Entity, (With<Authority>, With<Player>)>();
-            local_player.iter(&app.world).next().unwrap_or_else(|| {
-                panic!(
-                    "Local player should be created after entering {:?} state",
-                    state
-                )
-            }); // TODO 0.8: Use single
+        app.world.remove_resource::<RenetServer>();
 
-            app.world
-                .insert_resource(NextState(NetworkingState::NoSocket));
+        app.update();
 
-            app.update();
-
-            assert!(
-                local_player.iter(&app.world).next().is_none(), // TODO 0.8: Use single
-                "Local player should be removed after entering {:?} state",
-                NetworkingState::NoSocket
-            );
-        }
+        assert!(
+            app.world.get_entity(local_player).is_none(),
+            "Local player should be removed after removing server resource",
+        );
     }
 
-    struct TestPlayerPlugin;
+    #[test]
+    fn player_despawns_on_client() {
+        let mut app = App::new();
+        app.add_plugin(PlayerPlugin)
+            .add_plugin(TestNetworkPlugin::new(NetworkPreset::Client));
 
-    impl Plugin for TestPlayerPlugin {
-        fn build(&self, app: &mut App) {
-            app.add_loopless_state(NetworkingState::NoSocket)
-                .add_plugin(PlayerPlugin);
-        }
+        // On client spawned player is replicated, spawn it manually to test removal
+        let local_player = app.world.spawn().insert(Player).insert(Authority).id();
+
+        app.update();
+
+        app.world.remove_resource::<RenetClient>();
+
+        app.update();
+
+        assert!(
+            app.world.get_entity(local_player).is_none(),
+            "Local player should be removed after removing client resource",
+        );
     }
 }

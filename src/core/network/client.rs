@@ -20,36 +20,19 @@
 use bevy::prelude::*;
 use bevy_renet::renet::{ConnectToken, RenetClient, RenetConnectionConfig};
 use clap::Args;
-use iyes_loopless::prelude::*;
 use std::{
     error::Error,
     net::{SocketAddr, UdpSocket},
     time::SystemTime,
 };
 
-use super::{Channel, NetworkingState, DEFAULT_PORT, PROTOCOL_ID, PUBLIC_GAME_KEY};
+use super::{Channel, DEFAULT_PORT, PROTOCOL_ID, PUBLIC_GAME_KEY};
 use crate::core::cli::{Opts, SubCommand};
 
 pub(super) struct ClientPlugin;
 
 impl Plugin for ClientPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(
-            Self::enter_connecting_system
-                .run_in_state(NetworkingState::NoSocket)
-                .run_if_resource_added::<RenetClient>(),
-        )
-        .add_system(
-            Self::enter_connected_system
-                .run_in_state(NetworkingState::Connecting)
-                .run_if(connected),
-        )
-        .add_exit_system(NetworkingState::Connected, Self::disconnect_system)
-        .add_exit_system(
-            NetworkingState::Connecting,
-            Self::client_removal_system.run_if_not(connected),
-        );
-
         let opts = app
             .world
             .get_resource::<Opts>()
@@ -64,27 +47,18 @@ impl Plugin for ClientPlugin {
     }
 }
 
-impl ClientPlugin {
-    fn enter_connecting_system(mut commands: Commands) {
-        commands.insert_resource(NextState(NetworkingState::Connecting));
-    }
-
-    fn enter_connected_system(mut commands: Commands) {
-        commands.insert_resource(NextState(NetworkingState::Connected));
-    }
-
-    fn disconnect_system(mut commands: Commands, mut client: ResMut<RenetClient>) {
-        client.disconnect();
-        commands.remove_resource::<RenetClient>();
-    }
-
-    fn client_removal_system(mut commands: Commands) {
-        commands.remove_resource::<RenetClient>();
+pub(crate) fn connected(client: Option<Res<RenetClient>>) -> bool {
+    match client {
+        Some(client) => client.is_connected(),
+        None => false,
     }
 }
 
-fn connected(client: Res<RenetClient>) -> bool {
-    client.is_connected()
+pub(crate) fn connecting(client: Option<Res<RenetClient>>) -> bool {
+    match client {
+        Some(client) => !client.is_connected(),
+        None => false,
+    }
 }
 
 #[derive(Args, Clone)]
@@ -140,13 +114,11 @@ impl ConnectionSettings {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::core::network::tests::{NetworkPreset, TestNetworkPlugin};
 
     #[test]
     fn defaulted_without_connect() {
         let mut app = App::new();
-        app.init_resource::<Opts>();
-        app.add_plugin(TestClientPlugin::new(NetworkingState::NoSocket));
+        app.init_resource::<Opts>().add_plugin(ClientPlugin);
 
         assert_eq!(
             *app.world.resource::<ConnectionSettings>(),
@@ -169,7 +141,7 @@ mod tests {
         app.world.insert_resource(Opts {
             subcommand: Some(SubCommand::Connect(connection_settings.clone())),
         });
-        app.add_plugin(TestClientPlugin::new(NetworkingState::NoSocket));
+        app.add_plugin(ClientPlugin);
 
         assert_eq!(
             *app.world.resource::<ConnectionSettings>(),
@@ -180,85 +152,5 @@ mod tests {
             app.world.get_resource::<RenetClient>().is_some(),
             "Client resource should exist"
         );
-    }
-
-    #[test]
-    fn connects() {
-        let mut app = App::new();
-        app.add_plugin(TestClientPlugin::new(NetworkingState::NoSocket))
-            .add_plugin(TestNetworkPlugin::new(NetworkPreset::ServerAndClient {
-                connected: false,
-            }));
-
-        app.update();
-        app.update();
-
-        let networking_state = app.world.resource::<CurrentState<NetworkingState>>();
-        assert!(
-            matches!(networking_state.0, NetworkingState::Connecting),
-            "Networking state should be in {:?} state after client creation",
-            NetworkingState::Connecting,
-        );
-
-        app.update();
-        app.update();
-
-        assert!(
-            app.world.resource::<RenetClient>().is_connected(),
-            "Client should be connected",
-        );
-
-        let networking_state = app.world.resource::<CurrentState<NetworkingState>>();
-        assert!(
-            matches!(networking_state.0, NetworkingState::Connected),
-            "Networking state should be in {:?} state after connection",
-            NetworkingState::Connected,
-        );
-        app.world
-            .insert_resource(NextState(NetworkingState::NoSocket));
-
-        app.update();
-
-        assert!(
-            app.world.get_resource::<RenetClient>().is_none(),
-            "Client resource should be removed on entering {:?} state",
-            NetworkingState::NoSocket,
-        );
-    }
-
-    #[test]
-    fn connection_cancels() {
-        let mut app = App::new();
-        app.add_plugin(TestClientPlugin::new(NetworkingState::Connecting))
-            .add_plugin(TestNetworkPlugin::new(NetworkPreset::Client));
-
-        app.world
-            .insert_resource(NextState(NetworkingState::NoSocket));
-
-        app.update();
-
-        assert!(
-            app.world.get_resource::<RenetClient>().is_none(),
-            "Client resource should be removed on entering {:?} state",
-            NetworkingState::NoSocket,
-        );
-    }
-
-    struct TestClientPlugin {
-        networking_state: NetworkingState,
-    }
-
-    impl TestClientPlugin {
-        fn new(networking_state: NetworkingState) -> Self {
-            Self { networking_state }
-        }
-    }
-
-    impl Plugin for TestClientPlugin {
-        fn build(&self, app: &mut App) {
-            app.init_resource::<Opts>()
-                .add_loopless_state(self.networking_state)
-                .add_plugin(ClientPlugin);
-        }
     }
 }

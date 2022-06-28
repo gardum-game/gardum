@@ -27,7 +27,6 @@ use bevy::prelude::*;
 use bevy_renet::renet::{
     ChannelConfig, ReliableChannelConfig, UnreliableChannelConfig, NETCODE_KEY_BYTES,
 };
-use iyes_loopless::prelude::*;
 
 use chat::ChatPlugin;
 use client::ClientPlugin;
@@ -45,21 +44,12 @@ pub(super) struct NetworkPlugin;
 
 impl Plugin for NetworkPlugin {
     fn build(&self, app: &mut App) {
-        app.add_loopless_state(NetworkingState::NoSocket)
-            .add_plugin(ServerPlugin)
+        app.add_plugin(ServerPlugin)
             .add_plugin(ClientPlugin)
             .add_plugin(MessagePlugin)
             .add_plugin(UnreliableMessagePlugin)
             .add_plugin(ChatPlugin);
     }
-}
-
-#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
-pub(crate) enum NetworkingState {
-    NoSocket,
-    Connecting,
-    Connected,
-    Hosting,
 }
 
 pub(crate) enum Channel {
@@ -91,7 +81,7 @@ impl Channel {
 }
 
 #[cfg(test)]
-mod tests {
+pub mod tests {
     use bevy_renet::{
         renet::{RenetClient, RenetServer},
         RenetClientPlugin, RenetServerPlugin,
@@ -102,14 +92,14 @@ mod tests {
 
     /// Preset for quickly testing networking
     #[derive(Clone, Copy)]
-    pub(super) enum NetworkPreset {
+    pub(crate) enum NetworkPreset {
         Server,
         Client,
         ServerAndClient { connected: bool },
     }
 
     /// Automates server and / or client creation for unit tests
-    pub(super) struct TestNetworkPlugin {
+    pub(crate) struct TestNetworkPlugin {
         server: bool,
         client: bool,
         connected: bool,
@@ -164,7 +154,7 @@ mod tests {
     }
 
     impl TestNetworkPlugin {
-        pub(super) fn new(preset: NetworkPreset) -> Self {
+        pub(crate) fn new(preset: NetworkPreset) -> Self {
             // Split into booleans for easily handling the logic
             match preset {
                 NetworkPreset::Server => Self {

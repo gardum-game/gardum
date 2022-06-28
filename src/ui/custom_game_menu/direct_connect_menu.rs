@@ -22,11 +22,15 @@ use bevy_egui::{
     egui::{Align2, DragValue, Grid, Window},
     EguiContext,
 };
+use bevy_renet::renet::RenetClient;
 use iyes_loopless::prelude::*;
 use leafwing_input_manager::prelude::*;
 
 use crate::{
-    core::network::{client::ConnectionSettings, NetworkingState, MAX_PORT},
+    core::network::{
+        client::{self, ConnectionSettings},
+        MAX_PORT,
+    },
     ui::{
         back_button::BackButton, chat_window::ChatWindowPlugin, error_dialog::ErrorMessage,
         modal_window::ModalWindow, ui_actions::UiAction, ui_state::UiState,
@@ -40,13 +44,13 @@ impl Plugin for DirectConnectMenuPlugin {
         app.add_system(Self::direct_connect_menu_system.run_in_state(UiState::DirectConnectMenu))
             .add_system(
                 Self::connection_dialog_system
-                    .run_in_state(NetworkingState::Connecting)
-                    .run_in_state(UiState::DirectConnectMenu),
+                    .run_in_state(UiState::DirectConnectMenu)
+                    .run_if(client::connecting),
             )
             .add_system(
                 Self::enter_lobby_system
-                    .run_in_state(NetworkingState::Connected)
-                    .run_in_state(UiState::DirectConnectMenu),
+                    .run_in_state(UiState::DirectConnectMenu)
+                    .run_if(client::connected),
             )
             .add_system(
                 Self::back_system
@@ -105,7 +109,7 @@ impl DirectConnectMenuPlugin {
                 connection_setttings.ip, connection_setttings.port
             ));
             if ui.button("Cancel").clicked() {
-                commands.insert_resource(NextState(NetworkingState::NoSocket));
+                commands.remove_resource::<RenetClient>();
             }
         });
     }

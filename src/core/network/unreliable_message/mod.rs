@@ -24,7 +24,7 @@ use bevy_renet::renet::{RenetClient, RenetServer};
 use iyes_loopless::prelude::*;
 use serde::{Deserialize, Serialize};
 
-use super::{Channel, NetworkingState};
+use super::{client, Channel};
 
 pub(super) struct UnreliableMessagePlugin;
 
@@ -40,22 +40,22 @@ impl Plugin for UnreliableMessagePlugin {
             NetworkStage::Tick,
             FixedTimestepStage::new(Duration::from_secs_f64(Self::TIMESTEP))
                 .with_stage(SystemStage::single(
-                    Self::receive_client_message_system.run_in_state(NetworkingState::Hosting),
+                    Self::receive_client_message_system.run_if_resource_exists::<RenetServer>(),
                 ))
                 .with_stage(SystemStage::single(
-                    Self::send_server_message_system.run_in_state(NetworkingState::Hosting),
+                    Self::send_server_message_system.run_if_resource_exists::<RenetServer>(),
                 ))
                 .with_stage(SystemStage::single(
-                    Self::receive_server_message_system.run_in_state(NetworkingState::Connected),
+                    Self::receive_server_message_system.run_if(client::connected),
                 ))
                 .with_stage(SystemStage::single(
-                    Self::send_client_message_system.run_in_state(NetworkingState::Connected),
+                    Self::send_client_message_system.run_if(client::connected),
                 )),
         )
-        .add_enter_system(NetworkingState::Hosting, Self::server_ticks_init_system)
-        .add_enter_system(NetworkingState::Connected, Self::client_ticks_init_system)
-        .add_exit_system(NetworkingState::Hosting, Self::server_ticks_remove_system)
-        .add_exit_system(NetworkingState::Connected, Self::client_ticks_remove_system);
+        .add_system(Self::server_ticks_init_system.run_if_resource_added::<RenetServer>())
+        .add_system(Self::client_ticks_init_system.run_if_resource_added::<RenetClient>())
+        .add_system(Self::server_ticks_remove_system.run_if_resource_removed::<RenetServer>())
+        .add_system(Self::client_ticks_remove_system.run_if_resource_removed::<RenetClient>());
     }
 }
 
@@ -193,7 +193,8 @@ mod tests {
     #[test]
     fn client_ticks_init_and_cleanup() {
         let mut app = App::new();
-        app.add_plugin(TestUnreliableMessagePlugin::new(NetworkingState::Connected));
+        app.add_plugin(UnreliableMessagePlugin)
+            .add_plugin(TestNetworkPlugin::new(NetworkPreset::Client));
 
         app.update();
 
@@ -206,8 +207,7 @@ mod tests {
             "The received server tick resource should be created when connected"
         );
 
-        app.world
-            .insert_resource(NextState(NetworkingState::NoSocket));
+        app.world.remove_resource::<RenetClient>();
 
         app.update();
 
@@ -224,7 +224,8 @@ mod tests {
     #[test]
     fn server_ticks_init_and_cleanup() {
         let mut app = App::new();
-        app.add_plugin(TestUnreliableMessagePlugin::new(NetworkingState::Hosting));
+        app.add_plugin(UnreliableMessagePlugin)
+            .add_plugin(TestNetworkPlugin::new(NetworkPreset::Server));
 
         app.update();
 
@@ -237,8 +238,7 @@ mod tests {
             "The received client ticks resource should be created on server creation"
         );
 
-        app.world
-            .insert_resource(NextState(NetworkingState::NoSocket));
+        app.world.remove_resource::<RenetServer>();
 
         app.update();
 
@@ -255,7 +255,7 @@ mod tests {
     #[test]
     fn sending_and_receiving() {
         let mut app = App::new();
-        app.add_plugin(TestUnreliableMessagePlugin::new(NetworkingState::Hosting))
+        app.add_plugin(UnreliableMessagePlugin)
             .add_plugin(TestNetworkPlugin::new(NetworkPreset::ServerAndClient {
                 connected: true,
             }));
@@ -269,48 +269,10 @@ mod tests {
             app.update();
         }
 
-        let mut tick = app.world.resource_mut::<Tick>();
-        assert_eq!(tick.0, 1, "Server tick should be increased after timestep");
-
-        tick.0 = 0; // Reset tick to check the behavior on client
-        app.world
-            .insert_resource(NextState(NetworkingState::Connected));
-
-        // Wait for the next timestep since system wasn't executed in [`NetworkingState::Hosting`]
-        // state
-        // TODO 0.8: Use [`Time::update_with_instant`]
-        let init_time = app.world.resource::<Time>().seconds_since_startup();
-        app.update();
-        while app.world.resource::<Time>().seconds_since_startup() - init_time
-            < UnreliableMessagePlugin::TIMESTEP
-        {
-            app.update();
-        }
-
-        assert_eq!(
-            app.world.resource::<Tick>().0,
-            1,
-            "Client tick should be increased after timestep"
-        );
+        let tick = app.world.resource::<Tick>();
+        assert_eq!(tick.0, 2, "Server tick should be increased by two since we have client and server in the same world");
 
         // TODO: Test if the client tick was acknowledged
         // after resolving https://github.com/lucaspoffo/renet/pull/17
-    }
-
-    struct TestUnreliableMessagePlugin {
-        networking_state: NetworkingState,
-    }
-
-    impl TestUnreliableMessagePlugin {
-        fn new(networking_state: NetworkingState) -> Self {
-            Self { networking_state }
-        }
-    }
-
-    impl Plugin for TestUnreliableMessagePlugin {
-        fn build(&self, app: &mut App) {
-            app.add_loopless_state(self.networking_state)
-                .add_plugin(UnreliableMessagePlugin);
-        }
     }
 }

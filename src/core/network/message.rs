@@ -22,7 +22,7 @@ use bevy_renet::renet::{RenetClient, RenetServer};
 use iyes_loopless::prelude::*;
 use serde::{Deserialize, Serialize};
 
-use super::{Channel, NetworkingState, SERVER_ID};
+use super::{client, Channel, SERVER_ID};
 
 pub(super) struct MessagePlugin;
 
@@ -32,21 +32,17 @@ impl Plugin for MessagePlugin {
             .add_event::<ClientMessage>()
             .add_event::<MessageReceived>()
             .add_event::<MessageSent>()
+            .add_system(MessagePlugin::receive_server_message_system.run_if(client::connected))
+            .add_system(MessagePlugin::send_client_message_system.run_if(client::connected))
             .add_system(
-                MessagePlugin::receive_server_message_system
-                    .run_in_state(NetworkingState::Connected),
+                MessagePlugin::local_client_message_system.run_if_resource_exists::<RenetServer>(),
             )
             .add_system(
-                MessagePlugin::send_client_message_system.run_in_state(NetworkingState::Connected),
+                MessagePlugin::receive_client_message_system
+                    .run_if_resource_exists::<RenetServer>(),
             )
             .add_system(
-                MessagePlugin::local_client_message_system.run_in_state(NetworkingState::Hosting),
-            )
-            .add_system(
-                MessagePlugin::receive_client_message_system.run_in_state(NetworkingState::Hosting),
-            )
-            .add_system(
-                MessagePlugin::send_server_message_system.run_in_state(NetworkingState::Hosting),
+                MessagePlugin::send_server_message_system.run_if_resource_exists::<RenetServer>(),
             );
     }
 }
@@ -199,7 +195,7 @@ mod tests {
     #[test]
     fn client_messages() {
         let mut app = App::new();
-        app.add_plugin(TestMessagePlugin::new(NetworkingState::Connected))
+        app.add_plugin(MessagePlugin)
             .add_plugin(TestNetworkPlugin::new(NetworkPreset::ServerAndClient {
                 connected: true,
             }));
@@ -209,35 +205,46 @@ mod tests {
         client_events.send(client_message.clone());
 
         app.update();
-
-        app.world
-            .insert_resource(NextState(NetworkingState::Hosting));
-
         app.update();
 
+        let client_id = app.world.resource::<RenetClient>().client_id();
         let mut receive_events = app.world.resource_mut::<Events<MessageReceived>>();
-        let event = receive_events
-            .drain()
+        let mut receive_events = receive_events.drain();
+
+        let local_event = receive_events
+            .next()
+            .expect("The server should emit a local message for listen server mode");
+        let remote_event = receive_events
             .next()
             .expect("The server should recieve a message from the client");
-
-        assert_eq!(
-            event.message, client_message,
-            "The received message should match the one sent"
+        assert!(
+            receive_events.next().is_none(),
+            "The server should be only two events"
         );
 
-        let client = app.world.resource::<RenetClient>();
         assert_eq!(
-            event.client_id,
-            client.client_id(),
-            "Client ID from the event should match with the sender"
+            local_event.message, client_message,
+            "The received message should match the one sent"
+        );
+        assert_eq!(
+            local_event.client_id, SERVER_ID,
+            "Client ID should should match the server ID for local message"
+        );
+
+        assert_eq!(
+            remote_event.message, client_message,
+            "The received message should match the one sent"
+        );
+        assert_eq!(
+            remote_event.client_id, client_id,
+            "Client ID from the remote event should match with the sender"
         );
     }
 
     #[test]
     fn local_client_messages() {
         let mut app = App::new();
-        app.add_plugin(TestMessagePlugin::new(NetworkingState::Hosting))
+        app.add_plugin(MessagePlugin)
             .add_plugin(TestNetworkPlugin::new(NetworkPreset::Server));
 
         let mut client_events = app.world.resource_mut::<Events<ClientMessage>>();
@@ -268,7 +275,7 @@ mod tests {
     #[test]
     fn server_messages() {
         let mut app = App::new();
-        app.add_plugin(TestMessagePlugin::new(NetworkingState::Hosting))
+        app.add_plugin(MessagePlugin)
             .add_plugin(TestNetworkPlugin::new(NetworkPreset::ServerAndClient {
                 connected: true,
             }));
@@ -284,10 +291,6 @@ mod tests {
         });
 
         app.update();
-
-        app.world
-            .insert_resource(NextState(NetworkingState::Connected));
-
         app.update();
 
         let mut server_events = app.world.resource_mut::<Events<ServerMessage>>();
@@ -313,22 +316,5 @@ mod tests {
             first_event, server_message,
             "The received message should match the one sent",
         );
-    }
-
-    struct TestMessagePlugin {
-        networking_state: NetworkingState,
-    }
-
-    impl TestMessagePlugin {
-        fn new(networking_state: NetworkingState) -> Self {
-            Self { networking_state }
-        }
-    }
-
-    impl Plugin for TestMessagePlugin {
-        fn build(&self, app: &mut App) {
-            app.add_loopless_state(self.networking_state)
-                .add_plugin(MessagePlugin);
-        }
     }
 }

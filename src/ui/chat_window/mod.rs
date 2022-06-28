@@ -24,7 +24,7 @@ use bevy_egui::{
     egui::{Align2, Frame, Id, TextEdit, Window},
     EguiContext,
 };
-use bevy_renet::renet::ServerEvent;
+use bevy_renet::renet::{RenetServer, ServerEvent};
 use iyes_loopless::prelude::*;
 use leafwing_input_manager::prelude::*;
 use std::mem;
@@ -33,8 +33,8 @@ use super::{ui_actions::UiAction, ui_state::UiState, UI_MARGIN};
 use crate::core::{
     control_actions::ControlAction,
     network::{
+        client,
         message::{ClientMessage, ServerMessage},
-        NetworkingState,
     },
     player::Player,
     Authority,
@@ -53,15 +53,15 @@ impl Plugin for ChatWindowPlugin {
             .add_system(
                 Self::send_message_system
                     .run_on_event::<MessageAccepted>()
-                    .run_in_state(NetworkingState::Connected),
+                    .run_if(client::connected),
             )
             .add_system(
                 Self::send_message_system
                     .run_on_event::<MessageAccepted>()
-                    .run_in_state(NetworkingState::Hosting),
+                    .run_if_resource_exists::<RenetServer>(),
             )
-            .add_system(Self::receive_message_system.run_in_state(NetworkingState::Connected))
-            .add_system(Self::receive_message_system.run_in_state(NetworkingState::Hosting));
+            .add_system(Self::receive_message_system.run_if(client::connected))
+            .add_system(Self::receive_message_system.run_if_resource_exists::<RenetServer>());
     }
 }
 

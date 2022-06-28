@@ -18,18 +18,16 @@
  */
 
 use bevy::prelude::*;
+use bevy_renet::renet::RenetServer;
 use iyes_loopless::prelude::*;
 
-use super::{
-    message::{ClientMessage, MessageReceived, MessageSent, SendKind, ServerMessage},
-    NetworkingState,
-};
+use super::message::{ClientMessage, MessageReceived, MessageSent, SendKind, ServerMessage};
 
 pub(super) struct ChatPlugin;
 
 impl Plugin for ChatPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(Self::broadcast_messages_system.run_in_state(NetworkingState::Hosting));
+        app.add_system(Self::broadcast_messages_system.run_if_resource_exists::<RenetServer>());
     }
 }
 
@@ -56,12 +54,18 @@ mod tests {
     use bevy::ecs::event::Events;
 
     use super::*;
-    use crate::core::network::SERVER_ID;
+    use crate::core::network::{
+        tests::{NetworkPreset, TestNetworkPlugin},
+        SERVER_ID,
+    };
 
     #[test]
     fn messages_broadcasted() {
         let mut app = App::new();
-        app.add_plugin(TestChatPlugin);
+        app.add_plugin(TestChatPlugin)
+            .add_plugin(TestNetworkPlugin::new(NetworkPreset::ServerAndClient {
+                connected: true,
+            }));
 
         const CHAT_MESSAGE: &str = "Player message";
         let mut receive_events = app.world.resource_mut::<Events<MessageReceived>>();
@@ -98,8 +102,7 @@ mod tests {
 
     impl Plugin for TestChatPlugin {
         fn build(&self, app: &mut App) {
-            app.add_loopless_state(NetworkingState::Hosting)
-                .add_event::<MessageReceived>()
+            app.add_event::<MessageReceived>()
                 .add_event::<MessageSent>()
                 .add_plugin(ChatPlugin);
         }

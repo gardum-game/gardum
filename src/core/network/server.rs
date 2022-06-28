@@ -20,14 +20,13 @@
 use bevy::prelude::*;
 use bevy_renet::renet::{RenetConnectionConfig, RenetServer, ServerConfig};
 use clap::Args;
-use iyes_loopless::prelude::*;
 use std::{
     error::Error,
     net::{SocketAddr, UdpSocket},
     time::SystemTime,
 };
 
-use super::{Channel, NetworkingState, DEFAULT_PORT, PROTOCOL_ID, PUBLIC_GAME_KEY};
+use super::{Channel, DEFAULT_PORT, PROTOCOL_ID, PUBLIC_GAME_KEY};
 use crate::core::{
     cli::{Opts, SubCommand},
     map::Map,
@@ -38,13 +37,6 @@ pub(super) struct ServerPlugin;
 
 impl Plugin for ServerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(
-            Self::enter_hosting_system
-                .run_in_state(NetworkingState::NoSocket)
-                .run_if_resource_added::<RenetServer>(),
-        )
-        .add_exit_system(NetworkingState::Hosting, Self::shutdown_system);
-
         let opts = app
             .world
             .get_resource::<Opts>()
@@ -56,17 +48,6 @@ impl Plugin for ServerPlugin {
         } else {
             app.insert_resource(ServerSettings::default());
         }
-    }
-}
-
-impl ServerPlugin {
-    fn enter_hosting_system(mut commands: Commands) {
-        commands.insert_resource(NextState(NetworkingState::Hosting));
-    }
-
-    fn shutdown_system(mut commands: Commands, mut server: ResMut<RenetServer>) {
-        server.disconnect_clients();
-        commands.remove_resource::<RenetServer>();
     }
 }
 
@@ -134,15 +115,13 @@ impl ServerSettings {
 
 #[cfg(test)]
 mod tests {
-    use crate::core::network::tests::{NetworkPreset, TestNetworkPlugin};
-
     use super::*;
 
     #[test]
     fn defaulted_without_host() {
         let mut app = App::new();
         app.init_resource::<Opts>();
-        app.add_plugin(TestServerPlugin);
+        app.add_plugin(ServerPlugin);
 
         assert_eq!(
             *app.world.resource::<ServerSettings>(),
@@ -165,7 +144,7 @@ mod tests {
         app.world.insert_resource(Opts {
             subcommand: Some(SubCommand::Host(server_settings.clone())),
         });
-        app.add_plugin(TestServerPlugin);
+        app.add_plugin(ServerPlugin);
 
         assert_eq!(
             *app.world.resource::<ServerSettings>(),
@@ -176,42 +155,5 @@ mod tests {
             app.world.get_resource::<RenetServer>().is_some(),
             "Server resource should exist"
         );
-    }
-
-    #[test]
-    fn hosts() {
-        let mut app = App::new();
-        app.add_plugin(TestServerPlugin)
-            .add_plugin(TestNetworkPlugin::new(NetworkPreset::Server));
-
-        app.update();
-        app.update();
-
-        let networking_state = app.world.resource::<CurrentState<NetworkingState>>();
-        assert!(
-            matches!(networking_state.0, NetworkingState::Hosting),
-            "Networking state should be in {:?} state after server creation",
-            NetworkingState::Hosting,
-        );
-        app.world
-            .insert_resource(NextState(NetworkingState::NoSocket));
-
-        app.update();
-
-        assert!(
-            app.world.get_resource::<RenetServer>().is_none(),
-            "Server resource should be removed on exiting {:?} state",
-            NetworkingState::Hosting,
-        );
-    }
-
-    struct TestServerPlugin;
-
-    impl Plugin for TestServerPlugin {
-        fn build(&self, app: &mut App) {
-            app.init_resource::<Opts>()
-                .add_loopless_state(NetworkingState::NoSocket)
-                .add_plugin(ServerPlugin);
-        }
     }
 }
