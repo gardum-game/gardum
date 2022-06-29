@@ -17,12 +17,14 @@
  *  along with Gardum. If not, see <https://www.gnu.org/licenses/>.
  */
 
-use std::time::Duration;
+mod reflect_object;
 
 use bevy::{prelude::*, utils::HashMap};
 use bevy_renet::renet::{RenetClient, RenetServer};
 use iyes_loopless::prelude::*;
+use reflect_object::ReflectObjectPlugin;
 use serde::{Deserialize, Serialize};
+use std::time::Duration;
 
 use super::{client, Channel};
 
@@ -35,27 +37,28 @@ enum NetworkStage {
 
 impl Plugin for UnreliableMessagePlugin {
     fn build(&self, app: &mut App) {
-        app.add_stage_before(
-            CoreStage::Update,
-            NetworkStage::Tick,
-            FixedTimestepStage::new(Duration::from_secs_f64(Self::TIMESTEP))
-                .with_stage(SystemStage::single(
-                    Self::receive_client_message_system.run_if_resource_exists::<RenetServer>(),
-                ))
-                .with_stage(SystemStage::single(
-                    Self::send_server_message_system.run_if_resource_exists::<RenetServer>(),
-                ))
-                .with_stage(SystemStage::single(
-                    Self::receive_server_message_system.run_if(client::connected),
-                ))
-                .with_stage(SystemStage::single(
-                    Self::send_client_message_system.run_if(client::connected),
-                )),
-        )
-        .add_system(Self::server_ticks_init_system.run_if_resource_added::<RenetServer>())
-        .add_system(Self::client_ticks_init_system.run_if_resource_added::<RenetClient>())
-        .add_system(Self::server_ticks_remove_system.run_if_resource_removed::<RenetServer>())
-        .add_system(Self::client_ticks_remove_system.run_if_resource_removed::<RenetClient>());
+        app.add_plugin(ReflectObjectPlugin)
+            .add_stage_before(
+                CoreStage::Update,
+                NetworkStage::Tick,
+                FixedTimestepStage::new(Duration::from_secs_f64(Self::TIMESTEP))
+                    .with_stage(SystemStage::single(
+                        Self::receive_client_message_system.run_if_resource_exists::<RenetServer>(),
+                    ))
+                    .with_stage(SystemStage::single(
+                        Self::send_server_message_system.run_if_resource_exists::<RenetServer>(),
+                    ))
+                    .with_stage(SystemStage::single(
+                        Self::receive_server_message_system.run_if(client::connected),
+                    ))
+                    .with_stage(SystemStage::single(
+                        Self::send_client_message_system.run_if(client::connected),
+                    )),
+            )
+            .add_system(Self::server_ticks_init_system.run_if_resource_added::<RenetServer>())
+            .add_system(Self::client_ticks_init_system.run_if_resource_added::<RenetClient>())
+            .add_system(Self::server_ticks_remove_system.run_if_resource_removed::<RenetServer>())
+            .add_system(Self::client_ticks_remove_system.run_if_resource_removed::<RenetClient>());
     }
 }
 
