@@ -53,7 +53,7 @@ impl MessagePlugin {
         mut client: ResMut<RenetClient>,
     ) {
         while let Some(message) = client.receive_message(Channel::Reliable.id()) {
-            match bincode::deserialize(&message) {
+            match rmp_serde::from_slice(&message) {
                 Ok(message) => server_events.send(message),
                 Err(error) => {
                     error!(
@@ -70,7 +70,7 @@ impl MessagePlugin {
         mut client: ResMut<RenetClient>,
     ) {
         for message in client_events.iter() {
-            match bincode::serialize(&message) {
+            match rmp_serde::to_vec(&message) {
                 Ok(message) => client.send_message(Channel::Reliable.id(), message),
                 Err(error) => error!(
                     "Unable to serialize message for server: {}",
@@ -98,7 +98,7 @@ impl MessagePlugin {
     ) {
         for client_id in server.clients_id().iter().copied() {
             while let Some(message) = server.receive_message(client_id, Channel::Reliable.id()) {
-                match bincode::deserialize(&message) {
+                match rmp_serde::from_slice(&message) {
                     Ok(message) => receive_events.send(MessageReceived { client_id, message }),
                     Err(error) => {
                         error!(
@@ -118,7 +118,7 @@ impl MessagePlugin {
         mut server: ResMut<RenetServer>,
     ) {
         for event in send_events.iter() {
-            let message = match bincode::serialize(&event.message) {
+            let message = match rmp_serde::to_vec(&event.message) {
                 Ok(message) => message,
                 Err(error) => {
                     error!(

@@ -72,7 +72,7 @@ impl UnreliableMessagePlugin {
         for client_id in server.clients_id() {
             let mut messages = Vec::<ClientUnreliableMessage>::new();
             while let Some(message) = server.receive_message(client_id, Channel::Unreliable.id()) {
-                match bincode::deserialize(&message) {
+                match rmp_serde::from_slice(&message) {
                     Ok(message) => messages.push(message),
                     Err(error) => {
                         error!(
@@ -96,7 +96,7 @@ impl UnreliableMessagePlugin {
     fn send_server_message_system(mut tick: ResMut<Tick>, mut server: ResMut<RenetServer>) {
         tick.0 += 1;
 
-        match bincode::serialize(&ServerUnreliableMessage { tick: tick.0 }) {
+        match rmp_serde::to_vec(&ServerUnreliableMessage { tick: tick.0 }) {
             Ok(message) => server.broadcast_message(Channel::Unreliable.id(), message),
             Err(error) => error!("Unable to serialize unreliable server message: {}", error),
         };
@@ -108,7 +108,7 @@ impl UnreliableMessagePlugin {
     ) {
         let mut messages = Vec::<ServerUnreliableMessage>::new();
         while let Some(message) = client.receive_message(Channel::Unreliable.id()) {
-            match bincode::deserialize(&message) {
+            match rmp_serde::from_slice(&message) {
                 Ok(message) => messages.push(message),
                 Err(error) => {
                     error!("Unable to deserialize unreliable message: {}", error);
@@ -131,7 +131,7 @@ impl UnreliableMessagePlugin {
     ) {
         tick.0 += 1;
 
-        match bincode::serialize(&ClientUnreliableMessage {
+        match rmp_serde::to_vec(&ClientUnreliableMessage {
             tick: received_server_tick.0,
         }) {
             Ok(message) => client.send_message(Channel::Unreliable.id(), message),

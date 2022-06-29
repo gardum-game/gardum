@@ -1480,7 +1480,6 @@ dependencies = [
  "bevy_egui",
  "bevy_rapier3d",
  "bevy_renet",
- "bincode",
  "bitflags",
  "clap",
  "derive_more",
