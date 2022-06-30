@@ -66,7 +66,7 @@ impl UnreliableMessagePlugin {
     const TIMESTEP: f64 = 0.1;
 
     fn receive_client_message_system(
-        mut received_client_ticks: ResMut<ReceivedClientTicks>,
+        mut client_acks: ResMut<ClientAcks>,
         mut server: ResMut<RenetServer>,
     ) {
         for client_id in server.clients_id() {
@@ -84,19 +84,24 @@ impl UnreliableMessagePlugin {
                 };
             }
 
-            if let Some(last_message) = messages.iter().max_by_key(|x| x.tick) {
-                let last_tick = received_client_ticks.entry(client_id).or_default();
-                if *last_tick < last_message.tick {
-                    *last_tick = last_message.tick;
+            if let Some(last_message) = messages.iter().max_by_key(|message| message.tick_ack) {
+                let last_tick_ack = client_acks.entry(client_id).or_default();
+                if *last_tick_ack < last_message.tick_ack {
+                    *last_tick_ack = last_message.tick_ack;
                 }
             }
         }
     }
 
-    fn send_server_message_system(mut tick: ResMut<Tick>, mut server: ResMut<RenetServer>) {
-        tick.0 += 1;
+    fn send_server_message_system(
+        mut network_tick: ResMut<NetworkTick>,
+        mut server: ResMut<RenetServer>,
+    ) {
+        network_tick.0 += 1;
 
-        match rmp_serde::to_vec(&ServerUnreliableMessage { tick: tick.0 }) {
+        match rmp_serde::to_vec(&ServerUnreliableMessage {
+            tick: network_tick.0,
+        }) {
             Ok(message) => server.broadcast_message(Channel::Unreliable.id(), message),
             Err(error) => error!("Unable to serialize unreliable server message: {}", error),
         };
@@ -117,7 +122,7 @@ impl UnreliableMessagePlugin {
             };
         }
 
-        if let Some(last_message) = messages.iter().max_by_key(|x| x.tick) {
+        if let Some(last_message) = messages.iter().max_by_key(|message| message.tick) {
             if received_server_tick.0 < last_message.tick {
                 received_server_tick.0 = last_message.tick;
             }
@@ -126,13 +131,13 @@ impl UnreliableMessagePlugin {
 
     fn send_client_message_system(
         received_server_tick: Res<ReceivedServerTick>,
-        mut tick: ResMut<Tick>,
+        mut network_tick: ResMut<NetworkTick>,
         mut client: ResMut<RenetClient>,
     ) {
-        tick.0 += 1;
+        network_tick.0 += 1;
 
         match rmp_serde::to_vec(&ClientUnreliableMessage {
-            tick: received_server_tick.0,
+            tick_ack: received_server_tick.0,
         }) {
             Ok(message) => client.send_message(Channel::Unreliable.id(), message),
             Err(error) => error!("Unable to serialize unreliable client message: {}", error),
@@ -140,22 +145,22 @@ impl UnreliableMessagePlugin {
     }
 
     fn server_ticks_init_system(mut commands: Commands) {
-        commands.init_resource::<Tick>();
-        commands.init_resource::<ReceivedClientTicks>();
+        commands.init_resource::<NetworkTick>();
+        commands.init_resource::<ClientAcks>();
     }
 
     fn client_ticks_init_system(mut commands: Commands) {
-        commands.init_resource::<Tick>();
+        commands.init_resource::<NetworkTick>();
         commands.init_resource::<ReceivedServerTick>();
     }
 
     fn server_ticks_remove_system(mut commands: Commands) {
-        commands.remove_resource::<Tick>();
-        commands.remove_resource::<ReceivedClientTicks>();
+        commands.remove_resource::<NetworkTick>();
+        commands.remove_resource::<ClientAcks>();
     }
 
     fn client_ticks_remove_system(mut commands: Commands) {
-        commands.remove_resource::<Tick>();
+        commands.remove_resource::<NetworkTick>();
         commands.remove_resource::<ReceivedServerTick>();
     }
 }
@@ -163,17 +168,17 @@ impl UnreliableMessagePlugin {
 /// Current network tick
 /// Available on server and clients
 #[derive(Default)]
-struct Tick(u64);
+struct NetworkTick(u64);
 
 /// Last received tick from server
 /// Only available on clients
 #[derive(Default)]
 struct ReceivedServerTick(u64);
 
-/// Last received ticks from all clients
+/// Last acknowledged server ticks from all clients
 /// Only available on server
 #[derive(Default, Deref, DerefMut)]
-struct ReceivedClientTicks(HashMap<u64, u64>);
+struct ClientAcks(HashMap<u64, u64>);
 
 /// Changed world data and current tick from server
 #[derive(Serialize, Deserialize)]
@@ -184,7 +189,7 @@ struct ServerUnreliableMessage {
 /// Input and last received server tick from client
 #[derive(Serialize, Deserialize)]
 struct ClientUnreliableMessage {
-    tick: u64,
+    tick_ack: u64,
 }
 
 #[cfg(test)]
@@ -202,8 +207,8 @@ mod tests {
         app.update();
 
         assert!(
-            app.world.contains_resource::<Tick>(),
-            "The tick resource should be created when connected"
+            app.world.contains_resource::<NetworkTick>(),
+            "The network tick resource should be created when connected"
         );
         assert!(
             app.world.contains_resource::<ReceivedServerTick>(),
@@ -215,8 +220,8 @@ mod tests {
         app.update();
 
         assert!(
-            !app.world.contains_resource::<Tick>(),
-            "The tick resource should be removed when disconnected"
+            !app.world.contains_resource::<NetworkTick>(),
+            "The network tick resource should be removed when disconnected"
         );
         assert!(
             !app.world.contains_resource::<ReceivedServerTick>(),
@@ -233,11 +238,11 @@ mod tests {
         app.update();
 
         assert!(
-            app.world.contains_resource::<Tick>(),
-            "The tick resource should be created on server creation"
+            app.world.contains_resource::<NetworkTick>(),
+            "The network tick resource should be created on server creation"
         );
         assert!(
-            app.world.contains_resource::<ReceivedClientTicks>(),
+            app.world.contains_resource::<ClientAcks>(),
             "The received client ticks resource should be created on server creation"
         );
 
@@ -246,11 +251,11 @@ mod tests {
         app.update();
 
         assert!(
-            !app.world.contains_resource::<Tick>(),
-            "The tick resource should be removed on server shutdown"
+            !app.world.contains_resource::<NetworkTick>(),
+            "The network tick resource should be removed on server shutdown"
         );
         assert!(
-            !app.world.contains_resource::<ReceivedClientTicks>(),
+            !app.world.contains_resource::<ClientAcks>(),
             "The received client ticks resource should be removed on server shutdown"
         );
     }
@@ -272,8 +277,8 @@ mod tests {
             app.update();
         }
 
-        let tick = app.world.resource::<Tick>();
-        assert_eq!(tick.0, 2, "Server tick should be increased by two since we have client and server in the same world");
+        let network = app.world.resource::<NetworkTick>();
+        assert_eq!(network.0, 2, "Network tick should be increased by two since we have client and server in the same world");
 
         // TODO: Test if the client tick was acknowledged
         // after resolving https://github.com/lucaspoffo/renet/pull/17
