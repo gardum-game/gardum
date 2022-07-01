@@ -25,5 +25,3 @@ jobs:
 
       - name: Check dependencies
         uses: EmbarkStudios/cargo-deny-action@v1
-        with:
-          rust-version: "1.60.0"
