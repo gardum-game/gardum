@@ -17,8 +17,6 @@
  *  along with Gardum. If not, see <https://www.gnu.org/licenses/>.
  */
 
-use std::any::type_name;
-
 use bevy::{
     prelude::*,
     reflect::{
@@ -28,6 +26,7 @@ use bevy::{
 };
 use clap::once_cell::sync::OnceCell;
 use serde::{de::DeserializeSeed, Deserialize, Deserializer, Serialize, Serializer};
+use std::any::type_name;
 
 pub(super) struct ReflectObjectPlugin;
 
@@ -73,7 +72,19 @@ fn global_type_registry() -> &'static TypeRegistry {
 
 /// Netype to serialize [`Reflect`]
 #[derive(Deref, DerefMut)]
-pub(super) struct ReflectObject(Box<dyn Reflect>);
+pub(super) struct ReflectObject(pub(super) Box<dyn Reflect>);
+
+impl From<Box<dyn Reflect>> for ReflectObject {
+    fn from(reflect: Box<dyn Reflect>) -> Self {
+        Self(reflect)
+    }
+}
+
+impl Clone for ReflectObject {
+    fn clone(&self) -> Self {
+        self.clone_value().into()
+    }
+}
 
 impl Serialize for ReflectObject {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
