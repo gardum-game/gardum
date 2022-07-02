@@ -168,28 +168,28 @@ impl UnreliableMessagePlugin {
 /// Current network tick
 /// Available on server and clients
 #[derive(Default)]
-struct NetworkTick(u64);
+struct NetworkTick(u32);
 
 /// Last received tick from server
 /// Only available on clients
 #[derive(Default)]
-struct ReceivedServerTick(u64);
+struct ReceivedServerTick(u32);
 
 /// Last acknowledged server ticks from all clients
 /// Only available on server
 #[derive(Default, Deref, DerefMut)]
-struct ClientAcks(HashMap<u64, u64>);
+struct ClientAcks(HashMap<u64, u32>);
 
 /// Changed world data and current tick from server
 #[derive(Serialize, Deserialize)]
 struct ServerUnreliableMessage {
-    tick: u64,
+    tick: u32,
 }
 
 /// Input and last received server tick from client
 #[derive(Serialize, Deserialize)]
 struct ClientUnreliableMessage {
-    tick_ack: u64,
+    tick_ack: u32,
 }
 
 #[cfg(test)]
