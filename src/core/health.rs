@@ -276,7 +276,7 @@ mod tests {
         let health = app.world.get::<Health>(target).unwrap();
         assert_eq!(
             health.current,
-            health.max - delta.abs() as u32,
+            health.max - delta.unsigned_abs(),
             "Health should decrease by the amount of damage"
         );
 
