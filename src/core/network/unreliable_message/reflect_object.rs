@@ -25,6 +25,7 @@ use bevy::{
     },
     render::once_cell::sync::OnceCell,
 };
+use derive_more::From;
 use serde::{de::DeserializeSeed, Deserialize, Deserializer, Serialize, Serializer};
 use std::any::type_name;
 
@@ -71,20 +72,8 @@ fn global_type_registry() -> &'static TypeRegistry {
 }
 
 /// Netype to serialize [`Reflect`]
-#[derive(Deref, DerefMut)]
+#[derive(Deref, DerefMut, From)]
 pub(super) struct ReflectObject(pub(super) Box<dyn Reflect>);
-
-impl From<Box<dyn Reflect>> for ReflectObject {
-    fn from(reflect: Box<dyn Reflect>) -> Self {
-        Self(reflect)
-    }
-}
-
-impl Clone for ReflectObject {
-    fn clone(&self) -> Self {
-        self.clone_value().into()
-    }
-}
 
 impl Serialize for ReflectObject {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
