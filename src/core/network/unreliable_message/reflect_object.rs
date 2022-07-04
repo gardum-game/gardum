@@ -23,8 +23,8 @@ use bevy::{
         serde::{ReflectDeserializer, ReflectSerializer},
         TypeRegistry,
     },
+    render::once_cell::sync::OnceCell,
 };
-use clap::once_cell::sync::OnceCell;
 use serde::{de::DeserializeSeed, Deserialize, Deserializer, Serialize, Serializer};
 use std::any::type_name;
 
