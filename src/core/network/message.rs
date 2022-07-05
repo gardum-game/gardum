@@ -24,6 +24,10 @@ use serde::{Deserialize, Serialize};
 
 use super::{client, Channel, SERVER_ID};
 
+/// Contains systems that send and recieve reliable messages over the network.
+/// Sending and receiving is done through events:
+/// * Server receives a [`MessageReceived`] event when a message is received and emits a [`MessageSent`] event to send.
+/// * Client receives a [`ServerMessage`] event when a message is received and emits a [`ClientMessage`] event to send.
 pub(super) struct MessagePlugin;
 
 impl Plugin for MessagePlugin {
@@ -80,6 +84,8 @@ impl MessagePlugin {
         }
     }
 
+    /// Transforms [`ClientMessage`] events into [`MessageReceived`] events to "emulate"
+    /// message sending for the listen server mode (when server is also a client)
     fn local_client_message_system(
         mut client_events: EventReader<ClientMessage>,
         mut receive_events: EventWriter<MessageReceived>,
@@ -154,16 +160,22 @@ impl MessagePlugin {
     }
 }
 
+/// An event indicating that the message from client was received.
+/// Emited only on server.
 pub(crate) struct MessageReceived {
     pub(crate) client_id: u64,
     pub(crate) message: ClientMessage,
 }
 
+/// An event indicating that a server message has been sent.
+/// This event should be used instead of sending messages directly.
+/// Emited only on server.
 pub(crate) struct MessageSent {
     pub(crate) kind: SendKind,
     pub(crate) message: ServerMessage,
 }
 
+/// Type of server message sending.
 #[allow(dead_code)]
 pub(crate) enum SendKind {
     Broadcast,
@@ -171,12 +183,20 @@ pub(crate) enum SendKind {
     Direct(u64),
 }
 
+/// A message from server.
+/// On client it represented in form of events of this struct.
+/// On server this struct is a part of [`MessageSent`] event that
+/// also contains information about client recipients.
 #[derive(Serialize, Deserialize, Clone)]
 #[cfg_attr(test, derive(Debug, PartialEq))]
 pub(crate) enum ServerMessage {
     ChatMessage { sender_id: u64, message: String },
 }
 
+/// A message from client.
+/// On client it represented in form of events of this struct.
+/// On server this struct is a part of [`MessageReceived`] event that
+/// also contains information about sender client.
 #[derive(Serialize, Deserialize, Clone)]
 #[cfg_attr(test, derive(Debug, PartialEq))]
 pub(crate) enum ClientMessage {
