@@ -104,10 +104,9 @@ mod tests {
 
         app.update();
 
-        let mut local_player = app
+        let local_player = app
             .world
-            .query_filtered::<Entity, (With<Authority>, With<Player>)>();
-        let local_player = local_player
+            .query_filtered::<Entity, (With<Authority>, With<Player>)>()
             .iter(&app.world)
             .next()
             .expect("Local player should be created after inserting server resource"); // TODO 0.8: Use single

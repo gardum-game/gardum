@@ -242,10 +242,12 @@ mod tests {
 
         app.update();
 
-        let mut projectiles = app
+        let projectile_transform = *app
             .world
-            .query_filtered::<&Transform, With<FrostBoltAbility>>();
-        let projectile_transform = *projectiles.iter(&app.world).next().unwrap(); // TODO 0.8: Use single
+            .query_filtered::<&Transform, With<FrostBoltAbility>>()
+            .iter(&app.world)
+            .next()
+            .unwrap(); // TODO 0.8: Use single
         let character_transform = app.world.get::<Transform>(instigator).unwrap();
 
         assert_eq!(

@@ -425,8 +425,9 @@ mod tests {
 
         wait_for_network_tick(&mut app);
 
-        let mut entities = app.world.query::<Entity>();
-        let client_entity = entities
+        let client_entity = app
+            .world
+            .query::<Entity>()
             .iter(&app.world)
             .next()
             .expect("Server entity should be replicated to the client"); // TODO 0.8: Use single

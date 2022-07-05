@@ -180,9 +180,8 @@ mod tests {
 
         app.update();
 
-        let mut cameras = app.world.query::<&Camera>();
         assert_eq!(
-            cameras.iter(&app.world).count(),
+            app.world.query::<&Camera>().iter(&app.world).count(),
             2,
             "A new camera should be spawned for new hero"
         );
@@ -211,8 +210,12 @@ mod tests {
 
         app.update();
 
-        let mut orbit_rotations = app.world.query::<&OrbitRotation>();
-        let orbit_rotation = orbit_rotations.iter(&app.world).next().unwrap(); // TODO 0.8: Use single
+        let orbit_rotation = app
+            .world
+            .query::<&OrbitRotation>()
+            .iter(&app.world)
+            .next()
+            .unwrap(); // TODO 0.8: Use single
         assert_ne!(
             *orbit_rotation,
             OrbitRotation::default(),
@@ -239,8 +242,12 @@ mod tests {
             (Vec3::ONE, Vec2::ONE * PI),
             (Vec3::ONE, Vec2::ONE * 2.0 * PI),
         ] {
-            let mut cameras = app.world.query_filtered::<Entity, With<OrbitRotation>>();
-            let camera = cameras.iter(&app.world).next().unwrap(); // TODO 0.8: Use single
+            let camera = app
+                .world
+                .query_filtered::<Entity, With<OrbitRotation>>()
+                .iter(&app.world)
+                .next()
+                .unwrap(); // TODO 0.8: Use single
 
             app.world
                 .get_mut::<Transform>(character)

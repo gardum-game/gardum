@@ -290,30 +290,21 @@ mod tests {
 
             let (effect, target) = match pickup_kind {
                 PickupKind::Healing => {
-                    let mut effects = app
-                        .world
-                        .query_filtered::<(Entity, &EffectTarget), With<PeriodicHealthChange>>();
-
-                    effects
+                    app.world
+                        .query_filtered::<(Entity, &EffectTarget), With<PeriodicHealthChange>>()
                         .iter(&app.world)
                         .next()
                         .expect("An effect with periodic health change effect should be created")
                 }
                 PickupKind::Rage => {
-                    let mut effects = app
-                        .world
-                        .query_filtered::<(Entity, &EffectTarget), (With<DamageModifier>, With<HealingModifier>)>();
-                    effects
-                        .iter(&app.world)
+                    app.world
+                        .query_filtered::<(Entity, &EffectTarget), (With<DamageModifier>, With<HealingModifier>)>().iter(&app.world)
                         .next()
                         .expect("An effect with damage and healing modifiers should be created")
                 }
                 PickupKind::Speed => {
-                    let mut effects = app
-                        .world
-                        .query_filtered::<(Entity, &EffectTarget), With<SpeedModifier>>();
-                    effects
-                        .iter(&app.world)
+                    app.world
+                        .query_filtered::<(Entity, &EffectTarget), With<SpeedModifier>>().iter(&app.world)
                         .next()
                         .expect("An effect with speed modifier should be created")
                 }
@@ -362,10 +353,8 @@ mod tests {
         app.update();
         app.update();
 
-        let mut effects = app.world.query::<&EffectTarget>();
-
         assert_eq!(
-            effects.iter(&app.world).len(),
+            app.world.query::<&EffectTarget>().iter(&app.world).len(),
             0,
             "Effect shouldn't be applied because of cooldown"
         );
