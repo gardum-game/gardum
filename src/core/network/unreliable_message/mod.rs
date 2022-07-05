@@ -179,14 +179,10 @@ impl UnreliableMessagePlugin {
 
         let mut server = set.p2();
         for (client_id, message) in messages {
-            match rmp_serde::to_vec(&message) {
-                Ok(message) => {
-                    server.send_message(client_id, Channel::Unreliable.id(), message);
-                }
-                Err(error) => {
-                    error!("Unable to serialize unreliable server message: {}", error)
-                }
-            };
+            let message = rmp_serde::to_vec(&message).unwrap_or_else(|error| {
+                panic!("Unable to serialize unreliable server message: {}", error)
+            });
+            server.send_message(client_id, Channel::Unreliable.id(), message);
         }
     }
 
@@ -279,12 +275,11 @@ impl UnreliableMessagePlugin {
     ) {
         network_tick.0 += 1;
 
-        match rmp_serde::to_vec(&ClientUnreliableMessage {
+        let message = rmp_serde::to_vec(&ClientUnreliableMessage {
             tick_ack: received_server_tick.0,
-        }) {
-            Ok(message) => client.send_message(Channel::Unreliable.id(), message),
-            Err(error) => error!("Unable to serialize unreliable client message: {}", error),
-        };
+        })
+        .unwrap_or_else(|error| panic!("Unable to serialize unreliable client message: {}", error));
+        client.send_message(Channel::Unreliable.id(), message);
     }
 
     fn server_ticks_init_system(mut commands: Commands) {

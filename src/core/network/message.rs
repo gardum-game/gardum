@@ -60,10 +60,7 @@ impl MessagePlugin {
             match rmp_serde::from_slice(&message) {
                 Ok(message) => server_events.send(message),
                 Err(error) => {
-                    error!(
-                        "Unable to deserialize message from server: {}",
-                        error.to_string()
-                    );
+                    error!("Unable to deserialize message from server: {}", error);
                 }
             };
         }
@@ -74,13 +71,10 @@ impl MessagePlugin {
         mut client: ResMut<RenetClient>,
     ) {
         for message in client_events.iter() {
-            match rmp_serde::to_vec(&message) {
-                Ok(message) => client.send_message(Channel::Reliable.id(), message),
-                Err(error) => error!(
-                    "Unable to serialize message for server: {}",
-                    error.to_string()
-                ),
-            };
+            let message = rmp_serde::to_vec(&message).unwrap_or_else(|error| {
+                panic!("Unable to serialize message for server: {}", error)
+            });
+            client.send_message(Channel::Reliable.id(), message);
         }
     }
 
@@ -109,8 +103,7 @@ impl MessagePlugin {
                     Err(error) => {
                         error!(
                             "Unable to deserialize message from client {}: {}",
-                            client_id,
-                            error.to_string()
+                            client_id, error
                         );
                     }
                 };
@@ -124,16 +117,9 @@ impl MessagePlugin {
         mut server: ResMut<RenetServer>,
     ) {
         for event in send_events.iter() {
-            let message = match rmp_serde::to_vec(&event.message) {
-                Ok(message) => message,
-                Err(error) => {
-                    error!(
-                        "Unable serialize message for client(s): {}",
-                        error.to_string()
-                    );
-                    continue;
-                }
-            };
+            let message = rmp_serde::to_vec(&event.message).unwrap_or_else(|error| {
+                panic!("Unable serialize message for client(s): {}", error)
+            });
 
             match event.kind {
                 SendKind::Broadcast => {
