@@ -176,10 +176,12 @@ pub(crate) struct MessageSent {
 }
 
 /// Type of server message sending.
-#[allow(dead_code)]
+#[derive(Clone, Copy)]
 pub(crate) enum SendKind {
+    #[allow(dead_code)]
     Broadcast,
     BroadcastExcept(u64),
+    #[allow(dead_code)]
     Direct(u64),
 }
 
@@ -288,8 +290,6 @@ mod tests {
         );
     }
 
-    // TODO: Extend tests once this PR will me merged:
-    // https://github.com/lucaspoffo/renet/pull/17
     #[test]
     fn server_messages() {
         let mut app = App::new();
@@ -298,41 +298,53 @@ mod tests {
                 connected: true,
             }));
 
-        let server_message = ServerMessage::ChatMessage {
-            sender_id: SERVER_ID,
-            message: "Hi all from server".to_string(),
-        };
-        let mut send_events = app.world.resource_mut::<Events<MessageSent>>();
-        send_events.send(MessageSent {
-            kind: SendKind::Broadcast,
-            message: server_message.clone(),
-        });
+        let client_id = app.world.resource::<RenetClient>().client_id();
+        for send_kind in [
+            SendKind::Broadcast,
+            SendKind::Direct(SERVER_ID),
+            SendKind::Direct(client_id),
+            SendKind::BroadcastExcept(SERVER_ID),
+            SendKind::BroadcastExcept(client_id),
+        ] {
+            let chat_message = ServerMessage::ChatMessage {
+                sender_id: SERVER_ID,
+                message: "Hello from server".to_string(),
+            };
+            let mut send_events = app.world.resource_mut::<Events<MessageSent>>();
+            send_events.send(MessageSent {
+                kind: send_kind,
+                message: chat_message.clone(),
+            });
 
-        app.update();
-        app.update();
+            app.update();
+            app.update();
 
-        let mut server_events = app.world.resource_mut::<Events<ServerMessage>>();
-        let mut events_iter = server_events.drain();
-        let first_event = events_iter
-            .next()
-            .expect("The local client should recieve a message from the server");
+            let mut server_events = app.world.resource_mut::<Events<ServerMessage>>();
+            let mut events_iter = server_events.drain();
+            let received_message = events_iter
+                .next()
+                .expect("Message from server should be received");
 
-        let second_event = events_iter
-            .next()
-            .expect("The connected client should recieve a message from the server");
+            assert_eq!(
+                received_message, chat_message,
+                "The received message should match the one sent",
+            );
 
-        assert_eq!(
-            first_event, second_event,
-            "The event for the local client and for the connected one should match",
-        );
-        assert!(
-            events_iter.next().is_none(),
-            "There shouldn't be more events"
-        );
+            if let SendKind::Broadcast = send_kind {
+                let duplciated_message = events_iter
+                    .next()
+                    .expect("Second message should be additonaly duplicated for local client (for listen server mode)");
 
-        assert_eq!(
-            first_event, server_message,
-            "The received message should match the one sent",
-        );
+                assert_eq!(
+                    received_message, duplciated_message,
+                    "The event for the local client and for the connected one should match",
+                );
+            }
+
+            assert!(
+                events_iter.next().is_none(),
+                "There shouldn't be more events"
+            );
+        }
     }
 }
