@@ -384,79 +384,25 @@ mod tests {
     use super::*;
 
     #[test]
-    fn client_ticks_init_and_cleanup() {
+    fn client_acks_insert_and_remove() {
         let mut app = App::new();
         app.add_plugin(UnreliableMessagePlugin)
-            .add_plugin(TestNetworkPlugin::new(NetworkPreset::Client));
+            .add_plugin(TestNetworkPlugin::new(NetworkPreset::ServerAndClient {
+                connected: true,
+            }));
+
+        let mut client = app.world.resource_mut::<RenetClient>();
+        client.disconnect();
+        let client_id = client.client_id();
+
+        let client_acks = app.world.resource::<ClientAcks>();
+        assert!(client_acks.contains_key(&client_id));
 
         app.update();
-
-        assert!(
-            app.world.contains_resource::<NetworkTick>(),
-            "The {} resource should exist when connected",
-            type_name::<NetworkTick>()
-        );
-        assert!(
-            app.world.contains_resource::<ReceivedServerTick>(),
-            "The {} resource should exist when connected",
-            type_name::<ReceivedServerTick>()
-        );
-        assert!(
-            app.world.contains_resource::<NetworkEntityMap>(),
-            "The {} resource should exist when connected",
-            type_name::<NetworkEntityMap>()
-        );
-
-        app.world.remove_resource::<RenetClient>();
-
         app.update();
 
-        assert!(
-            !app.world.contains_resource::<NetworkTick>(),
-            "The {} resource should be removed when disconnected",
-            type_name::<NetworkTick>()
-        );
-        assert!(
-            !app.world.contains_resource::<ReceivedServerTick>(),
-            "The {} resource should be removed when disconnected",
-            type_name::<ReceivedServerTick>()
-        );
-        assert!(
-            !app.world.contains_resource::<NetworkEntityMap>(),
-            "The {} resource should be removed when disconnected",
-            type_name::<NetworkEntityMap>()
-        );
-    }
-
-    #[test]
-    fn server_ticks_init_and_cleanup() {
-        let mut app = App::new();
-        app.add_plugin(UnreliableMessagePlugin)
-            .add_plugin(TestNetworkPlugin::new(NetworkPreset::Server));
-
-        app.update();
-
-        assert!(
-            app.world.contains_resource::<NetworkTick>(),
-            "The network tick resource should be created on server creation"
-        );
-        assert!(
-            app.world.contains_resource::<ClientAcks>(),
-            "The received client ticks resource should be created on server creation"
-        );
-
-        app.world.remove_resource::<RenetServer>();
-
-        app.update();
-
-        assert!(
-            !app.world.contains_resource::<NetworkTick>(),
-            "The network tick resource should be removed on server shutdown"
-        );
-        assert!(
-            !app.world.contains_resource::<ClientAcks>(),
-            "The received client ticks resource should be removed on server shutdown"
-        );
+        let client_acks = app.world.resource::<ClientAcks>();
+        assert!(!client_acks.contains_key(&client_id));
     }
 
     #[test]
@@ -583,6 +529,82 @@ mod tests {
         assert!(
             app.world.get::<Transform>(replicated_entity).is_none(),
             "Client should replicate the transform removal"
+        );
+    }
+
+    #[test]
+    fn client_ticks_init_and_cleanup() {
+        let mut app = App::new();
+        app.add_plugin(UnreliableMessagePlugin)
+            .add_plugin(TestNetworkPlugin::new(NetworkPreset::Client));
+
+        app.update();
+
+        assert!(
+            app.world.contains_resource::<NetworkTick>(),
+            "The {} resource should exist when connected",
+            type_name::<NetworkTick>()
+        );
+        assert!(
+            app.world.contains_resource::<ReceivedServerTick>(),
+            "The {} resource should exist when connected",
+            type_name::<ReceivedServerTick>()
+        );
+        assert!(
+            app.world.contains_resource::<NetworkEntityMap>(),
+            "The {} resource should exist when connected",
+            type_name::<NetworkEntityMap>()
+        );
+
+        app.world.remove_resource::<RenetClient>();
+
+        app.update();
+
+        assert!(
+            !app.world.contains_resource::<NetworkTick>(),
+            "The {} resource should be removed when disconnected",
+            type_name::<NetworkTick>()
+        );
+        assert!(
+            !app.world.contains_resource::<ReceivedServerTick>(),
+            "The {} resource should be removed when disconnected",
+            type_name::<ReceivedServerTick>()
+        );
+        assert!(
+            !app.world.contains_resource::<NetworkEntityMap>(),
+            "The {} resource should be removed when disconnected",
+            type_name::<NetworkEntityMap>()
+        );
+    }
+
+    #[test]
+    fn server_ticks_init_and_cleanup() {
+        let mut app = App::new();
+        app.add_plugin(UnreliableMessagePlugin)
+            .add_plugin(TestNetworkPlugin::new(NetworkPreset::Server));
+
+        app.update();
+
+        assert!(
+            app.world.contains_resource::<NetworkTick>(),
+            "The network tick resource should be created on server creation"
+        );
+        assert!(
+            app.world.contains_resource::<ClientAcks>(),
+            "The received client ticks resource should be created on server creation"
+        );
+
+        app.world.remove_resource::<RenetServer>();
+
+        app.update();
+
+        assert!(
+            !app.world.contains_resource::<NetworkTick>(),
+            "The network tick resource should be removed on server shutdown"
+        );
+        assert!(
+            !app.world.contains_resource::<ClientAcks>(),
+            "The received client ticks resource should be removed on server shutdown"
         );
     }
 
