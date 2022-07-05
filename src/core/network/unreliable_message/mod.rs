@@ -203,11 +203,12 @@ impl UnreliableMessagePlugin {
             };
         }
 
-        let received_server_tick = world.resource::<ReceivedServerTick>();
+        let mut received_server_tick = world.resource_mut::<ReceivedServerTick>();
         let last_message = match messages.iter().max_by_key(|message| message.tick) {
             Some(last_message) if received_server_tick.0 < last_message.tick => last_message,
             _ => return,
         };
+        received_server_tick.0 = last_message.tick;
 
         // Temorary take resources to avoid borrowing issues
         let type_registry = world.remove_resource::<TypeRegistry>().unwrap();
@@ -459,24 +460,6 @@ mod tests {
     }
 
     #[test]
-    fn sending_and_receiving() {
-        let mut app = App::new();
-        app.add_plugin(UnreliableMessagePlugin)
-            .add_plugin(TestNetworkPlugin::new(NetworkPreset::ServerAndClient {
-                connected: true,
-            }));
-
-        let previous_network_tick = app.world.resource::<NetworkTick>().0;
-        wait_for_network_tick(&mut app);
-
-        let network_tick = app.world.resource::<NetworkTick>();
-        assert_eq!(network_tick.0, previous_network_tick + 2, "Network tick should be increased by two since int test client and server in the same world");
-
-        // TODO: Test if the client tick was acknowledged
-        // after resolving https://github.com/lucaspoffo/renet/pull/17
-    }
-
-    #[test]
     fn spawned_entity_replicates() {
         let mut app = App::new();
         app.add_plugin(UnreliableMessagePlugin)
@@ -487,6 +470,9 @@ mod tests {
         let server_entity = app.world.spawn().insert(Replication::default()).id();
 
         wait_for_network_tick(&mut app);
+
+        let network_tick = app.world.resource::<NetworkTick>();
+        assert_eq!(network_tick.0, NetworkTick::default().0 + 2, "Network tick should be increased by two since int test client and server in the same world");
 
         // Remove server entity before client replicates it (since in test client and server in the same world)
         app.world.entity_mut(server_entity).despawn();
@@ -506,6 +492,19 @@ mod tests {
         assert_eq!(
             mapped_entity, client_entity,
             "Mapped entity should correspond to the replicated entity on client"
+        );
+
+        wait_for_network_tick(&mut app);
+
+        let client_acks = app.world.resource::<ClientAcks>();
+        let client = app.world.resource::<RenetClient>();
+        let tick_ack = *client_acks
+            .get(&client.client_id())
+            .expect("The client ack should be received");
+        assert_eq!(
+            tick_ack,
+            NetworkTick::default().0 + 1,
+            "Acknowledged tick should be increased by one (since sending happens before the server system increments the tick)"
         );
     }
 
