@@ -154,13 +154,11 @@ impl MessagePlugin {
     }
 }
 
-#[allow(dead_code)]
 pub(crate) struct MessageReceived {
     pub(crate) client_id: u64,
     pub(crate) message: ClientMessage,
 }
 
-#[allow(dead_code)]
 pub(crate) struct MessageSent {
     pub(crate) kind: SendKind,
     pub(crate) message: ServerMessage,
