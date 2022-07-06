@@ -42,7 +42,11 @@ enum NetworkStage {
 
 impl Plugin for UnreliableMessagePlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(ComponentReplicationPlugins)
+        app.init_resource::<NetworkTick>()
+            .init_resource::<ReceivedServerTick>()
+            .init_resource::<NetworkEntityMap>()
+            .init_resource::<ClientAcks>()
+            .add_plugins(ComponentReplicationPlugins)
             .add_plugin(ReflectObjectPlugin)
             .add_system_to_stage(
                 CoreStage::PreUpdate,
@@ -69,10 +73,8 @@ impl Plugin for UnreliableMessagePlugin {
                         Self::send_client_message_system.run_if(client::connected),
                     )),
             )
-            .add_system(Self::server_ticks_init_system.run_if_resource_added::<RenetServer>())
-            .add_system(Self::client_ticks_init_system.run_if_resource_added::<RenetClient>())
-            .add_system(Self::server_ticks_remove_system.run_if_resource_removed::<RenetServer>())
-            .add_system(Self::client_ticks_remove_system.run_if_resource_removed::<RenetClient>());
+            .add_system(Self::server_reset_system.run_if_resource_removed::<RenetServer>())
+            .add_system(Self::client_reset_system.run_if_resource_removed::<RenetClient>());
     }
 }
 
@@ -282,31 +284,20 @@ impl UnreliableMessagePlugin {
         client.send_message(Channel::Unreliable.id(), message);
     }
 
-    fn server_ticks_init_system(mut commands: Commands) {
-        commands.init_resource::<NetworkTick>();
-        commands.init_resource::<ClientAcks>();
+    fn server_reset_system(mut commands: Commands) {
+        commands.insert_resource(NetworkTick::default());
+        commands.insert_resource(ClientAcks::default());
     }
 
-    fn client_ticks_init_system(mut commands: Commands) {
-        commands.init_resource::<NetworkTick>();
-        commands.init_resource::<ReceivedServerTick>();
-        commands.init_resource::<NetworkEntityMap>();
-    }
-
-    fn server_ticks_remove_system(mut commands: Commands) {
-        commands.remove_resource::<NetworkTick>();
-        commands.remove_resource::<ClientAcks>();
-    }
-
-    fn client_ticks_remove_system(mut commands: Commands) {
-        commands.remove_resource::<NetworkTick>();
-        commands.remove_resource::<ReceivedServerTick>();
-        commands.remove_resource::<NetworkEntityMap>();
+    fn client_reset_system(mut commands: Commands) {
+        commands.insert_resource(NetworkTick::default());
+        commands.insert_resource(ReceivedServerTick::default());
+        commands.insert_resource(NetworkEntityMap::default());
     }
 }
 
 /// Current network tick
-/// Available on server and clients
+/// Used on server and clients
 struct NetworkTick(u32);
 
 impl Default for NetworkTick {
@@ -316,12 +307,12 @@ impl Default for NetworkTick {
 }
 
 /// Last received tick from server
-/// Only available on clients
+/// Used only on clients
 #[derive(Default)]
 struct ReceivedServerTick(u32);
 
 /// Last acknowledged server ticks from all clients
-/// Only available on server
+/// Used only on server
 #[derive(Default, Deref, DerefMut)]
 struct ClientAcks(HashMap<u64, u32>);
 
@@ -355,7 +346,7 @@ struct ClientUnreliableMessage {
 }
 
 /// Maps server entities to client entities.
-/// Available only on client.
+/// Used only on client.
 #[derive(Default, Deref, DerefMut)]
 struct NetworkEntityMap(EntityMap);
 
@@ -529,78 +520,71 @@ mod tests {
     }
 
     #[test]
-    fn client_ticks_init_and_cleanup() {
+    fn client_resets() {
         let mut app = App::new();
         app.add_plugin(UnreliableMessagePlugin)
             .add_plugin(TestNetworkPlugin::new(NetworkPreset::Client));
 
         app.update();
 
-        assert!(
-            app.world.contains_resource::<NetworkTick>(),
-            "The {} resource should exist when connected",
-            type_name::<NetworkTick>()
-        );
-        assert!(
-            app.world.contains_resource::<ReceivedServerTick>(),
-            "The {} resource should exist when connected",
-            type_name::<ReceivedServerTick>()
-        );
-        assert!(
-            app.world.contains_resource::<NetworkEntityMap>(),
-            "The {} resource should exist when connected",
-            type_name::<NetworkEntityMap>()
-        );
+        // Modify resources to test reset
+        app.world.resource_mut::<NetworkTick>().0 += 1;
+        app.world.resource_mut::<ReceivedServerTick>().0 += 1;
+        app.world
+            .resource_mut::<NetworkEntityMap>()
+            .insert(Entity::from_raw(0), Entity::from_raw(0));
 
         app.world.remove_resource::<RenetClient>();
 
         app.update();
 
-        assert!(
-            !app.world.contains_resource::<NetworkTick>(),
-            "The {} resource should be removed when disconnected",
+        assert_eq!(
+            app.world.resource::<NetworkTick>().0,
+            NetworkTick::default().0,
+            "Resource {} should be defaulted",
             type_name::<NetworkTick>()
         );
-        assert!(
-            !app.world.contains_resource::<ReceivedServerTick>(),
-            "The {} resource should be removed when disconnected",
+        assert_eq!(
+            app.world.resource::<ReceivedServerTick>().0,
+            ReceivedServerTick::default().0,
+            "Resource {} should be defaulted",
             type_name::<ReceivedServerTick>()
         );
-        assert!(
-            !app.world.contains_resource::<NetworkEntityMap>(),
-            "The {} resource should be removed when disconnected",
+        assert_eq!(
+            app.world.resource::<NetworkEntityMap>().keys().count(),
+            0,
+            "Resource {} should be empty",
             type_name::<NetworkEntityMap>()
         );
     }
 
     #[test]
-    fn server_ticks_init_and_cleanup() {
+    fn server_resets() {
         let mut app = App::new();
         app.add_plugin(UnreliableMessagePlugin)
             .add_plugin(TestNetworkPlugin::new(NetworkPreset::Server));
 
         app.update();
 
-        assert!(
-            app.world.contains_resource::<NetworkTick>(),
-            "The network tick resource should be created on server creation"
-        );
-        assert!(
-            app.world.contains_resource::<ClientAcks>(),
-            "The received client ticks resource should be created on server creation"
-        );
+        // Modify resources to test reset
+        app.world.resource_mut::<NetworkTick>().0 += 1;
+        app.world.resource_mut::<ClientAcks>().insert(0, 0);
 
         app.world.remove_resource::<RenetServer>();
 
         app.update();
 
-        assert!(
-            !app.world.contains_resource::<NetworkTick>(),
-            "The network tick resource should be removed on server shutdown"
+        assert_eq!(
+            app.world.resource::<NetworkTick>().0,
+            NetworkTick::default().0,
+            "Resource {} should be defaulted",
+            type_name::<NetworkTick>()
         );
-        assert!(
-            !app.world.contains_resource::<ClientAcks>(),
-            "The received client ticks resource should be removed on server shutdown"
+        assert_eq!(
+            app.world.resource::<ClientAcks>().len(),
+            0,
+            "Resource {} should be empty",
+            type_name::<NetworkEntityMap>()
         );
     }
 
