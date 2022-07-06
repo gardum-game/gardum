@@ -120,16 +120,16 @@ impl Default for ControlsSettings {
     fn default() -> Self {
         let mut input = InputMap::default();
         input
-            .insert(ControlAction::Forward, KeyCode::W)
-            .insert(ControlAction::Backward, KeyCode::S)
-            .insert(ControlAction::Left, KeyCode::A)
-            .insert(ControlAction::Right, KeyCode::D)
-            .insert(ControlAction::Jump, KeyCode::Space)
-            .insert(ControlAction::BaseAttack, MouseButton::Left)
-            .insert(ControlAction::Ability1, KeyCode::Q)
-            .insert(ControlAction::Ability2, KeyCode::E)
-            .insert(ControlAction::Ability3, KeyCode::LShift)
-            .insert(ControlAction::Ultimate, KeyCode::R);
+            .insert(KeyCode::W, ControlAction::Forward)
+            .insert(KeyCode::S, ControlAction::Backward)
+            .insert(KeyCode::A, ControlAction::Left)
+            .insert(KeyCode::D, ControlAction::Right)
+            .insert(KeyCode::Space, ControlAction::Jump)
+            .insert(MouseButton::Left, ControlAction::BaseAttack)
+            .insert(KeyCode::Q, ControlAction::Ability1)
+            .insert(KeyCode::E, ControlAction::Ability2)
+            .insert(KeyCode::LShift, ControlAction::Ability3)
+            .insert(KeyCode::R, ControlAction::Ultimate);
 
         Self { mappings: input }
     }

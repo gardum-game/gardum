@@ -25,9 +25,9 @@ impl Plugin for UiActionsPlugin {
     fn build(&self, app: &mut App) {
         let mut input_map = InputMap::default();
         input_map
-            .insert(UiAction::Back, KeyCode::Escape)
-            .insert(UiAction::Scoreboard, KeyCode::Tab)
-            .insert(UiAction::Chat, KeyCode::Return);
+            .insert(KeyCode::Escape, UiAction::Back)
+            .insert(KeyCode::Tab, UiAction::Scoreboard)
+            .insert(KeyCode::Return, UiAction::Chat);
 
         app.init_resource::<ActionState<UiAction>>()
             .insert_resource(input_map);

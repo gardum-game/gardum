@@ -112,7 +112,7 @@ mod tests {
         settings
             .controls
             .mappings
-            .insert(ControlAction::Jump, KeyCode::Q);
+            .insert(KeyCode::Q, ControlAction::Jump);
 
         let mut apply_events = app.world.resource_mut::<Events<SettingsApplied>>();
         apply_events.send(SettingsApplied);

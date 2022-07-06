@@ -166,8 +166,8 @@ impl SettingsMenuPlugin {
                                 .mappings
                                 .remove(conflict.action, conflict.input_button);
                             settings.controls.mappings.insert_at(
-                                active_binding.action,
                                 conflict.input_button,
+                                active_binding.action,
                                 active_binding.index,
                             );
                             commands.remove_resource::<ActiveBinding>();
@@ -187,7 +187,7 @@ impl SettingsMenuPlugin {
                                 .controls
                                 .mappings
                                 .iter()
-                                .find_map(|(action, inputs)| {
+                                .find_map(|(inputs, action)| {
                                     if action != active_binding.action
                                         && inputs.contains(&input_button.into())
                                     {
@@ -202,8 +202,8 @@ impl SettingsMenuPlugin {
                             });
                         } else {
                             settings.controls.mappings.insert_at(
-                                active_binding.action,
                                 input_button,
+                                active_binding.action,
                                 active_binding.index,
                             );
                             commands.remove_resource::<ActiveBinding>();
