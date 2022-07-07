@@ -40,7 +40,11 @@ pub(super) struct OrbitCameraPlugin;
 impl Plugin for OrbitCameraPlugin {
     fn build(&self, app: &mut App) {
         app.add_system(Self::spawn_system.run_in_state(GameState::InGame))
-            .add_system(Self::input_system.run_in_state(GameState::InGame))
+            .add_system(
+                Self::input_system
+                    .run_in_state(GameState::InGame)
+                    .run_if(cursor_locked),
+            )
             .add_system_to_stage(
                 CoreStage::PostUpdate,
                 Self::position_system
@@ -69,14 +73,8 @@ impl OrbitCameraPlugin {
     fn input_system(
         mut motion_events: EventReader<MouseMotion>,
         time: Res<Time>,
-        #[cfg(not(test))] windows: ResMut<Windows>,
         mut orbit_rotations: Query<&mut OrbitRotation, With<Authority>>,
     ) {
-        #[cfg(not(test))] // Can't run tests with windows, ignore.
-        if !windows.primary().cursor_locked() {
-            return;
-        }
-
         if let Ok(mut orbit_rotation) = orbit_rotations.get_single_mut() {
             for event in motion_events.iter() {
                 orbit_rotation.0 -= event.delta * CAMERA_SENSETIVITY * time.delta_seconds();
@@ -99,6 +97,13 @@ impl OrbitCameraPlugin {
             camera_transform.look_at(character_translation, Vec3::Y);
         }
     }
+}
+
+fn cursor_locked(#[cfg(not(test))] windows: ResMut<Windows>) -> bool {
+    #[cfg(not(test))]
+    return windows.primary().cursor_locked();
+    #[cfg(test)]
+    true
 }
 
 #[derive(Bundle)]
