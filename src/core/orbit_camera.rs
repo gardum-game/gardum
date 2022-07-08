@@ -25,6 +25,7 @@ use bevy::{
 };
 use derive_more::From;
 use iyes_loopless::prelude::*;
+use std::f32::consts::FRAC_PI_2;
 
 use super::{
     character::hero::HeroKind,
@@ -92,9 +93,11 @@ impl OrbitCameraPlugin {
     ) {
         for (mut camera_transform, orbit_rotation, target) in cameras.iter_mut() {
             let character_translation = transforms.get(target.0).unwrap().translation;
+            let look_position = orbit_rotation.look_position() + character_translation;
+
             camera_transform.translation =
-                orbit_rotation.to_quat() * Vec3::Y * CAMERA_DISTANCE + character_translation;
-            camera_transform.look_at(character_translation, Vec3::Y);
+                look_position + orbit_rotation.direction() * CAMERA_DISTANCE;
+            camera_transform.look_at(look_position, Vec3::Y);
         }
     }
 }
@@ -132,12 +135,27 @@ impl OrbitCameraBundle {
 #[derive(Component, From)]
 pub(super) struct CameraTarget(pub(super) Entity);
 
+/// Camera rotation state
 #[derive(Component, Deref, DerefMut, Debug, PartialEq)]
 struct OrbitRotation(Vec2);
 
 impl OrbitRotation {
-    fn to_quat(&self) -> Quat {
-        Quat::from_axis_angle(Vec3::Y, self.x) * Quat::from_axis_angle(Vec3::X, self.y)
+    /// Calculate camera direction.
+    fn direction(&self) -> Vec3 {
+        Quat::from_axis_angle(Vec3::Y, self.x) * Quat::from_axis_angle(Vec3::X, self.y) * Vec3::Y
+    }
+
+    /// Calculate the point at which camera is directed relative to the player.
+    fn look_position(&self) -> Vec3 {
+        const RIGHT_OFFSET: f32 = 1.2;
+        const UP_OFFSET: f32 = 1.0;
+
+        // Calculate position on circle around the player using `RIGHT_OFFSET` as radius and add `UP_OFFSET` to this position.
+        Vec3::new(
+            RIGHT_OFFSET * (self.x + FRAC_PI_2).sin(),
+            UP_OFFSET,
+            RIGHT_OFFSET * (self.x + FRAC_PI_2).cos(),
+        )
     }
 }
 
@@ -262,18 +280,19 @@ mod tests {
 
             app.update();
 
-            let camera_transform = app.world.get::<Transform>(camera).unwrap();
+            let camera = app.world.entity(camera);
+            let orbit_rotation = camera.get::<OrbitRotation>().unwrap();
+            let camera_transform = camera.get::<Transform>().unwrap();
             let character_transform = app.world.get::<Transform>(character).unwrap();
+            let look_position = orbit_rotation.look_position() + character_transform.translation;
 
             assert_ulps_eq!(
-                camera_transform
-                    .translation
-                    .distance(character_transform.translation),
+                camera_transform.translation.distance(look_position),
                 CAMERA_DISTANCE,
             );
             assert_eq!(
                 *camera_transform,
-                camera_transform.looking_at(character_transform.translation, Vec3::Y),
+                camera_transform.looking_at(look_position, Vec3::Y),
                 "Camera should look at the character"
             );
         }
