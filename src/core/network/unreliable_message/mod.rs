@@ -551,7 +551,7 @@ mod tests {
             type_name::<ReceivedServerTick>()
         );
         assert_eq!(
-            app.world.resource::<NetworkEntityMap>().keys().count(),
+            app.world.resource::<NetworkEntityMap>().keys().count(), // TODO 0.8: Use is_empty
             0,
             "Resource {} should be empty",
             type_name::<NetworkEntityMap>()
