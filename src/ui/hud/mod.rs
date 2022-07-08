@@ -18,6 +18,7 @@
  */
 
 mod ability_icon;
+mod crosshair;
 mod health_bar;
 
 use bevy::{prelude::*, utils::HashMap};
@@ -27,6 +28,8 @@ use bevy_egui::{
 };
 use iyes_loopless::prelude::*;
 use leafwing_input_manager::prelude::*;
+
+use self::crosshair::Crosshair;
 
 use super::{chat_window::ChatWindowPlugin, ui_actions::UiAction, ui_state::UiState, UI_MARGIN};
 use crate::core::{
@@ -53,6 +56,7 @@ impl Plugin for HudPlugin {
                     .run_in_state(UiState::Hud)
                     .after(ChatWindowPlugin::chat_system),
             )
+            .add_system(Self::crosshair_system.run_in_state(UiState::Hud))
             .add_enter_system(UiState::Hud, Self::enable_control_actions_system)
             .add_enter_system(UiState::Hud, Self::hide_cursor_system)
             .add_exit_system(UiState::Hud, Self::disable_control_actions_system)
@@ -92,6 +96,14 @@ impl HudPlugin {
                         ui.add(AbilityIcon::new(*texture_id, cooldown));
                     }
                 })
+            });
+    }
+
+    fn crosshair_system(mut egui: ResMut<EguiContext>) {
+        Area::new("Crosshair")
+            .anchor(Align2::CENTER_CENTER, (0.0, 0.0))
+            .show(egui.ctx_mut(), |ui| {
+                ui.add(Crosshair::default());
             });
     }
 
