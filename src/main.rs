@@ -44,7 +44,6 @@ use {
 #[cfg(feature = "developer")]
 use bevy_inspector_egui::prelude::*;
 
-#[cfg(not(tarpaulin_include))]
 fn main() {
     let mut app = App::new();
     if cfg!(feature = "client") {

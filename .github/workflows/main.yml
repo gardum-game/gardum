@@ -30,17 +30,26 @@ jobs:
       - name: Cache crates
         uses: Swatinem/rust-cache@v1
 
+      - name: Install LLVM tools
+        run: rustup component add llvm-tools-preview
+
+      - name: Install Grcov
+        run: cargo install grcov
+
       - name: Test
-        uses: actions-rs/tarpaulin@v0.1
-        with:
-          args: --ignore-tests --all-features --skip-clean --exclude-files=src/ui
+        run: cargo test
+        env:
+          RUSTFLAGS: "-C instrument-coverage"
+
+      - name: Process coverage
+        run: grcov default.profraw --binary-path target/debug/ --source-dir . --excl-start "mod tests" --ignore "/*" --ignore "src/ui/*" --ignore "src/main.rs" --output-path lcov.info
 
       - name: Upload code coverage results
         if: github.actor != 'dependabot[bot]'
         uses: actions/upload-artifact@v3
         with:
           name: code-coverage-report
-          path: cobertura.xml
+          path: lcov.info
 
   clippy:
     name: Clippy
