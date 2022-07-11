@@ -128,7 +128,7 @@ impl PickupBundle {
             name: "Pickup".into(),
             pickup_kind,
             cooldown: Cooldown::from_secs(10),
-            sensor: Sensor(true),
+            sensor: Sensor,
             collider: Collider::capsule_y(0.5, 0.5),
             collision_groups: CollisionGroups {
                 memberships: CollisionMask::PICKUP.bits(),
