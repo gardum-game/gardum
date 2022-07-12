@@ -87,7 +87,7 @@ impl HealthPlugin {
     }
 }
 
-#[derive(Component, Debug, PartialEq)]
+#[derive(Component)]
 pub(crate) struct Health {
     pub(crate) current: u32,
     pub(crate) max: u32,
