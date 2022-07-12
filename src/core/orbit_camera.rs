@@ -34,10 +34,6 @@ use super::{
     Authority, CollisionMask,
 };
 
-const MAX_CAMERA_DISTANCE: f32 = 5.0;
-const CAMERA_SENSETIVITY: f32 = 0.2;
-const CAMERA_MARGIN: f32 = 0.5;
-
 pub(super) struct OrbitCameraPlugin;
 
 impl Plugin for OrbitCameraPlugin {
@@ -58,6 +54,8 @@ impl Plugin for OrbitCameraPlugin {
 }
 
 impl OrbitCameraPlugin {
+    const MAX_DISTANCE: f32 = 5.0;
+
     fn spawn_system(
         mut commands: Commands,
         mut active_camera: ResMut<ActiveCamera<Camera3d>>,
@@ -80,7 +78,8 @@ impl OrbitCameraPlugin {
     ) {
         if let Ok(mut orbit_rotation) = orbit_rotations.get_single_mut() {
             for event in motion_events.iter() {
-                orbit_rotation.0 -= event.delta * CAMERA_SENSETIVITY * time.delta_seconds();
+                const SENSETIVITY: f32 = 0.2;
+                orbit_rotation.0 -= event.delta * SENSETIVITY * time.delta_seconds();
             }
 
             orbit_rotation.y = orbit_rotation
@@ -98,21 +97,22 @@ impl OrbitCameraPlugin {
             let character_translation = transforms.get(target.0).unwrap().translation;
             let look_position = orbit_rotation.look_position() + character_translation;
             let direction = orbit_rotation.direction();
-            let max_camera_translation = look_position + direction * MAX_CAMERA_DISTANCE;
+            let max_camera_translation = look_position + direction * Self::MAX_DISTANCE;
 
+            const MARGIN: f32 = 0.5;
             let distance = rapier_ctx
                 .cast_ray(
                     character_translation,
                     (max_camera_translation - character_translation).normalize_or_zero(),
-                    MAX_CAMERA_DISTANCE,
+                    Self::MAX_DISTANCE,
                     false,
                     QueryFilter::new().groups(InteractionGroups::new(
                         CollisionMask::CHARACTER.bits(),
                         (CollisionMask::all() ^ CollisionMask::CHARACTER).bits(),
                     )),
                 )
-                .map(|(_, distance)| (distance - CAMERA_MARGIN).max(CAMERA_MARGIN))
-                .unwrap_or(MAX_CAMERA_DISTANCE);
+                .map(|(_, distance)| (distance - MARGIN).max(MARGIN))
+                .unwrap_or(Self::MAX_DISTANCE);
 
             camera_transform.translation = look_position + direction * distance;
             camera_transform.look_at(look_position, Vec3::Y);
@@ -279,7 +279,7 @@ mod tests {
 
         for (character_translation, camera_rotation) in [
             (Vec3::ZERO, Vec2::ZERO),
-            (Vec3::ONE * MAX_CAMERA_DISTANCE, Vec2::ZERO),
+            (Vec3::ONE * OrbitCameraPlugin::MAX_DISTANCE, Vec2::ZERO),
             (Vec3::ONE, Vec2::ONE * PI),
             (Vec3::ONE, Vec2::ONE * 2.0 * PI),
         ] {
@@ -306,7 +306,7 @@ mod tests {
 
             assert_ulps_eq!(
                 camera_transform.translation.distance(look_position),
-                MAX_CAMERA_DISTANCE,
+                OrbitCameraPlugin::MAX_DISTANCE,
             );
             assert_eq!(
                 *camera_transform,
