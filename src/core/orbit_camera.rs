@@ -316,6 +316,42 @@ mod tests {
         }
     }
 
+    #[test]
+    fn collision() {
+        let mut app = App::new();
+        app.add_plugin(TestOrbitCameraPlugin);
+
+        app.world
+            .spawn()
+            .insert(Transform::default())
+            .insert(Collider::ball(5.0));
+        let character = app
+            .world
+            .spawn()
+            .insert_bundle(DummyCharacterBundle::default())
+            .id();
+
+        app.update();
+
+        let camera = app
+            .world
+            .query_filtered::<Entity, With<OrbitRotation>>()
+            .iter(&app.world)
+            .next()
+            .unwrap(); // TODO 0.8: Use single
+
+        let camera = app.world.entity(camera);
+        let orbit_rotation = camera.get::<OrbitRotation>().unwrap();
+        let camera_transform = camera.get::<Transform>().unwrap();
+        let character_transform = app.world.get::<Transform>(character).unwrap();
+        let look_position = orbit_rotation.look_position() + character_transform.translation;
+
+        assert!(
+            camera_transform.translation.distance(look_position) < OrbitCameraPlugin::MAX_DISTANCE,
+            "Camera should collide with the spawned sphere"
+        );
+    }
+
     struct TestOrbitCameraPlugin;
 
     impl Plugin for TestOrbitCameraPlugin {
