@@ -18,6 +18,7 @@
  */
 
 #![allow(clippy::type_complexity)] // Do not warn about long queries
+#![allow(clippy::forget_non_drop)] // From Bevy Bundle macro
 
 mod core;
 #[cfg(feature = "client")]
