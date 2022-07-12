@@ -194,7 +194,7 @@ mod tests {
     use crate::core::headless::HeadlessRenderPlugin;
 
     #[test]
-    fn camera_spawn() {
+    fn spawn() {
         let mut app = App::new();
         app.add_plugin(TestOrbitCameraPlugin);
 
@@ -236,7 +236,7 @@ mod tests {
     }
 
     #[test]
-    fn camera_input() {
+    fn input() {
         let mut app = App::new();
         app.add_plugin(TestOrbitCameraPlugin);
 
@@ -265,7 +265,7 @@ mod tests {
     }
 
     #[test]
-    fn camera_moves_around_character() {
+    fn movement() {
         let mut app = App::new();
         app.add_plugin(TestOrbitCameraPlugin);
 
