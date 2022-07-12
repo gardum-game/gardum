@@ -23,6 +23,7 @@ use bevy::{
     render::camera::{ActiveCamera, Camera3d},
     transform::TransformSystem,
 };
+use bevy_rapier3d::prelude::*;
 use derive_more::From;
 use iyes_loopless::prelude::*;
 use std::f32::consts::FRAC_PI_2;
@@ -30,11 +31,12 @@ use std::f32::consts::FRAC_PI_2;
 use super::{
     character::hero::HeroKind,
     game_state::{GameState, InGameOnly},
-    Authority,
+    Authority, CollisionMask,
 };
 
-const CAMERA_DISTANCE: f32 = 10.0;
+const MAX_CAMERA_DISTANCE: f32 = 5.0;
 const CAMERA_SENSETIVITY: f32 = 0.2;
+const CAMERA_MARGIN: f32 = 0.5;
 
 pub(super) struct OrbitCameraPlugin;
 
@@ -88,15 +90,31 @@ impl OrbitCameraPlugin {
     }
 
     fn position_system(
+        rapier_ctx: Res<RapierContext>,
         transforms: Query<&Transform, Without<OrbitRotation>>,
         mut cameras: Query<(&mut Transform, &OrbitRotation, &CameraTarget)>,
     ) {
         for (mut camera_transform, orbit_rotation, target) in cameras.iter_mut() {
             let character_translation = transforms.get(target.0).unwrap().translation;
             let look_position = orbit_rotation.look_position() + character_translation;
+            let direction = orbit_rotation.direction();
+            let max_camera_translation = look_position + direction * MAX_CAMERA_DISTANCE;
 
-            camera_transform.translation =
-                look_position + orbit_rotation.direction() * CAMERA_DISTANCE;
+            let distance = rapier_ctx
+                .cast_ray(
+                    character_translation,
+                    (max_camera_translation - character_translation).normalize_or_zero(),
+                    MAX_CAMERA_DISTANCE,
+                    false,
+                    QueryFilter::new().groups(InteractionGroups::new(
+                        CollisionMask::CHARACTER.bits(),
+                        (CollisionMask::all() ^ CollisionMask::CHARACTER).bits(),
+                    )),
+                )
+                .map(|(_, distance)| (distance - CAMERA_MARGIN).max(CAMERA_MARGIN))
+                .unwrap_or(MAX_CAMERA_DISTANCE);
+
+            camera_transform.translation = look_position + direction * distance;
             camera_transform.look_at(look_position, Vec3::Y);
         }
     }
@@ -261,7 +279,7 @@ mod tests {
 
         for (character_translation, camera_rotation) in [
             (Vec3::ZERO, Vec2::ZERO),
-            (Vec3::ONE * CAMERA_DISTANCE, Vec2::ZERO),
+            (Vec3::ONE * MAX_CAMERA_DISTANCE, Vec2::ZERO),
             (Vec3::ONE, Vec2::ONE * PI),
             (Vec3::ONE, Vec2::ONE * 2.0 * PI),
         ] {
@@ -288,7 +306,7 @@ mod tests {
 
             assert_ulps_eq!(
                 camera_transform.translation.distance(look_position),
-                CAMERA_DISTANCE,
+                MAX_CAMERA_DISTANCE,
             );
             assert_eq!(
                 *camera_transform,
