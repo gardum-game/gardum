@@ -67,10 +67,7 @@ jobs:
         uses: Swatinem/rust-cache@v1
 
       - name: Clippy
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: --no-deps --all-features --tests -- -D warnings
+        run: cargo clippy --no-deps --all-features --tests -- -D warnings
 
   format:
     name: Format
@@ -80,10 +77,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Format
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: -- --check
+        run: cargo fmt --check
 
   codecov:
     name: Upload to Codecov
