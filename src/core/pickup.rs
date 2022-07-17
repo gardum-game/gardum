@@ -17,7 +17,7 @@
  *  along with Gardum. If not, see <https://www.gnu.org/licenses/>.
  */
 
-use bevy::{ecs::system::EntityCommands, prelude::*};
+use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 use iyes_loopless::prelude::*;
 #[cfg(test)]
@@ -31,19 +31,42 @@ use super::{
         EffectTarget, EffectTimer,
     },
     game_state::{GameState, InGameOnly},
-    AssetCommands, AssociatedAsset, CollisionMask,
+    AssociatedAsset, CollisionMask,
 };
 
 pub(super) struct PickupPlugin;
 
 impl Plugin for PickupPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(Self::interaction_system.run_in_state(GameState::InGame))
+        app.add_system(Self::spawn_system.run_in_state(GameState::InGame))
+            .add_system(Self::interaction_system.run_in_state(GameState::InGame))
             .add_system(Self::cooldown_system.run_in_state(GameState::InGame));
     }
 }
 
 impl PickupPlugin {
+    fn spawn_system(
+        mut commands: Commands,
+        asset_server: Res<AssetServer>,
+        spawned_pickups: Query<(Entity, &PickupKind), Added<PickupKind>>,
+    ) {
+        for (pickup, kind) in spawned_pickups.iter() {
+            commands
+                .entity(pickup)
+                .insert_bundle(PickupBundle::default())
+                .with_children(|parent| {
+                    parent
+                        .spawn_bundle(TransformBundle::from_transform(
+                            Transform::from_translation(Vec3::Y / 2.0),
+                        ))
+                        .with_children(|parent| {
+                            parent.spawn_scene(asset_server.load(kind.asset_path()));
+                        });
+                    parent.spawn_scene(asset_server.load(PLATFORM_PATH));
+                });
+        }
+    }
+
     fn interaction_system(
         mut commands: Commands,
         children: Query<&Children>,
@@ -96,7 +119,8 @@ impl PickupPlugin {
     }
 }
 
-/// Returns children entity with pickup mesh from the specified entity
+/// Returns children entity with pickup mesh from the specified entity.
+/// TODO 0.8: Use [`BaseBundle`] that propagates visibility.
 fn pickup_child_mesh(pickup: Entity, children: &Query<&Children>) -> Entity {
     let mut mesh_entity = pickup;
     // Child entity with mesh located deeply in children hierarchy
@@ -107,26 +131,42 @@ fn pickup_child_mesh(pickup: Entity, children: &Query<&Children>) -> Entity {
     mesh_entity
 }
 
+/// A component bundle to spawn a pickup.
+#[derive(Bundle)]
+pub(super) struct PickupSpawnBundle {
+    pickup_kind: PickupKind,
+
+    #[bundle]
+    transform: TransformBundle,
+}
+
+impl PickupSpawnBundle {
+    /// Creates a new [`PickupSpawnBundle`] with `pickup_kind` at `translation`.
+    pub(super) fn new(pickup_kind: PickupKind, translation: Vec3) -> Self {
+        Self {
+            pickup_kind,
+            transform: TransformBundle::from_transform(Transform::from_translation(translation)),
+        }
+    }
+}
+
+/// A component bundle that will be inserted automatically after inserting the [`PickupKind`] component.
 #[derive(Bundle)]
 struct PickupBundle {
     name: Name,
-    pickup_kind: PickupKind,
     cooldown: Cooldown,
     sensor: Sensor,
     collider: Collider,
     collision_groups: CollisionGroups,
     colliding_entities: CollidingEntities,
     active_events: ActiveEvents,
-    transform: Transform,
-    global_transform: GlobalTransform,
     ingame_only: InGameOnly,
 }
 
-impl PickupBundle {
-    fn new(pickup_kind: PickupKind, translation: Vec3) -> Self {
+impl Default for PickupBundle {
+    fn default() -> Self {
         Self {
             name: "Pickup".into(),
-            pickup_kind,
             cooldown: Cooldown::from_secs(10),
             sensor: Sensor,
             collider: Collider::capsule_y(0.5, 0.5),
@@ -136,13 +176,13 @@ impl PickupBundle {
             },
             colliding_entities: CollidingEntities::default(),
             active_events: ActiveEvents::COLLISION_EVENTS,
-            transform: Transform::from_translation(translation),
-            global_transform: GlobalTransform::default(),
             ingame_only: InGameOnly,
         }
     }
 }
 
+/// A component bundle for pickup healing effect.
+/// Will be inserted automatically on pickup interation with `PickupKind::Healing`.
 #[derive(Bundle)]
 struct HealingEffectBundle {
     name: Name,
@@ -164,6 +204,8 @@ impl HealingEffectBundle {
     }
 }
 
+/// A component bundle for pickup rage effect.
+/// Will be inserted automatically on pickup interation with `PickupKind::Rage`.
 #[derive(Bundle)]
 struct RageEffectBundle {
     name: Name,
@@ -193,6 +235,8 @@ struct SpeedEffectBundle {
     target: EffectTarget,
 }
 
+/// A component bundle for pickup speed effect.
+/// Will be inserted automatically on pickup interation with `PickupKind::Speed`.
 impl SpeedEffectBundle {
     fn new(target: EffectTarget) -> Self {
         Self {
@@ -204,6 +248,7 @@ impl SpeedEffectBundle {
     }
 }
 
+/// Type of pickup
 #[derive(Component, Clone, Copy)]
 #[cfg_attr(test, derive(EnumIter))]
 pub(super) enum PickupKind {
@@ -224,31 +269,6 @@ impl AssociatedAsset for PickupKind {
 
 const PLATFORM_PATH: &str = "pickup/platform.glb#Scene0";
 
-impl<'w, 's> AssetCommands<'w, 's> {
-    pub(super) fn spawn_pickup<'a>(
-        &'a mut self,
-        pickup_kind: PickupKind,
-        translation: Vec3,
-    ) -> EntityCommands<'w, 's, 'a> {
-        let mut entity_commands = self
-            .commands
-            .spawn_bundle(PickupBundle::new(pickup_kind, translation));
-
-        entity_commands.with_children(|parent| {
-            parent
-                .spawn_bundle(TransformBundle::from_transform(
-                    Transform::from_translation(Vec3::Y / 2.0),
-                ))
-                .with_children(|parent| {
-                    parent.spawn_scene(self.asset_server.load(pickup_kind.asset_path()));
-                });
-            parent.spawn_scene(self.asset_server.load(PLATFORM_PATH));
-        });
-
-        entity_commands
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use std::time::Duration;
@@ -268,12 +288,11 @@ mod tests {
         app.add_plugin(TestPickupPlugin);
 
         for pickup_kind in PickupKind::iter() {
-            let mut system_state: SystemState<AssetCommands> = SystemState::new(&mut app.world);
-            let mut asset_commands = system_state.get_mut(&mut app.world);
-            let pickup = asset_commands
-                .spawn_pickup(pickup_kind, Vec3::default())
+            let pickup = app
+                .world
+                .spawn()
+                .insert_bundle(PickupSpawnBundle::new(pickup_kind, Vec3::default()))
                 .id();
-            system_state.apply(&mut app.world);
 
             headless::wait_for_asset_loading(&mut app, pickup_kind.asset_path());
             headless::wait_for_asset_loading(&mut app, PLATFORM_PATH);
@@ -327,12 +346,11 @@ mod tests {
         app.add_plugin(TestPickupPlugin);
 
         const PICKUP_KIND: PickupKind = PickupKind::Healing;
-        let mut system_state: SystemState<AssetCommands> = SystemState::new(&mut app.world);
-        let mut asset_commands = system_state.get_mut(&mut app.world);
-        let pickup = asset_commands
-            .spawn_pickup(PICKUP_KIND, Vec3::default())
+        let pickup = app
+            .world
+            .spawn()
+            .insert_bundle(PickupSpawnBundle::new(PICKUP_KIND, Vec3::default()))
             .id();
-        system_state.apply(&mut app.world);
 
         headless::wait_for_asset_loading(&mut app, PICKUP_KIND.asset_path());
         headless::wait_for_asset_loading(&mut app, PLATFORM_PATH);
@@ -361,7 +379,7 @@ mod tests {
 
         let mut cooldown = app.world.get_mut::<Cooldown>(pickup).unwrap();
         let duration_left = cooldown.duration() - cooldown.elapsed();
-        cooldown.tick(duration_left - Duration::from_nanos(1)); // Tick to almost end to trigger just_finished inside the system
+        cooldown.tick(duration_left - Duration::from_nanos(1)); // Tick to almost end to trigger just_finished inside the system.
 
         app.update();
 

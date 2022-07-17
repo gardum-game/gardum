@@ -23,8 +23,10 @@ use std::f32::consts::PI;
 
 use super::Map;
 use crate::core::{
-    game_state::InGameOnly, pickup::PickupKind, session::spawn::SpawnPointBundle, AssetCommands,
-    AssociatedAsset, CollisionMask,
+    game_state::InGameOnly,
+    pickup::{PickupKind, PickupSpawnBundle},
+    session::spawn::SpawnPointBundle,
+    AssetCommands, AssociatedAsset, CollisionMask,
 };
 
 impl<'w, 's> AssetCommands<'w, 's> {
@@ -57,9 +59,18 @@ impl<'w, 's> AssetCommands<'w, 's> {
         self.commands
             .spawn_bundle(SpawnPointBundle::new(Vec3::new(0.0, 5.0, 0.0)));
 
-        self.spawn_pickup(PickupKind::Healing, Vec3::new(4.0, 0.1, -1.0));
-        self.spawn_pickup(PickupKind::Speed, Vec3::new(4.0, 0.1, 0.0));
-        self.spawn_pickup(PickupKind::Rage, Vec3::new(4.0, 0.1, 1.0));
+        self.commands.spawn_bundle(PickupSpawnBundle::new(
+            PickupKind::Healing,
+            Vec3::new(4.0, 0.1, -1.0),
+        ));
+        self.commands.spawn_bundle(PickupSpawnBundle::new(
+            PickupKind::Speed,
+            Vec3::new(4.0, 0.1, 0.0),
+        ));
+        self.commands.spawn_bundle(PickupSpawnBundle::new(
+            PickupKind::Rage,
+            Vec3::new(4.0, 0.1, 1.0),
+        ));
 
         let mut scene_commands = self.commands.spawn_bundle(TransformBundle::default());
         let map = self.asset_server.load(Map::SkyRoof.asset_path());
