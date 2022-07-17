@@ -38,13 +38,13 @@ pub(super) struct PickupPlugin;
 
 impl Plugin for PickupPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(Self::collision_system.run_in_state(GameState::InGame))
+        app.add_system(Self::interaction_system.run_in_state(GameState::InGame))
             .add_system(Self::cooldown_system.run_in_state(GameState::InGame));
     }
 }
 
 impl PickupPlugin {
-    fn collision_system(
+    fn interaction_system(
         mut commands: Commands,
         children: Query<&Children>,
         mut pickups: Query<
@@ -73,7 +73,7 @@ impl PickupPlugin {
                 }
             };
 
-            let mesh_child = Self::pickup_child_mesh(pickup, &children);
+            let mesh_child = pickup_child_mesh(pickup, &children);
             commands
                 .entity(mesh_child)
                 .insert(Visibility { is_visible: false });
@@ -89,22 +89,22 @@ impl PickupPlugin {
         for (pickup, mut cooldown) in cooldowns.iter_mut() {
             cooldown.tick(time.delta());
             if cooldown.just_finished() {
-                let child_mesh = Self::pickup_child_mesh(pickup, &children);
+                let child_mesh = pickup_child_mesh(pickup, &children);
                 visibility.get_mut(child_mesh).unwrap().is_visible = true;
             }
         }
     }
+}
 
-    /// Returns children entity with pickup mesh from the specified entity
-    fn pickup_child_mesh(pickup: Entity, children: &Query<&Children>) -> Entity {
-        let mut mesh_entity = pickup;
-        // Child entity with mesh located deeply in children hierarchy
-        for _ in 0..4 {
-            let children = children.get(mesh_entity).unwrap();
-            mesh_entity = *children.iter().next().unwrap();
-        }
-        mesh_entity
+/// Returns children entity with pickup mesh from the specified entity
+fn pickup_child_mesh(pickup: Entity, children: &Query<&Children>) -> Entity {
+    let mut mesh_entity = pickup;
+    // Child entity with mesh located deeply in children hierarchy
+    for _ in 0..4 {
+        let children = children.get(mesh_entity).unwrap();
+        mesh_entity = *children.iter().next().unwrap();
     }
+    mesh_entity
 }
 
 #[derive(Bundle)]
@@ -339,7 +339,7 @@ mod tests {
 
         let mut system_state: SystemState<Query<&Children>> = SystemState::new(&mut app.world);
         let children = system_state.get(&app.world);
-        let mesh = PickupPlugin::pickup_child_mesh(pickup, &children);
+        let mesh = pickup_child_mesh(pickup, &children);
 
         app.world
             .entity_mut(mesh)
