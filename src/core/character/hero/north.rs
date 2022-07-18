@@ -48,7 +48,9 @@ impl Plugin for NorthPlugin {
 
 impl NorthPlugin {
     fn frost_bolt_system(
-        mut asset_commands: AssetCommands,
+        mut commands: Commands,
+        mut meshes: ResMut<Assets<Mesh>>,
+        mut materials: ResMut<Assets<StandardMaterial>>,
         abilities: Query<(Entity, &Activator), With<FrostBoltAbility>>,
         characters: Query<&Transform>,
         cameras: Query<&Transform, With<Camera>>,
@@ -64,11 +66,26 @@ impl NorthPlugin {
                 scale: character_transform.scale,
             };
 
-            asset_commands.spawn_frost_bolt(activator.0, transform);
-            asset_commands
-                .commands
-                .entity(ability)
-                .remove::<Activator>();
+            commands
+                .spawn_bundle(ProjectileBundle {
+                    velocity: Velocity::linear(
+                        transform.rotation
+                            * Quat::from_rotation_x(-90.0_f32.to_radians())
+                            * -Vec3::Z
+                            * PROJECTILE_SPEED,
+                    ),
+                    pbr: PbrBundle {
+                        mesh: meshes.add(Mesh::from(shape::Capsule::default())),
+                        material: materials.add(Color::rgb(0.3, 0.3, 0.3).into()),
+                        transform,
+                        ..Default::default()
+                    },
+                    ..Default::default()
+                })
+                .insert(FrostBoltAbility)
+                .insert(Owner(activator.0));
+
+            commands.entity(ability).remove::<Activator>();
         }
     }
 
@@ -181,31 +198,6 @@ impl<'w, 's> AssetCommands<'w, 's> {
             },
             ..Default::default()
         });
-        entity_commands
-    }
-
-    fn spawn_frost_bolt<'a>(
-        &'a mut self,
-        owner: Entity,
-        transform: Transform,
-    ) -> EntityCommands<'w, 's, 'a> {
-        let mut entity_commands = self.commands.spawn_bundle(ProjectileBundle {
-            velocity: Velocity::linear(
-                transform.rotation
-                    * Quat::from_rotation_x(-90.0_f32.to_radians())
-                    * -Vec3::Z
-                    * PROJECTILE_SPEED,
-            ),
-            pbr: PbrBundle {
-                mesh: self.meshes.add(Mesh::from(shape::Capsule::default())),
-                material: self.materials.add(Color::rgb(0.3, 0.3, 0.3).into()),
-                transform,
-                ..Default::default()
-            },
-            ..Default::default()
-        });
-        entity_commands.insert(FrostBoltAbility);
-        entity_commands.insert(Owner(owner));
         entity_commands
     }
 }
