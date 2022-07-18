@@ -22,12 +22,11 @@ use derive_more::From;
 use iyes_loopless::prelude::*;
 
 use crate::core::{
-    character::hero::HeroKind,
+    character::hero::{HeroBundle, HeroKind},
     game_state::{GameState, InGameOnly},
     health::Death,
     network::server,
     player::Player,
-    AssetCommands,
 };
 
 pub(super) struct SpawnPlugin;
@@ -52,22 +51,20 @@ impl SpawnPlugin {
     }
 
     fn spawn_system(
-        mut asset_commands: AssetCommands,
+        mut commands: Commands,
         spawn_points: Query<&SpawnPoint>,
         players: Query<(Entity, &HeroKind), Added<HeroKind>>,
     ) {
-        for (player, hero_kind) in players.iter() {
+        for (player, &hero_kind) in players.iter() {
             // TODO: determine best spawn position based on other characters location
             let spawn_point = spawn_points
                 .iter()
                 .next()
                 .expect("Unable to find any spawn points");
 
-            match hero_kind {
-                HeroKind::North => {
-                    asset_commands.insert_north(player, Transform::from_translation(spawn_point.0));
-                }
-            }
+            commands
+                .entity(player)
+                .insert_bundle(HeroBundle::new(hero_kind, spawn_point.0));
         }
     }
 

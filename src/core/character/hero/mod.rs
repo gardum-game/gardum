@@ -32,6 +32,21 @@ impl Plugin for HeroesPlugin {
     }
 }
 
+#[derive(Bundle)]
+pub(crate) struct HeroBundle {
+    hero_kind: HeroKind,
+    transform: Transform,
+}
+
+impl HeroBundle {
+    pub(crate) fn new(hero_kind: HeroKind, translation: Vec3) -> Self {
+        Self {
+            hero_kind,
+            transform: Transform::from_translation(translation),
+        }
+    }
+}
+
 #[derive(Clone, Copy, PartialEq, EnumIter, EnumString, Debug, Component)]
 pub(crate) enum HeroKind {
     North,

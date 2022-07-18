@@ -18,13 +18,13 @@
  */
 
 use bevy::prelude::*;
-use iyes_loopless::prelude::*;
 use bevy_rapier3d::prelude::*;
+use iyes_loopless::prelude::*;
 use std::f32::consts::PI;
 
 use super::Map;
 use crate::core::{
-    game_state::{InGameOnly, GameState},
+    game_state::{GameState, InGameOnly},
     pickup::{PickupBundle, PickupKind},
     session::spawn::SpawnPointBundle,
     AssociatedAsset, CollisionMask,

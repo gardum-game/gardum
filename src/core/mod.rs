@@ -40,7 +40,7 @@ pub(super) mod player;
 pub(super) mod session;
 pub(super) mod settings;
 
-use bevy::{ecs::system::SystemParam, prelude::*};
+use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 use bitflags::bitflags;
 use derive_more::From;
@@ -143,14 +143,6 @@ impl Default for ProjectileBundle {
             pbr: PbrBundle::default(),
         }
     }
-}
-
-/// Helper for easier asset spawning
-#[derive(SystemParam)]
-struct AssetCommands<'w, 's> {
-    commands: Commands<'w, 's>,
-    meshes: ResMut<'w, Assets<Mesh>>,
-    materials: ResMut<'w, Assets<StandardMaterial>>,
 }
 
 /// Trait to map enumerations with associated assets

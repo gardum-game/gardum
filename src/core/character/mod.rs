@@ -48,9 +48,11 @@ pub(super) struct CharacterBundle {
     collision_groups: CollisionGroups,
     velocity: Velocity,
     action_state: ActionState<ControlAction>,
-
-    #[bundle]
-    pbr: PbrBundle,
+    mesh: Handle<Mesh>,
+    material: Handle<StandardMaterial>,
+    global_transform: GlobalTransform,
+    visibility: Visibility,
+    computed_visibility: ComputedVisibility,
 }
 
 impl Default for CharacterBundle {
@@ -70,7 +72,11 @@ impl Default for CharacterBundle {
             },
             velocity: Velocity::default(),
             action_state: ActionState::default(),
-            pbr: PbrBundle::default(),
+            mesh: Default::default(),
+            material: Default::default(),
+            global_transform: Default::default(),
+            visibility: Default::default(),
+            computed_visibility: Default::default(),
         }
     }
 }

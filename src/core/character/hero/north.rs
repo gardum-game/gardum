@@ -17,10 +17,11 @@
  *  along with Gardum. If not, see <https://www.gnu.org/licenses/>.
  */
 
-use bevy::{ecs::system::EntityCommands, prelude::*, render::camera::Camera};
+use bevy::{prelude::*, render::camera::Camera};
 use bevy_rapier3d::prelude::*;
 use iyes_loopless::prelude::*;
 
+use super::HeroKind;
 use crate::core::{
     ability::{Activator, IconPath},
     character::{character_direction, CharacterBundle},
@@ -28,7 +29,7 @@ use crate::core::{
     cooldown::Cooldown,
     game_state::GameState,
     health::{Health, HealthChanged},
-    AssetCommands, Owner, ProjectileBundle,
+    Owner, ProjectileBundle,
 };
 
 const PROJECTILE_SPEED: f32 = 20.0;
@@ -40,13 +41,40 @@ pub(super) struct NorthPlugin;
 
 impl Plugin for NorthPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(Self::frost_bolt_system.run_in_state(GameState::InGame))
+        app.add_system(Self::spawn_system.run_in_state(GameState::InGame))
+            .add_system(Self::frost_bolt_system.run_in_state(GameState::InGame))
             .add_system(Self::frost_bolt_hit_system.run_in_state(GameState::InGame))
             .add_system(Self::frost_path_system.run_in_state(GameState::InGame));
     }
 }
 
 impl NorthPlugin {
+    fn spawn_system(
+        mut commands: Commands,
+        mut meshes: ResMut<Assets<Mesh>>,
+        mut materials: ResMut<Assets<StandardMaterial>>,
+        heroes: Query<(Entity, &HeroKind), Added<HeroKind>>,
+    ) {
+        for (hero, &hero_kind) in heroes.iter() {
+            if hero_kind != HeroKind::North {
+                continue;
+            }
+
+            let abilities = vec![
+                commands.spawn_bundle(FrostBoltBundle::default()).id(),
+                commands.spawn_bundle(FrostPathBundle::default()).id(),
+            ];
+
+            let mut entity_commands = commands.entity(hero);
+            entity_commands.insert_bundle(CharacterBundle {
+                abilities: abilities.into(),
+                mesh: meshes.add(Mesh::from(shape::Capsule::default())),
+                material: materials.add(Color::rgb(0.3, 0.3, 0.3).into()),
+                ..Default::default()
+            });
+        }
+    }
+
     fn frost_bolt_system(
         mut commands: Commands,
         mut meshes: ResMut<Assets<Mesh>>,
@@ -176,32 +204,6 @@ impl Default for FrostPathBundle {
 #[derive(Component)]
 struct FrostPathAbility;
 
-impl<'w, 's> AssetCommands<'w, 's> {
-    pub(crate) fn insert_north<'a>(
-        &'a mut self,
-        player: Entity,
-        transform: Transform,
-    ) -> EntityCommands<'w, 's, 'a> {
-        let abilities = vec![
-            self.commands.spawn_bundle(FrostBoltBundle::default()).id(),
-            self.commands.spawn_bundle(FrostPathBundle::default()).id(),
-        ];
-
-        let mut entity_commands = self.commands.entity(player);
-        entity_commands.insert_bundle(CharacterBundle {
-            abilities: abilities.into(),
-            pbr: PbrBundle {
-                mesh: self.meshes.add(Mesh::from(shape::Capsule::default())),
-                material: self.materials.add(Color::rgb(0.3, 0.3, 0.3).into()),
-                transform,
-                ..Default::default()
-            },
-            ..Default::default()
-        });
-        entity_commands
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use approx::assert_abs_diff_eq;
@@ -274,13 +276,8 @@ mod tests {
         let target = app
             .world
             .spawn()
-            .insert_bundle(CharacterBundle {
-                pbr: PbrBundle {
-                    transform: projectile_transform,
-                    ..Default::default()
-                },
-                ..Default::default()
-            })
+            .insert_bundle(CharacterBundle::default())
+            .insert(projectile_transform)
             .id();
 
         app.update();
