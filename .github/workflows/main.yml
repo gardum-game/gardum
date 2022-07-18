@@ -39,10 +39,11 @@ jobs:
       - name: Test
         run: cargo test
         env:
-          RUSTFLAGS: "-C instrument-coverage"
+          RUSTFLAGS: -C instrument-coverage
+          LLVM_PROFILE_FILE: profile-%p-%m.profraw
 
       - name: Process coverage
-        run: grcov default.profraw --binary-path target/debug/ --source-dir . --excl-start "mod tests" --excl-line "#\[" --ignore "/*" --ignore "src/ui/*" --ignore "src/main.rs" --output-path lcov.info
+        run: grcov . --binary-path target/debug/ --source-dir . --excl-start "mod tests" --excl-line "#\[" --ignore "/*" --ignore "*/main.rs" --ignore "src/ui/*" --output-path lcov.info
 
       - name: Upload code coverage results
         if: github.actor != 'dependabot[bot]'
