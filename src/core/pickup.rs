@@ -135,9 +135,7 @@ fn pickup_child_mesh(pickup: Entity, children: &Query<&Children>) -> Entity {
 #[derive(Bundle)]
 pub(super) struct PickupBundle {
     pickup_kind: PickupKind,
-
-    #[bundle]
-    transform: TransformBundle,
+    transform: Transform,
 }
 
 impl PickupBundle {
@@ -145,7 +143,7 @@ impl PickupBundle {
     pub(super) fn new(pickup_kind: PickupKind, translation: Vec3) -> Self {
         Self {
             pickup_kind,
-            transform: TransformBundle::from_transform(Transform::from_translation(translation)),
+            transform: Transform::from_translation(translation),
         }
     }
 }
@@ -154,6 +152,7 @@ impl PickupBundle {
 #[derive(Bundle)]
 struct LocalPickupBundle {
     name: Name,
+    global_transform: GlobalTransform,
     cooldown: Cooldown,
     sensor: Sensor,
     collider: Collider,
@@ -167,6 +166,7 @@ impl Default for LocalPickupBundle {
     fn default() -> Self {
         Self {
             name: "Pickup".into(),
+            global_transform: GlobalTransform::default(),
             cooldown: Cooldown::from_secs(10),
             sensor: Sensor,
             collider: Collider::capsule_y(0.5, 0.5),
