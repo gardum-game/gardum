@@ -20,25 +20,16 @@
 mod sky_roof;
 
 use bevy::prelude::*;
-use iyes_loopless::prelude::*;
 use strum::{Display, EnumIter, EnumString};
 
-use super::{network::server::ServerSettings, AssetCommands, AssociatedAsset};
-use crate::core::game_state::GameState;
+use super::AssociatedAsset;
+use sky_roof::SkyRoofPlugin;
 
 pub(super) struct MapsPlugin;
 
 impl Plugin for MapsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_enter_system(GameState::InGame, Self::load_map_system);
-    }
-}
-
-impl MapsPlugin {
-    fn load_map_system(mut asset_commands: AssetCommands, server_settings: Res<ServerSettings>) {
-        match server_settings.map {
-            Map::SkyRoof => asset_commands.spawn_sky_roof(),
-        };
+        app.add_plugin(SkyRoofPlugin);
     }
 }
 
@@ -58,9 +49,14 @@ impl AssociatedAsset for Map {
 #[cfg(test)]
 mod tests {
     use bevy::{gltf::GltfPlugin, scene::ScenePlugin};
+    use iyes_loopless::prelude::*;
 
     use super::*;
-    use crate::core::headless::{self, HeadlessRenderPlugin};
+    use crate::core::{
+        game_state::GameState,
+        headless::{self, HeadlessRenderPlugin},
+        network::server::ServerSettings,
+    };
 
     #[test]
     fn loading_on_start() {

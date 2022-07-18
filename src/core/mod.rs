@@ -149,7 +149,6 @@ impl Default for ProjectileBundle {
 #[derive(SystemParam)]
 struct AssetCommands<'w, 's> {
     commands: Commands<'w, 's>,
-    asset_server: Res<'w, AssetServer>,
     meshes: ResMut<'w, Assets<Mesh>>,
     materials: ResMut<'w, Assets<StandardMaterial>>,
 }

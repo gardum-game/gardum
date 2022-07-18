@@ -17,22 +17,31 @@
  *  along with Gardum. If not, see <https://www.gnu.org/licenses/>.
  */
 
-use bevy::{ecs::system::EntityCommands, prelude::*};
+use bevy::prelude::*;
+use iyes_loopless::prelude::*;
 use bevy_rapier3d::prelude::*;
 use std::f32::consts::PI;
 
 use super::Map;
 use crate::core::{
-    game_state::InGameOnly,
+    game_state::{InGameOnly, GameState},
     pickup::{PickupBundle, PickupKind},
     session::spawn::SpawnPointBundle,
-    AssetCommands, AssociatedAsset, CollisionMask,
+    AssociatedAsset, CollisionMask,
 };
 
-impl<'w, 's> AssetCommands<'w, 's> {
-    pub(super) fn spawn_sky_roof<'a>(&'a mut self) -> EntityCommands<'w, 's, 'a> {
+pub(super) struct SkyRoofPlugin;
+
+impl Plugin for SkyRoofPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_enter_system(GameState::InGame, Self::spawn_system);
+    }
+}
+
+impl SkyRoofPlugin {
+    fn spawn_system(mut commands: Commands, asset_server: Res<AssetServer>) {
         const PROJECTION: f32 = 45.0;
-        self.commands
+        commands
             .spawn_bundle(DirectionalLightBundle {
                 directional_light: DirectionalLight {
                     illuminance: 30000.0,
@@ -56,25 +65,24 @@ impl<'w, 's> AssetCommands<'w, 's> {
             })
             .insert(InGameOnly);
 
-        self.commands
-            .spawn_bundle(SpawnPointBundle::new(Vec3::new(0.0, 5.0, 0.0)));
+        commands.spawn_bundle(SpawnPointBundle::new(Vec3::new(0.0, 5.0, 0.0)));
 
-        self.commands.spawn_bundle(PickupBundle::new(
+        commands.spawn_bundle(PickupBundle::new(
             PickupKind::Healing,
             Vec3::new(4.0, 0.1, -1.0),
         ));
-        self.commands.spawn_bundle(PickupBundle::new(
+        commands.spawn_bundle(PickupBundle::new(
             PickupKind::Speed,
             Vec3::new(4.0, 0.1, 0.0),
         ));
-        self.commands.spawn_bundle(PickupBundle::new(
+        commands.spawn_bundle(PickupBundle::new(
             PickupKind::Rage,
             Vec3::new(4.0, 0.1, 1.0),
         ));
 
-        let mut scene_commands = self.commands.spawn_bundle(TransformBundle::default());
-        let map = self.asset_server.load(Map::SkyRoof.asset_path());
-        scene_commands
+        let map = asset_server.load(Map::SkyRoof.asset_path());
+        commands
+            .spawn_bundle(TransformBundle::default())
             .insert(AsyncSceneCollider {
                 handle: map.clone(),
                 shape: Some(ComputedColliderShape::TriMesh),
@@ -89,6 +97,5 @@ impl<'w, 's> AssetCommands<'w, 's> {
             .with_children(|parent| {
                 parent.spawn_scene(map);
             });
-        scene_commands
     }
 }
