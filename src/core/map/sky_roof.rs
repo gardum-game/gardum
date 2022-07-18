@@ -24,7 +24,7 @@ use std::f32::consts::PI;
 use super::Map;
 use crate::core::{
     game_state::InGameOnly,
-    pickup::{PickupKind, PickupSpawnBundle},
+    pickup::{PickupBundle, PickupKind},
     session::spawn::SpawnPointBundle,
     AssetCommands, AssociatedAsset, CollisionMask,
 };
@@ -59,15 +59,15 @@ impl<'w, 's> AssetCommands<'w, 's> {
         self.commands
             .spawn_bundle(SpawnPointBundle::new(Vec3::new(0.0, 5.0, 0.0)));
 
-        self.commands.spawn_bundle(PickupSpawnBundle::new(
+        self.commands.spawn_bundle(PickupBundle::new(
             PickupKind::Healing,
             Vec3::new(4.0, 0.1, -1.0),
         ));
-        self.commands.spawn_bundle(PickupSpawnBundle::new(
+        self.commands.spawn_bundle(PickupBundle::new(
             PickupKind::Speed,
             Vec3::new(4.0, 0.1, 0.0),
         ));
-        self.commands.spawn_bundle(PickupSpawnBundle::new(
+        self.commands.spawn_bundle(PickupBundle::new(
             PickupKind::Rage,
             Vec3::new(4.0, 0.1, 1.0),
         ));

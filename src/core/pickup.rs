@@ -53,7 +53,7 @@ impl PickupPlugin {
         for (pickup, kind) in spawned_pickups.iter() {
             commands
                 .entity(pickup)
-                .insert_bundle(PickupBundle::default())
+                .insert_bundle(LocalPickupBundle::default())
                 .with_children(|parent| {
                     parent
                         .spawn_bundle(TransformBundle::from_transform(
@@ -131,16 +131,16 @@ fn pickup_child_mesh(pickup: Entity, children: &Query<&Children>) -> Entity {
     mesh_entity
 }
 
-/// A component bundle to spawn a pickup.
+/// A component bundle to for pickup.
 #[derive(Bundle)]
-pub(super) struct PickupSpawnBundle {
+pub(super) struct PickupBundle {
     pickup_kind: PickupKind,
 
     #[bundle]
     transform: TransformBundle,
 }
 
-impl PickupSpawnBundle {
+impl PickupBundle {
     /// Creates a new [`PickupSpawnBundle`] with `pickup_kind` at `translation`.
     pub(super) fn new(pickup_kind: PickupKind, translation: Vec3) -> Self {
         Self {
@@ -152,7 +152,7 @@ impl PickupSpawnBundle {
 
 /// A component bundle that will be inserted automatically after inserting the [`PickupKind`] component.
 #[derive(Bundle)]
-struct PickupBundle {
+struct LocalPickupBundle {
     name: Name,
     cooldown: Cooldown,
     sensor: Sensor,
@@ -163,7 +163,7 @@ struct PickupBundle {
     ingame_only: InGameOnly,
 }
 
-impl Default for PickupBundle {
+impl Default for LocalPickupBundle {
     fn default() -> Self {
         Self {
             name: "Pickup".into(),
@@ -291,7 +291,7 @@ mod tests {
             let pickup = app
                 .world
                 .spawn()
-                .insert_bundle(PickupSpawnBundle::new(pickup_kind, Vec3::default()))
+                .insert_bundle(PickupBundle::new(pickup_kind, Vec3::default()))
                 .id();
 
             headless::wait_for_asset_loading(&mut app, pickup_kind.asset_path());
@@ -349,7 +349,7 @@ mod tests {
         let pickup = app
             .world
             .spawn()
-            .insert_bundle(PickupSpawnBundle::new(PICKUP_KIND, Vec3::default()))
+            .insert_bundle(PickupBundle::new(PICKUP_KIND, Vec3::default()))
             .id();
 
         headless::wait_for_asset_loading(&mut app, PICKUP_KIND.asset_path());
