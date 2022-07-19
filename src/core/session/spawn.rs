@@ -22,9 +22,9 @@ use derive_more::From;
 use iyes_loopless::prelude::*;
 
 use crate::core::{
-    character::hero::{HeroBundle, HeroKind},
     game_state::{GameState, InGameOnly},
     health::Death,
+    hero::{HeroBundle, HeroKind},
     network::server,
     player::Player,
 };

@@ -21,10 +21,9 @@ use bevy::{prelude::*, render::camera::Camera};
 use bevy_rapier3d::prelude::*;
 use iyes_loopless::prelude::*;
 
-use super::HeroKind;
+use super::{character_direction, HeroKind, LocalHeroBundle};
 use crate::core::{
     ability::{Activator, IconPath},
-    character::{character_direction, CharacterBundle},
     control_actions::ControlAction,
     cooldown::Cooldown,
     game_state::GameState,
@@ -66,7 +65,7 @@ impl NorthPlugin {
             ];
 
             let mut entity_commands = commands.entity(hero);
-            entity_commands.insert_bundle(CharacterBundle {
+            entity_commands.insert_bundle(LocalHeroBundle {
                 abilities: abilities.into(),
                 mesh: meshes.add(Mesh::from(shape::Capsule::default())),
                 material: materials.add(Color::rgb(0.3, 0.3, 0.3).into()),
@@ -276,7 +275,8 @@ mod tests {
         let target = app
             .world
             .spawn()
-            .insert_bundle(CharacterBundle::default())
+            .insert_bundle(LocalHeroBundle::default())
+            .insert(Health::default())
             .insert(projectile_transform)
             .id();
 

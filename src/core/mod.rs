@@ -18,7 +18,6 @@
  */
 
 pub(super) mod ability;
-pub(super) mod character;
 pub(super) mod cli;
 pub(super) mod control_actions;
 pub(super) mod cooldown;
@@ -31,6 +30,7 @@ mod graphics;
 #[cfg(test)]
 pub(super) mod headless;
 pub(super) mod health;
+pub(super) mod hero;
 pub(super) mod map;
 mod movement;
 pub(super) mod network;
@@ -46,7 +46,6 @@ use bitflags::bitflags;
 use derive_more::From;
 
 use ability::AbilityPlugin;
-use character::CharactersPlugin;
 use cli::Opts;
 use control_actions::ControlActionsPlugin;
 use despawn_timer::DespawnTimer;
@@ -57,6 +56,7 @@ use effect::EffectPlugin;
 use game_state::AppStatePlugin;
 use game_state::InGameOnly;
 use health::HealthPlugin;
+use hero::HeroPlugin;
 use map::MapsPlugin;
 use movement::MovementPlugin;
 use network::NetworkPlugin;
@@ -75,7 +75,7 @@ impl Plugin for CorePlugin {
             .add_plugin(SettingsPlugin)
             .add_plugin(AppStatePlugin)
             .add_plugin(HealthPlugin)
-            .add_plugin(CharactersPlugin)
+            .add_plugin(HeroPlugin)
             .add_plugin(ControlActionsPlugin)
             .add_plugin(AbilityPlugin)
             .add_plugin(OrbitCameraPlugin)

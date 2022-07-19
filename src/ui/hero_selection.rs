@@ -27,8 +27,8 @@ use strum::IntoEnumIterator;
 
 use super::{ui_state::UiState, UI_MARGIN};
 use crate::core::{
-    character::hero::HeroKind, game_state::GameState, network::server::ServerSettings,
-    player::Player, Authority,
+    game_state::GameState, hero::HeroKind, network::server::ServerSettings, player::Player,
+    Authority,
 };
 
 pub struct HeroSelectionPlugin;

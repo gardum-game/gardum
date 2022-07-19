@@ -21,8 +21,8 @@ use bevy::prelude::*;
 use iyes_loopless::prelude::*;
 
 use super::{
-    character::{DamageModifier, HealingModifier},
     game_state::GameState,
+    hero::{DamageModifier, HealingModifier},
     player::{Damage, Deaths, Healing, Kills},
 };
 

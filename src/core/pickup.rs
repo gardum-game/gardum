@@ -24,13 +24,13 @@ use iyes_loopless::prelude::*;
 use strum::EnumIter;
 
 use super::{
-    character::{DamageModifier, HealingModifier, SpeedModifier},
     cooldown::Cooldown,
     effect::{
         periodic_effect::{PeriodicEffectTimer, PeriodicHealthChange},
         EffectTarget, EffectTimer,
     },
     game_state::{GameState, InGameOnly},
+    hero::{DamageModifier, HealingModifier, SpeedModifier},
     AssociatedAsset, CollisionMask,
 };
 
@@ -278,8 +278,8 @@ mod tests {
 
     use super::*;
     use crate::core::{
-        character::CharacterBundle,
         headless::{self, HeadlessRenderPlugin},
+        hero::LocalHeroBundle,
     };
 
     #[test]
@@ -300,7 +300,7 @@ mod tests {
             let character = app
                 .world
                 .spawn()
-                .insert_bundle(CharacterBundle::default())
+                .insert_bundle(LocalHeroBundle::default())
                 .id();
 
             app.update();
@@ -366,7 +366,7 @@ mod tests {
         let mut cooldown = app.world.get_mut::<Cooldown>(pickup).unwrap();
         cooldown.reset();
 
-        app.world.spawn().insert_bundle(CharacterBundle::default());
+        app.world.spawn().insert_bundle(LocalHeroBundle::default());
 
         app.update();
         app.update();

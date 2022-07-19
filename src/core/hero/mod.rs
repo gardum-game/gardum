@@ -17,37 +17,64 @@
  *  along with Gardum. If not, see <https://www.gnu.org/licenses/>.
  */
 
-pub(crate) mod hero;
+mod north;
 
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 use derive_more::{AddAssign, From, SubAssign};
 use leafwing_input_manager::prelude::*;
+use strum::{EnumIter, EnumString};
 
 use super::{ability::Abilities, control_actions::ControlAction, health::Health, CollisionMask};
-use hero::HeroesPlugin;
+use north::NorthPlugin;
 
-pub(super) struct CharactersPlugin;
+pub(super) struct HeroPlugin;
 
-impl Plugin for CharactersPlugin {
+impl Plugin for HeroPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugin(HeroesPlugin);
+        app.add_plugin(NorthPlugin);
     }
 }
 
 #[derive(Bundle)]
-pub(super) struct CharacterBundle {
+pub(crate) struct HeroBundle {
+    hero_kind: HeroKind,
     health: Health,
-    abilities: Abilities,
     speed_modifier: SpeedModifier,
     damage_modifier: DamageModifier,
     healing_modifier: HealingModifier,
+    transform: Transform,
+    velocity: Velocity,
+    action_state: ActionState<ControlAction>,
+}
+
+impl HeroBundle {
+    pub(crate) fn new(hero_kind: HeroKind, translation: Vec3) -> Self {
+        Self {
+            hero_kind,
+            health: Health::default(),
+            speed_modifier: SpeedModifier::default(),
+            damage_modifier: DamageModifier::default(),
+            healing_modifier: HealingModifier::default(),
+            transform: Transform::from_translation(translation),
+            velocity: Velocity::default(),
+            action_state: ActionState::default(),
+        }
+    }
+}
+
+#[derive(Clone, Copy, PartialEq, EnumIter, EnumString, Debug, Component)]
+pub(crate) enum HeroKind {
+    North,
+}
+
+#[derive(Bundle)]
+pub(super) struct LocalHeroBundle {
+    abilities: Abilities,
     rigid_body: RigidBody,
     locked_axes: LockedAxes,
     collider: Collider,
     collision_groups: CollisionGroups,
-    velocity: Velocity,
-    action_state: ActionState<ControlAction>,
     mesh: Handle<Mesh>,
     material: Handle<StandardMaterial>,
     global_transform: GlobalTransform,
@@ -55,14 +82,10 @@ pub(super) struct CharacterBundle {
     computed_visibility: ComputedVisibility,
 }
 
-impl Default for CharacterBundle {
+impl Default for LocalHeroBundle {
     fn default() -> Self {
         Self {
-            health: Health::default(),
             abilities: Abilities::default(),
-            speed_modifier: SpeedModifier::default(),
-            damage_modifier: DamageModifier::default(),
-            healing_modifier: HealingModifier::default(),
             rigid_body: RigidBody::Dynamic,
             locked_axes: LockedAxes::ROTATION_LOCKED,
             collider: Collider::capsule_y(0.5, 0.5),
@@ -70,8 +93,6 @@ impl Default for CharacterBundle {
                 memberships: CollisionMask::CHARACTER.bits(),
                 filters: CollisionMask::all().bits(),
             },
-            velocity: Velocity::default(),
-            action_state: ActionState::default(),
             mesh: Default::default(),
             material: Default::default(),
             global_transform: Default::default(),

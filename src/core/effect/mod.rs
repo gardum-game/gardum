@@ -25,9 +25,9 @@ use derive_more::From;
 use iyes_loopless::prelude::*;
 
 use super::{
-    character::{DamageModifier, HealingModifier, SpeedModifier},
     game_state::GameState,
     health::Death,
+    hero::{DamageModifier, HealingModifier, SpeedModifier},
 };
 use modifier_effect::ModifierEffectPlugin;
 use periodic_effect::PeriodicEffectPlugin;

@@ -29,8 +29,8 @@ use iyes_loopless::prelude::*;
 use std::f32::consts::FRAC_PI_2;
 
 use super::{
-    character::hero::HeroKind,
     game_state::{GameState, InGameOnly},
+    hero::HeroKind,
     Authority, CollisionMask,
 };
 

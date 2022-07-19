@@ -24,7 +24,7 @@ use iyes_loopless::prelude::*;
 use leafwing_input_manager::prelude::*;
 
 use super::{
-    character::SpeedModifier, control_actions::ControlAction, game_state::GameState,
+    control_actions::ControlAction, game_state::GameState, hero::SpeedModifier,
     orbit_camera::CameraTarget,
 };
 
