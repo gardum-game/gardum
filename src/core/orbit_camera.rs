@@ -25,8 +25,8 @@ use bevy::{
 };
 use bevy_rapier3d::prelude::*;
 use derive_more::From;
+use dolly::prelude::*;
 use iyes_loopless::prelude::*;
-use std::f32::consts::FRAC_PI_2;
 
 use super::{
     game_state::{GameState, InGameOnly},
@@ -54,8 +54,6 @@ impl Plugin for OrbitCameraPlugin {
 }
 
 impl OrbitCameraPlugin {
-    const MAX_DISTANCE: f32 = 5.0;
-
     fn spawn_system(
         mut commands: Commands,
         mut active_camera: ResMut<ActiveCamera<Camera3d>>,
@@ -73,49 +71,58 @@ impl OrbitCameraPlugin {
 
     fn input_system(
         mut motion_events: EventReader<MouseMotion>,
-        time: Res<Time>,
         mut orbit_rotations: Query<&mut OrbitRotation, With<Authority>>,
     ) {
         if let Ok(mut orbit_rotation) = orbit_rotations.get_single_mut() {
             for event in motion_events.iter() {
                 const SENSETIVITY: f32 = 0.2;
-                orbit_rotation.0 -= event.delta * SENSETIVITY * time.delta_seconds();
+                orbit_rotation.0 -= event.delta * SENSETIVITY;
             }
 
-            orbit_rotation.y = orbit_rotation
-                .y
-                .clamp(10_f32.to_radians(), 90_f32.to_radians());
+            const MAX_ROTATION: f32 = 90.0;
+            orbit_rotation.y = orbit_rotation.y.clamp(-MAX_ROTATION, MAX_ROTATION);
         }
     }
 
     fn position_system(
         rapier_ctx: Res<RapierContext>,
+        time: Res<Time>,
         transforms: Query<&Transform, Without<OrbitRotation>>,
-        mut cameras: Query<(&mut Transform, &OrbitRotation, &CameraTarget)>,
+        mut cameras: Query<(&mut Transform, &mut OrbitRig, &OrbitRotation, &CameraTarget)>,
     ) {
-        for (mut camera_transform, orbit_rotation, target) in cameras.iter_mut() {
-            let character_translation = transforms.get(target.0).unwrap().translation;
-            let look_position = orbit_rotation.look_position() + character_translation;
-            let direction = orbit_rotation.direction();
-            let max_camera_translation = look_position + direction * Self::MAX_DISTANCE;
+        for (mut camera_transform, mut orbit_rig, orbit_rotation, target) in cameras.iter_mut() {
+            let mut pivot_translation = transforms.get(target.0).unwrap().translation;
+            const GROUND_OFFSET: f32 = 1.5;
+            pivot_translation.y += GROUND_OFFSET;
+            orbit_rig.driver_mut::<Position>().position = pivot_translation;
 
-            const MARGIN: f32 = 0.5;
-            let distance = rapier_ctx
-                .cast_ray(
-                    character_translation,
-                    (max_camera_translation - character_translation).normalize_or_zero(),
-                    Self::MAX_DISTANCE,
-                    false,
-                    QueryFilter::new().groups(InteractionGroups::new(
-                        CollisionMask::CHARACTER.bits(),
-                        (CollisionMask::all() ^ CollisionMask::CHARACTER).bits(),
-                    )),
-                )
-                .map(|(_, distance)| (distance - MARGIN).max(MARGIN))
-                .unwrap_or(Self::MAX_DISTANCE);
+            let yaw_pitch = orbit_rig.driver_mut::<YawPitch>();
+            yaw_pitch.yaw_degrees = orbit_rotation.x;
+            yaw_pitch.pitch_degrees = orbit_rotation.y;
 
-            camera_transform.translation = look_position + direction * distance;
-            camera_transform.look_at(look_position, Vec3::Y);
+            orbit_rig.driver_mut::<Arm>().offset.z = OrbitRig::MAX_DISTANCE;
+            let mut calculated_transform = orbit_rig.update(time.delta_seconds());
+
+            let ray_direction = (calculated_transform.position - pivot_translation).normalize();
+            const BALL_RADIUS: f32 = 0.5;
+            if let Some((_, distance)) = rapier_ctx.cast_shape(
+                pivot_translation + ray_direction * BALL_RADIUS,
+                Quat::default(),
+                ray_direction,
+                &Collider::ball(BALL_RADIUS),
+                calculated_transform.position.distance(pivot_translation),
+                QueryFilter::new().groups(InteractionGroups::new(
+                    CollisionMask::CHARACTER.bits(),
+                    (CollisionMask::all() ^ CollisionMask::CHARACTER).bits(),
+                )),
+            ) {
+                // Recalculate arm length on collision
+                orbit_rig.driver_mut::<Arm>().offset.z = distance.toi;
+                calculated_transform = orbit_rig.update(time.delta_seconds());
+            }
+
+            camera_transform.translation = calculated_transform.position;
+            camera_transform.rotation = calculated_transform.rotation;
         }
     }
 }
@@ -132,6 +139,7 @@ struct OrbitCameraBundle {
     name: Name,
     camera_target: CameraTarget,
     orbit_rotation: OrbitRotation,
+    orbit_rig: OrbitRig,
     ingame_only: InGameOnly,
 
     #[bundle]
@@ -143,6 +151,7 @@ impl OrbitCameraBundle {
         Self {
             name: "Orbit Camera".into(),
             camera_target,
+            orbit_rig: OrbitRig::default(),
             orbit_rotation: OrbitRotation::default(),
             ingame_only: InGameOnly,
             camera: PerspectiveCameraBundle::new_3d(),
@@ -157,38 +166,35 @@ pub(super) struct CameraTarget(pub(super) Entity);
 #[derive(Component, Deref, DerefMut, Debug, PartialEq)]
 struct OrbitRotation(Vec2);
 
-impl OrbitRotation {
-    /// Calculate camera direction.
-    fn direction(&self) -> Vec3 {
-        Quat::from_axis_angle(Vec3::Y, self.x) * Quat::from_axis_angle(Vec3::X, self.y) * Vec3::Y
-    }
+#[derive(Component, From, Deref, DerefMut)]
+struct OrbitRig(CameraRig);
 
-    /// Calculate the point at which camera is directed relative to the player.
-    fn look_position(&self) -> Vec3 {
-        const RIGHT_OFFSET: f32 = 1.2;
-        const UP_OFFSET: f32 = 1.0;
+impl OrbitRig {
+    const MAX_DISTANCE: f32 = 5.0;
+}
 
-        // Calculate position on circle around the player using `RIGHT_OFFSET` as radius and add `UP_OFFSET` to this position.
-        Vec3::new(
-            RIGHT_OFFSET * (self.x + FRAC_PI_2).sin(),
-            UP_OFFSET,
-            RIGHT_OFFSET * (self.x + FRAC_PI_2).cos(),
+impl Default for OrbitRig {
+    fn default() -> Self {
+        Self(
+            CameraRig::builder()
+                .with(Position::default())
+                .with(YawPitch::default())
+                .with(Arm::new(Vec3::new(1.5, 0.0, Self::MAX_DISTANCE)))
+                .build(),
         )
     }
 }
 
 impl Default for OrbitRotation {
     fn default() -> Self {
-        Self(Vec2::new(0.0, 60_f32.to_radians()))
+        Self(Vec2::new(-90.0, 0.0))
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use approx::assert_ulps_eq;
     use bevy::{ecs::event::Events, input::InputPlugin, scene::ScenePlugin};
     use bevy_rapier3d::prelude::*;
-    use std::f32::consts::PI;
 
     use super::*;
     use crate::core::headless::HeadlessRenderPlugin;
@@ -265,71 +271,13 @@ mod tests {
     }
 
     #[test]
-    fn movement() {
-        let mut app = App::new();
-        app.add_plugin(TestOrbitCameraPlugin);
-
-        let character = app
-            .world
-            .spawn()
-            .insert_bundle(DummyCharacterBundle::default())
-            .id();
-
-        app.update();
-
-        for (character_translation, camera_rotation) in [
-            (Vec3::ZERO, Vec2::ZERO),
-            (Vec3::ONE * OrbitCameraPlugin::MAX_DISTANCE, Vec2::ZERO),
-            (Vec3::ONE, Vec2::ONE * PI),
-            (Vec3::ONE, Vec2::ONE * 2.0 * PI),
-        ] {
-            let camera = app
-                .world
-                .query_filtered::<Entity, With<OrbitRotation>>()
-                .iter(&app.world)
-                .next()
-                .unwrap(); // TODO 0.8: Use single
-
-            app.world
-                .get_mut::<Transform>(character)
-                .unwrap()
-                .translation = character_translation;
-            app.world.get_mut::<OrbitRotation>(camera).unwrap().0 = camera_rotation;
-
-            app.update();
-
-            let camera = app.world.entity(camera);
-            let orbit_rotation = camera.get::<OrbitRotation>().unwrap();
-            let camera_transform = camera.get::<Transform>().unwrap();
-            let character_transform = app.world.get::<Transform>(character).unwrap();
-            let look_position = orbit_rotation.look_position() + character_transform.translation;
-
-            assert_ulps_eq!(
-                camera_transform.translation.distance(look_position),
-                OrbitCameraPlugin::MAX_DISTANCE,
-            );
-            assert_eq!(
-                *camera_transform,
-                camera_transform.looking_at(look_position, Vec3::Y),
-                "Camera should look at the character"
-            );
-        }
-    }
-
-    #[test]
-    fn collision() {
+    fn position() {
         let mut app = App::new();
         app.add_plugin(TestOrbitCameraPlugin);
 
         app.world
             .spawn()
-            .insert(Transform::default())
-            .insert(Collider::ball(5.0));
-        let character = app
-            .world
-            .spawn()
-            .insert_bundle(DummyCharacterBundle::default())
-            .id();
+            .insert_bundle(DummyCharacterBundle::default());
 
         app.update();
 
@@ -340,15 +288,24 @@ mod tests {
             .next()
             .unwrap(); // TODO 0.8: Use single
 
-        let camera = app.world.entity(camera);
-        let orbit_rotation = camera.get::<OrbitRotation>().unwrap();
-        let camera_transform = camera.get::<Transform>().unwrap();
-        let character_transform = app.world.get::<Transform>(character).unwrap();
-        let look_position = orbit_rotation.look_position() + character_transform.translation;
+        let mut orbit_rig = app.world.get_mut::<OrbitRig>(camera).unwrap();
+        assert_eq!(
+            orbit_rig.driver_mut::<Arm>().offset.z,
+            OrbitRig::MAX_DISTANCE,
+            "Camera should be at the maximum distance when nothing blocks the line of sight"
+        );
 
+        app.world
+            .spawn()
+            .insert(Transform::default())
+            .insert(Collider::ball(OrbitRig::MAX_DISTANCE - 1.0));
+
+        app.update();
+
+        let mut orbit_rig = app.world.get_mut::<OrbitRig>(camera).unwrap();
         assert!(
-            camera_transform.translation.distance(look_position) < OrbitCameraPlugin::MAX_DISTANCE,
-            "Camera should collide with the spawned sphere"
+            orbit_rig.driver_mut::<Arm>().offset.z < OrbitRig::MAX_DISTANCE,
+            "Camera distance should decrease when there is an obstacle that blocks the line of sight"
         );
     }
 
