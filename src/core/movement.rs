@@ -60,7 +60,7 @@ impl MovementPlugin {
                 AIR_INTERPOLATION_SPEED
             };
 
-            let motion = Self::movement_direction(action_state, camera_transform.rotation)
+            let motion = movement_direction(action_state, camera_transform.rotation)
                 * MOVE_SPEED
                 * speed_modifier.0;
             velocity.linvel = velocity
@@ -73,27 +73,27 @@ impl MovementPlugin {
             }
         }
     }
+}
 
-    fn movement_direction(action_state: &ActionState<ControlAction>, rotation: Quat) -> Vec3 {
-        let mut direction = Vec3::ZERO;
-        if action_state.pressed(ControlAction::Left) {
-            direction.x -= 1.0;
-        }
-        if action_state.pressed(ControlAction::Right) {
-            direction.x += 1.0;
-        }
-        if action_state.pressed(ControlAction::Forward) {
-            direction.z -= 1.0;
-        }
-        if action_state.pressed(ControlAction::Backward) {
-            direction.z += 1.0;
-        }
-
-        direction = rotation * direction;
-        direction.y = 0.0;
-
-        direction.normalize_or_zero()
+fn movement_direction(action_state: &ActionState<ControlAction>, rotation: Quat) -> Vec3 {
+    let mut direction = Vec3::ZERO;
+    if action_state.pressed(ControlAction::Left) {
+        direction.x -= 1.0;
     }
+    if action_state.pressed(ControlAction::Right) {
+        direction.x += 1.0;
+    }
+    if action_state.pressed(ControlAction::Forward) {
+        direction.z -= 1.0;
+    }
+    if action_state.pressed(ControlAction::Backward) {
+        direction.z += 1.0;
+    }
+
+    direction = rotation * direction;
+    direction.y = 0.0;
+
+    direction.normalize_or_zero()
 }
 
 #[cfg(test)]
@@ -111,7 +111,7 @@ mod tests {
         action_state.press(ControlAction::Forward);
         action_state.press(ControlAction::Right);
 
-        let direction = MovementPlugin::movement_direction(&action_state, Quat::IDENTITY);
+        let direction = movement_direction(&action_state, Quat::IDENTITY);
         assert!(direction.is_normalized(), "Should be normalized");
         assert_eq!(direction.y, 0.0, "Shouldn't point up");
     }
@@ -124,7 +124,7 @@ mod tests {
         action_state.press(ControlAction::Right);
         action_state.press(ControlAction::Left);
 
-        let direction = MovementPlugin::movement_direction(&action_state, Quat::IDENTITY);
+        let direction = movement_direction(&action_state, Quat::IDENTITY);
         assert_eq!(
             direction.x, 0.0,
             "Should be 0 when opposite buttons are pressed"
@@ -139,7 +139,7 @@ mod tests {
     fn movement_direction_empty() {
         let action_state = ActionState::<ControlAction>::default();
 
-        let direction = MovementPlugin::movement_direction(&action_state, Quat::IDENTITY);
+        let direction = movement_direction(&action_state, Quat::IDENTITY);
         assert_eq!(
             direction,
             Vec3::ZERO,
