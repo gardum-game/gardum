@@ -34,7 +34,7 @@ approx = "0.5"
 rmp-serde = "1.1"
 
 [dev-dependencies]
-glam = { version = "0.20", features = ["approx"] }
+glam = { version = "0.20", features = ["approx", "glam-assert"] }
 
 [features]
 default = ["client"]

@@ -44,7 +44,6 @@ pub(crate) struct HeroBundle {
     damage_modifier: DamageModifier,
     healing_modifier: HealingModifier,
     transform: Transform,
-    velocity: Velocity,
     action_state: ActionState<ControlAction>,
 }
 
@@ -57,7 +56,6 @@ impl HeroBundle {
             damage_modifier: DamageModifier::default(),
             healing_modifier: HealingModifier::default(),
             transform: Transform::from_translation(translation),
-            velocity: Velocity::default(),
             action_state: ActionState::default(),
         }
     }
@@ -72,7 +70,6 @@ pub(crate) enum HeroKind {
 pub(super) struct LocalHeroBundle {
     abilities: Abilities,
     rigid_body: RigidBody,
-    locked_axes: LockedAxes,
     collider: Collider,
     collision_groups: CollisionGroups,
     mesh: Handle<Mesh>,
@@ -86,8 +83,7 @@ impl Default for LocalHeroBundle {
     fn default() -> Self {
         Self {
             abilities: Abilities::default(),
-            rigid_body: RigidBody::Dynamic,
-            locked_axes: LockedAxes::ROTATION_LOCKED,
+            rigid_body: RigidBody::KinematicPositionBased,
             collider: Collider::capsule_y(0.5, 0.5),
             collision_groups: CollisionGroups {
                 memberships: CollisionMask::CHARACTER.bits(),
