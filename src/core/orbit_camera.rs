@@ -164,7 +164,7 @@ pub(super) struct CameraTarget(pub(super) Entity);
 
 /// Camera rotation state
 #[derive(Component, Deref, DerefMut, Debug, PartialEq)]
-struct OrbitRotation(Vec2);
+pub(super) struct OrbitRotation(Vec2);
 
 #[derive(Component, From, Deref, DerefMut)]
 struct OrbitRig(CameraRig);

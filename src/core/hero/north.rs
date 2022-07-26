@@ -65,12 +65,22 @@ impl NorthPlugin {
             ];
 
             let mut entity_commands = commands.entity(hero);
-            entity_commands.insert_bundle(LocalHeroBundle {
-                abilities: abilities.into(),
-                mesh: meshes.add(Mesh::from(shape::Capsule::default())),
-                material: materials.add(Color::rgb(0.3, 0.3, 0.3).into()),
-                ..Default::default()
-            });
+            entity_commands
+                .insert_bundle(LocalHeroBundle {
+                    abilities: abilities.into(),
+                    mesh: meshes.add(Mesh::from(shape::Capsule::default())),
+                    material: materials.add(Color::rgb(0.3, 0.3, 0.3).into()),
+                    ..Default::default()
+                })
+                .with_children(|parent| {
+                    parent.spawn_bundle(PbrBundle {
+                        mesh: meshes.add(Mesh::from(shape::Box::new(0.1, 0.4, 0.1))),
+                        material: materials.add(Color::rgb(0.3, 0.3, 0.3).into()),
+                        transform: Transform::from_translation(Vec3::new(0.0, 0.9, -0.4))
+                            .with_rotation(Quat::from_rotation_x(90.0_f32.to_radians())),
+                        ..Default::default()
+                    });
+                });
         }
     }
 
