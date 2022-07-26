@@ -90,7 +90,7 @@ jobs:
 
   codecov:
     name: Upload to Codecov
-    if: github.actor != 'dependabot[bot]'
+    if: github.actor != 'dependabot'
     needs: [test, clippy, format]
     runs-on: ubuntu-latest
     steps:
